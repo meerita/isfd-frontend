@@ -1,7 +1,7 @@
 /** @format */
 
 // File: src/_lib/authTokens.ts
-// Purpose: Helper utilities to manage auth cookies and token decoding
+// Purpose: Helper utilities to manage auth cookies and token decoding for ISFD backend
 // Author: Diego M. Lafuente
 // Email: dlafuente@gmail.com
 
@@ -12,12 +12,14 @@ import API_ROUTES from '@/_constants/apiRoutes';
 import ENV from '@/_constants/env';
 import type {
   AccessTokenPayload,
-  AuthTokensResponse,
-  NormalizedAuthTokens,
+  NormalizedSession,
+  RefreshSessionResponse,
+  VerifyLoginOtpResponse,
 } from '@/_types/auth';
 
-export const ACCESS_TOKEN_COOKIE = 'sportapp-access-token';
-export const REFRESH_TOKEN_COOKIE = 'sportapp-refresh-token';
+export const ACCESS_TOKEN_COOKIE = 'isfd-access-token';
+export const REFRESH_TOKEN_COOKIE = 'isfd-refresh-token';
+export const SESSION_ID_COOKIE = 'isfd-session-id';
 export const ACCESS_TOKEN_REFRESH_BUFFER_SECONDS = 60;
 
 export function decodeAccessToken(
@@ -56,57 +58,58 @@ export function shouldRefreshAccessToken(
   return payload.exp - nowSeconds <= ACCESS_TOKEN_REFRESH_BUFFER_SECONDS;
 }
 
-export function normalizeAuthTokens(
-  tokens: AuthTokensResponse,
-): NormalizedAuthTokens | null {
-  const accessToken = tokens.accessToken ?? tokens.access_token;
-  const refreshToken = tokens.refreshToken ?? tokens.refresh_token;
-
-  if (!accessToken || !refreshToken) {
-    return null;
-  }
-
+export function normalizeSession(
+  response: VerifyLoginOtpResponse,
+): NormalizedSession {
   return {
-    accessToken,
-    refreshToken,
-  } satisfies NormalizedAuthTokens;
+    sessionId: response.session_id,
+    accessToken: response.access_token,
+    accessTokenExpiresAt: response.access_token_expires_at,
+    refreshToken: response.refresh_token,
+    refreshTokenExpiresAt: response.refresh_token_expires_at,
+  };
 }
 
-export async function persistAuthTokens(
-  tokens: AuthTokensResponse,
-): Promise<AccessTokenPayload | null> {
-  const normalizedTokens = normalizeAuthTokens(tokens);
+function isoToMaxAge(isoString: string): number {
+  const expiresAt = new Date(isoString).getTime();
+  const nowMs = Date.now();
+  return Math.max(Math.floor((expiresAt - nowMs) / 1000), 0);
+}
 
-  if (!normalizedTokens) {
-    return null;
-  }
-
+export async function persistSession(session: NormalizedSession): Promise<AccessTokenPayload | null> {
   const cookieStore = await cookies();
-  const payload = decodeAccessToken(normalizedTokens.accessToken);
+  const payload = decodeAccessToken(session.accessToken);
   const secure = process.env.NODE_ENV === 'production';
 
   if (!payload) {
     return null;
   }
 
-  const maxAge = payload.exp
-    ? Math.max(payload.exp - Math.floor(Date.now() / 1000), 0)
-    : 15 * 60;
+  const accessTokenMaxAge = isoToMaxAge(session.accessTokenExpiresAt);
+  const refreshTokenMaxAge = isoToMaxAge(session.refreshTokenExpiresAt);
 
-  cookieStore.set(ACCESS_TOKEN_COOKIE, normalizedTokens.accessToken, {
+  cookieStore.set(ACCESS_TOKEN_COOKIE, session.accessToken, {
     httpOnly: true,
     secure,
     sameSite: 'lax',
     path: '/',
-    maxAge,
+    maxAge: accessTokenMaxAge || ENV.refreshTokenMaxAgeSeconds,
   });
 
-  cookieStore.set(REFRESH_TOKEN_COOKIE, normalizedTokens.refreshToken, {
+  cookieStore.set(REFRESH_TOKEN_COOKIE, session.refreshToken, {
     httpOnly: true,
     secure,
     sameSite: 'lax',
     path: '/',
-    maxAge: ENV.refreshTokenMaxAgeSeconds,
+    maxAge: refreshTokenMaxAge || ENV.refreshTokenMaxAgeSeconds,
+  });
+
+  cookieStore.set(SESSION_ID_COOKIE, session.sessionId, {
+    httpOnly: true,
+    secure,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: refreshTokenMaxAge || ENV.refreshTokenMaxAgeSeconds,
   });
 
   return payload;
@@ -116,6 +119,7 @@ export async function clearAuthCookies(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(ACCESS_TOKEN_COOKIE);
   cookieStore.delete(REFRESH_TOKEN_COOKIE);
+  cookieStore.delete(SESSION_ID_COOKIE);
 }
 
 export async function getAccessTokenPayloadFromCookies(): Promise<AccessTokenPayload | null> {
@@ -124,13 +128,14 @@ export async function getAccessTokenPayloadFromCookies(): Promise<AccessTokenPay
 }
 
 export async function refreshAuthSession(
+  sessionId: string,
   refreshToken: string,
-): Promise<NormalizedAuthTokens | null> {
+): Promise<NormalizedSession | null> {
   try {
-    const response = await fetch(`${ENV.apiBaseUrl}${API_ROUTES.REFRESH_SESSION}`, {
+    const response = await fetch(`${ENV.apiBaseUrl}${API_ROUTES.AUTH_REFRESH}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken }),
+      body: JSON.stringify({ session_id: sessionId, refresh_token: refreshToken }),
       cache: 'no-store',
     });
 
@@ -139,8 +144,8 @@ export async function refreshAuthSession(
       return null;
     }
 
-    const tokens = (await response.json()) as AuthTokensResponse;
-    return normalizeAuthTokens(tokens);
+    const data = (await response.json()) as RefreshSessionResponse;
+    return normalizeSession(data);
   } catch (error) {
     console.error('Failed to refresh session', error);
     return null;
@@ -166,8 +171,9 @@ export async function getAuthenticatedRequestHeaders(options?: {
   }
 
   const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIE)?.value ?? null;
+  const sessionId = cookieStore.get(SESSION_ID_COOKIE)?.value ?? null;
 
-  if (!refreshToken) {
+  if (!refreshToken || !sessionId) {
     if (!payload || isTokenExpired(payload)) {
       await clearAuthCookies();
       return undefined;
@@ -176,9 +182,9 @@ export async function getAuthenticatedRequestHeaders(options?: {
     return accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
   }
 
-  const refreshedTokens = await refreshAuthSession(refreshToken);
+  const refreshedSession = await refreshAuthSession(sessionId, refreshToken);
 
-  if (!refreshedTokens) {
+  if (!refreshedSession) {
     if (!payload || isTokenExpired(payload)) {
       await clearAuthCookies();
       return undefined;
@@ -187,12 +193,12 @@ export async function getAuthenticatedRequestHeaders(options?: {
     return accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
   }
 
-  const refreshedPayload = await persistAuthTokens(refreshedTokens);
+  const refreshedPayload = await persistSession(refreshedSession);
 
   if (!refreshedPayload || isTokenExpired(refreshedPayload)) {
     await clearAuthCookies();
     return undefined;
   }
 
-  return { Authorization: `Bearer ${refreshedTokens.accessToken}` };
+  return { Authorization: `Bearer ${refreshedSession.accessToken}` };
 }

@@ -3,7 +3,7 @@
 'use server';
 
 // File: src/proxy.ts
-// Purpose: Enforce session and role-based access using Next.js proxy
+// Purpose: Enforce session-based access control using Next.js proxy
 // Author: Diego M. Lafuente
 // Email: dlafuente@gmail.com
 
@@ -13,14 +13,15 @@ import ENV from '@/_constants/env';
 import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
+  SESSION_ID_COOKIE,
   decodeAccessToken,
   isTokenExpired,
   refreshAuthSession,
   shouldRefreshAccessToken,
 } from '@/_lib/authTokens';
-import type { AccessTokenPayload, NormalizedAuthTokens } from '@/_types/auth';
+import type { AccessTokenPayload, NormalizedSession } from '@/_types/auth';
 
-const PUBLIC_PATHS: ReadonlySet<string> = new Set(['/', '/forbidden']);
+const PUBLIC_PATHS: ReadonlySet<string> = new Set(['/', '/register', '/forbidden']);
 const IGNORED_PREFIXES: ReadonlyArray<string> = [
   '/_next',
   '/favicon',
@@ -39,14 +40,14 @@ export async function proxy(request: NextRequest) {
   const tokenValue = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
 
   let payload = decodeAccessToken(tokenValue);
-  let tokensToPersist: NormalizedAuthTokens | null = null;
+  let sessionToPersist: NormalizedSession | null = null;
   let shouldClearCookies = false;
 
   if (!payload || shouldRefreshAccessToken(payload)) {
     const refreshed = await tryRefreshSession(request);
 
     if (refreshed) {
-      tokensToPersist = refreshed.tokens;
+      sessionToPersist = refreshed.session;
       payload = refreshed.payload;
     } else if (!payload || isTokenExpired(payload)) {
       if (requiresAuth) {
@@ -61,10 +62,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isPublicPath(normalizedPath)) {
-    if (normalizedPath === '/' && payload?.isAdmin) {
+    if (normalizedPath === '/' && payload && !isTokenExpired(payload)) {
       return applyCookieUpdates(
         NextResponse.redirect(new URL('/dashboard', request.url)),
-        tokensToPersist,
+        sessionToPersist,
         payload,
         shouldClearCookies,
       );
@@ -72,37 +73,28 @@ export async function proxy(request: NextRequest) {
 
     return applyCookieUpdates(
       NextResponse.next(),
-      tokensToPersist,
+      sessionToPersist,
       payload,
       shouldClearCookies,
     );
   }
 
-  if (!payload) {
+  if (!payload || isTokenExpired(payload)) {
     const response = NextResponse.redirect(new URL('/', request.url));
     clearAuthCookiesFromResponse(response);
     return response;
   }
 
-  if (!payload.isAdmin) {
-    return applyCookieUpdates(
-      NextResponse.redirect(new URL('/forbidden', request.url)),
-      tokensToPersist,
-      payload,
-      shouldClearCookies,
-    );
-  }
-
   return applyCookieUpdates(
     NextResponse.next(),
-    tokensToPersist,
+    sessionToPersist,
     payload,
     shouldClearCookies,
   );
 }
 
 type RefreshResult = Readonly<{
-  tokens: NormalizedAuthTokens;
+  session: NormalizedSession;
   payload: AccessTokenPayload;
 }>;
 
@@ -110,34 +102,35 @@ async function tryRefreshSession(
   request: NextRequest,
 ): Promise<RefreshResult | null> {
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+  const sessionId = request.cookies.get(SESSION_ID_COOKIE)?.value;
 
-  if (!refreshToken) {
+  if (!refreshToken || !sessionId) {
     return null;
   }
 
-  const tokens = await refreshAuthSession(refreshToken);
+  const session = await refreshAuthSession(sessionId, refreshToken);
 
-  if (!tokens) {
+  if (!session) {
     return null;
   }
 
-  const payload = decodeAccessToken(tokens.accessToken);
+  const payload = decodeAccessToken(session.accessToken);
 
   if (!payload || isTokenExpired(payload)) {
     return null;
   }
 
-  return { tokens, payload } satisfies RefreshResult;
+  return { session, payload } satisfies RefreshResult;
 }
 
 function applyCookieUpdates(
   response: NextResponse,
-  tokens: NormalizedAuthTokens | null,
+  session: NormalizedSession | null,
   payload: AccessTokenPayload | null,
   shouldClear: boolean,
 ): NextResponse {
-  if (tokens && payload) {
-    persistTokensInResponse(response, tokens, payload);
+  if (session && payload) {
+    persistSessionInResponse(response, session);
     return response;
   }
 
@@ -148,39 +141,55 @@ function applyCookieUpdates(
   return response;
 }
 
-function persistTokensInResponse(
+function persistSessionInResponse(
   response: NextResponse,
-  tokens: NormalizedAuthTokens,
-  payload: AccessTokenPayload,
+  session: NormalizedSession,
 ): void {
   const secure = process.env.NODE_ENV === 'production';
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  const maxAge = payload.exp ? Math.max(payload.exp - nowSeconds, 0) : 15 * 60;
+
+  function isoToMaxAge(isoString: string): number {
+    const expiresAt = new Date(isoString).getTime();
+    return Math.max(Math.floor((expiresAt - Date.now()) / 1000), 0);
+  }
+
+  const accessTokenMaxAge = isoToMaxAge(session.accessTokenExpiresAt);
+  const refreshTokenMaxAge = isoToMaxAge(session.refreshTokenExpiresAt);
 
   response.cookies.set({
     name: ACCESS_TOKEN_COOKIE,
-    value: tokens.accessToken,
+    value: session.accessToken,
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
     secure,
-    maxAge,
+    maxAge: accessTokenMaxAge || ENV.refreshTokenMaxAgeSeconds,
   });
 
   response.cookies.set({
     name: REFRESH_TOKEN_COOKIE,
-    value: tokens.refreshToken,
+    value: session.refreshToken,
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
     secure,
-    maxAge: ENV.refreshTokenMaxAgeSeconds,
+    maxAge: refreshTokenMaxAge || ENV.refreshTokenMaxAgeSeconds,
+  });
+
+  response.cookies.set({
+    name: SESSION_ID_COOKIE,
+    value: session.sessionId,
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+    secure,
+    maxAge: refreshTokenMaxAge || ENV.refreshTokenMaxAgeSeconds,
   });
 }
 
 function clearAuthCookiesFromResponse(response: NextResponse): void {
   response.cookies.delete(ACCESS_TOKEN_COOKIE);
   response.cookies.delete(REFRESH_TOKEN_COOKIE);
+  response.cookies.delete(SESSION_ID_COOKIE);
 }
 
 function isPublicPath(pathname: string): boolean {

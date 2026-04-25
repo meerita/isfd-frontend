@@ -1,15 +1,18 @@
 /** @format */
 
+import { getMe } from '@/_actions/auth/getMe';
 import TopBar from '@/_components/layout/TopBar';
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getMe();
+
   return (
     <>
-      <TopBar username='Diego' />
+      <TopBar username={user?.username ?? 'User'} />
       {children}
     </>
   );

@@ -2,11 +2,11 @@
 
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { loginWithEmail } from '@/_actions/auth/loginWithEmail';
-import type { LoginActionState } from '@/_types/auth';
+import { registerAction } from '@/_actions/auth/registerAction';
+import type { RegisterActionState } from '@/_types/auth';
 
 import Button from './forms/Button';
 import Form from './forms/Form';
@@ -14,27 +14,18 @@ import TextInput from './forms/TextInput';
 import ButtonGroup from './navigation/ButtonGroup';
 import Text from './typography/Text';
 
-const INITIAL_STATE: LoginActionState = {
+const INITIAL_STATE: RegisterActionState = {
   status: 'idle',
   step: 'credentials',
 };
 
 const IS_LOCAL_DEVELOPMENT = process.env.NODE_ENV === 'development';
-const DEVICE_ID_STORAGE_KEY = 'isfd-device-id';
 
-export default function LoginForm() {
-  const [state, formAction, pending] = useActionState<LoginActionState, FormData>(
-    loginWithEmail,
+export default function RegisterForm() {
+  const [state, formAction, pending] = useActionState<RegisterActionState, FormData>(
+    registerAction,
     INITIAL_STATE,
   );
-  const [deviceId] = useState<string>(() => {
-    if (typeof window === 'undefined') return '';
-    const stored = localStorage.getItem(DEVICE_ID_STORAGE_KEY);
-    if (stored) return stored;
-    const generated = crypto.randomUUID();
-    localStorage.setItem(DEVICE_ID_STORAGE_KEY, generated);
-    return generated;
-  });
   const isOtpStep = state.step === 'otp';
 
   useEffect(() => {
@@ -43,7 +34,7 @@ export default function LoginForm() {
     }
 
     if (state.status === 'awaiting_otp') {
-      toast.success('OTP code sent.');
+      toast.success('OTP code sent. Check your email.');
     }
   }, [state.status, state.error]);
 
@@ -52,13 +43,14 @@ export default function LoginForm() {
       {isOtpStep ? (
         <>
           <input type='hidden' name='challenge_id' value={state.challengeId ?? ''} />
-          <input type='hidden' name='device_id' value={deviceId} />
           {IS_LOCAL_DEVELOPMENT && state.otpCode ? (
             <Text color='gray'>
               This is your OTP code: <strong>{state.otpCode}</strong>
             </Text>
           ) : (
-            <Text color='gray'>Check your email for the OTP code.</Text>
+            <Text color='gray'>
+              Check your email for the OTP code.
+            </Text>
           )}
           <TextInput
             label='OTP code'
@@ -91,10 +83,18 @@ export default function LoginForm() {
             label='Password'
             name='password'
             type='password'
-            placeholder='Enter your password'
-            autoComplete='current-password'
+            placeholder='Choose a password'
+            autoComplete='new-password'
             disabled={pending}
             required
+          />
+          <TextInput
+            label='Username (optional)'
+            name='username'
+            type='text'
+            placeholder='your_username'
+            autoComplete='username'
+            disabled={pending}
           />
         </>
       )}
@@ -103,10 +103,10 @@ export default function LoginForm() {
           {pending
             ? isOtpStep
               ? 'Verifying...'
-              : 'Sending code...'
+              : 'Creating account...'
             : isOtpStep
               ? 'Verify code'
-              : 'Continue'}
+              : 'Create account'}
         </Button>
       </ButtonGroup>
     </Form>
