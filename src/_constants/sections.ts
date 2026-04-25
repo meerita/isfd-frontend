@@ -1,0 +1,37 @@
+/** @format */
+
+const SECTIONS = {
+  ACCOUNT: 'Account',
+  ACTIVITIES: 'Activities',
+  ADD_GROUP: 'Create Group',
+  ADD_PLACE: 'Create Place',
+  ADD_COUNTRY: 'Add Country',
+  ADD_EVENT: 'Create Event',
+  ADD_SPORT: 'Add Sport',
+  ADD_USER: 'Add User',
+  AVATAR: 'Avatar',
+  CITIES: 'Cities',
+  COUNTRIES: 'Countries',
+  DASHBOARD: 'Dashboard',
+  EMAIL_PHONE: 'Email & Phone',
+  EVENTS: 'Events',
+  FLAGS: 'Flags',
+  GROUPS: 'Groups',
+  LEGAL: 'Legal',
+  LOGOUT: 'Logout',
+  MEMBERS: 'Members',
+  NOTIFICATIONS: 'Notifications',
+  PASSWORD: 'Manage Password', // NOSONAR
+  PERMISSIONS: 'Manage Permissions',
+  PLACES: 'Places',
+  PREFERENCES: 'Preferences',
+  PRIVACY: 'Privacy',
+  PROFILE: 'Profile',
+  SKILLS: 'Skills',
+  SESSIONS: 'Sessions',
+  SPORTS: 'Sports',
+  USERNAME: 'Username',
+  USERS: 'Users',
+} as const;
+
+export default SECTIONS;

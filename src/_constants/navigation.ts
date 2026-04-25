@@ -1,0 +1,40 @@
+/** @format */
+
+const NAVIGATION = {
+  ACCOUNT: '/account',
+  USERS: '/users',
+  ADMIN: '/admin',
+  GROUPS: '/groups',
+  SPORTS: '/sports',
+  FLAGS: '/flags',
+  LEGAL: '/legal',
+  LEGAL_CREATE: '/create/legal',
+  DASHBOARD: '/dashboard',
+  COUNTRIES: '/countries',
+  CITIES: '/cities',
+  EVENTS: '/events',
+  PLACES: '/places',
+  CREATE_A_GROUP: '/create/group',
+  CREATE_A_SPORT: '/create/sport',
+  CREATE_AN_EVENT: '/create/event',
+  CREATE_A_PLACE: '/create/place',
+  GROUP_BY_ID: (id: string) => `/groups/${id}`,
+  GROUP_BY_NAME: (slug: string) => `/groups/slug?value=${slug}`,
+  CREATE_A_CITY: (country: string) => `/create/city?country=${country}`,
+  CREATE_A_LEGAL: '/create/legal',
+  COUNTRY_BY_ID: (id: string) => `/countries/${id}`,
+  LEGAL_BY_ID: (id: string) => `/legal/${id}`,
+  LEGAL_TRANSLATION_BY_ID: (id: string, translationId: string) =>
+    `/legal/${id}/translations/${translationId}`,
+  EVENT_BY_ID: (id: string) => `/events/${id}`,
+  PLACE_BY_ID: (id: string) => `/places/${id}`,
+  HOME: '/',
+  LOGIN: '/auth/login',
+  LOGOUT: '/auth/logout',
+  CITY_BY_ID: (id: string) => `/cities/${id}`,
+  SPORT_BY_ID: (id: string) => `/sports/${id}`,
+  USER_BY_USERNAME: (username: string) => `/users/username?value=${username}`,
+  REGISTER: '/auth/register',
+} as const;
+
+export default NAVIGATION;

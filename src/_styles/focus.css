@@ -1,0 +1,2341 @@
+/**
+ * List of all the CSS properties that work indistincly from any breakpoint with hover.
+ *
+ * @format
+*/
+.align-content--stretch\:focus:focus {
+  align-content: stretch;
+}
+.align-content--flex-start\:focus:focus {
+  align-content: flex-start;
+}
+.align-content--flex-end\:focus:focus {
+  align-content: flex-end;
+}
+.align-content--center\:focus:focus {
+  align-content: center;
+}
+.align-content--start\:focus:focus {
+  align-content: start;
+}
+.align-content--end\:focus:focus {
+  align-content: end;
+}
+.align-content--normal\:focus:focus {
+  align-content: normal;
+}
+.align-content--baseline\:focus:focus {
+  align-content: baseline;
+}
+.align-content--first-baseline\:focus:focus {
+  align-content: first baseline;
+}
+.align-content--last-baseline\:focus:focus {
+  align-content: last baseline;
+}
+.align-content--space-between\:focus:focus {
+  align-content: space-between;
+}
+.align-content--space-around\:focus:focus {
+  align-content: space-around;
+}
+.align-content--space-evenly\:focus:focus {
+  align-content: space-evenly;
+}
+.align-content--safe-center\:focus:focus {
+  align-content: safe center;
+}
+.align-content--unsafe-center\:focus:focus {
+  align-content: unsafe center;
+}
+.align-items--stretch\:focus:focus {
+  align-items: stretch;
+}
+.align-items--flex-start\:focus:focus {
+  align-items: flex-start;
+}
+.align-items--flex-end\:focus:focus {
+  align-items: flex-end;
+}
+.align-items--center\:focus:focus {
+  align-items: center;
+}
+.align-items--baseline\:focus:focus {
+  align-items: baseline;
+}
+.align-items--start\:focus:focus {
+  align-items: start;
+}
+.align-items--end\:focus:focus {
+  align-items: end;
+}
+.align-items--normal\:focus:focus {
+  align-items: normal;
+}
+.align-items--first-baseline\:focus:focus {
+  align-items: first baseline;
+}
+.align-items--last-baseline\:focus:focus {
+  align-items: last baseline;
+}
+.align-items--safe-center\:focus:focus {
+  align-items: safe center;
+}
+.align-items--unsafe-center\:focus:focus {
+  align-items: unsafe center;
+}
+.align-self--auto\:focus:focus {
+  align-self: auto;
+}
+.align-self--normal\:focus:focus {
+  align-self: normal;
+}
+.align-self--center\:focus:focus {
+  align-self: center;
+}
+.align-self--start\:focus:focus {
+  align-self: start;
+}
+.align-self--end\:focus:focus {
+  align-self: end;
+}
+.align-self--self-start\:focus:focus {
+  align-self: self-start;
+}
+.align-self--self-end\:focus:focus {
+  align-self: self-end;
+}
+.align-self--flex-start\:focus:focus {
+  align-self: flex-start;
+}
+.align-self--flex-end\:focus:focus {
+  align-self: flex-end;
+}
+.align-self--baseline\:focus:focus {
+  align-self: baseline;
+}
+.align-self--first-baseline\:focus:focus {
+  align-self: first baseline;
+}
+.align-self--last-baseline\:focus:focus {
+  align-self: last baseline;
+}
+.align-self--stretch\:focus:focus {
+  align-self: stretch;
+}
+.align-self--safe-center\:focus:focus {
+  align-self: safe center;
+}
+.align-self--unsafe-center\:focus:focus {
+  align-self: unsafe center;
+}
+.accent-color--blue\:focus:focus {
+  accent-color: var(--blue);
+}
+.accent-color--green\:focus:focus {
+  accent-color: var(--green);
+}
+.accent-color--yellow\:focus:focus {
+  accent-color: var(--yellow);
+}
+.accent-color--orange\:focus:focus {
+  accent-color: var(--orange);
+}
+.accent-color--red\:focus:focus {
+  accent-color: var(--red);
+}
+.accent-color--pink\:focus:focus {
+  accent-color: var(--pink);
+}
+.accent-color--purple\:focus:focus {
+  accent-color: var(--purple);
+}
+.accent-color--black\:focus:focus {
+  accent-color: var(--black);
+}
+.accent-color--darkest-gray\:focus:focus {
+  accent-color: var(--darkest-gray);
+}
+.accent-color--dark-gray\:focus:focus {
+  accent-color: var(--dark-gray);
+}
+.accent-color--gray\:focus:focus {
+  accent-color: var(--gray);
+}
+.accent-color--light-gray\:focus:focus {
+  accent-color: var(--light-gray);
+}
+.accent-color--lighter-gray\:focus:focus {
+  accent-color: var(--lighter-gray);
+}
+.accent-color--lightest-gray\:focus:focus {
+  accent-color: var(--lightest-gray);
+}
+.accent-color--white\:focus:focus {
+  accent-color: var(--white);
+}
+.appearance--none\:focus:focus {
+  appearance: none;
+}
+.appearance--button\:focus:focus {
+  appearance: button;
+}
+.appearance--textfield\:focus:focus {
+  appearance: textfield;
+}
+.appearance--menulist\:focus:focus {
+  appearance: menulist;
+}
+.appearance--menulist-button\:focus:focus {
+  appearance: menulist-button;
+}
+.appearance--searchfield\:focus:focus {
+  appearance: searchfield;
+}
+.appearance--searchfield-cancel-button\:focus:focus {
+  appearance: searchfield-cancel-button;
+}
+.appearance--searchfield-decoration\:focus:focus {
+  appearance: searchfield-decoration;
+}
+.appearance--searchfield-results-button\:focus:focus {
+  appearance: searchfield-results-button;
+}
+.appearance--searchfield-results-decoration\:focus:focus {
+  appearance: searchfield-results-decoration;
+}
+.appearance--checkbox\:focus:focus {
+  appearance: checkbox;
+}
+.appearance--radio\:focus:focus {
+  appearance: radio;
+}
+.background-color--blue\:focus:focus {
+  background-color: var(--blue);
+}
+.background-color--green\:focus:focus {
+  background-color: var(--green);
+}
+.background-color--yellow\:focus:focus {
+  background-color: var(--yellow);
+}
+.background-color--orange\:focus:focus {
+  background-color: var(--orange);
+}
+.background-color--red\:focus:focus {
+  background-color: var(--red);
+}
+.background-color--pink\:focus:focus {
+  background-color: var(--pink);
+}
+.background-color--purple\:focus:focus {
+  background-color: var(--purple);
+}
+.background-color--black\:focus:focus {
+  background-color: var(--black);
+}
+.background-color--darkest-gray\:focus:focus {
+  background-color: var(--darkest-gray);
+}
+.background-color--dark-gray\:focus:focus {
+  background-color: var(--dark-gray);
+}
+.background-color--gray\:focus:focus {
+  background-color: var(--gray);
+}
+.background-color--light-gray\:focus:focus {
+  background-color: var(--light-gray);
+}
+.background-color--lighter-gray\:focus:focus {
+  background-color: var(--lighter-gray);
+}
+.background-color--lightest-gray\:focus:focus {
+  background-color: var(--lightest-gray);
+}
+.background-color--white\:focus:focus {
+  background-color: var(--white);
+}
+.background-color--blue\:focus:focus {
+  background-color: var(--blue);
+}
+.background-color--green\:focus:focus {
+  background-color: var(--green);
+}
+.background-color--yellow\:focus:focus {
+  background-color: var(--yellow);
+}
+.background-color--orange\:focus:focus {
+  background-color: var(--orange);
+}
+.background-color--red\:focus:focus {
+  background-color: var(--red);
+}
+.background-color--pink\:focus:focus {
+  background-color: var(--pink);
+}
+.background-color--purple\:focus:focus {
+  background-color: var(--purple);
+}
+.background-color--black\:focus:focus {
+  background-color: var(--black);
+}
+.background-color--darkest-gray\:focus:focus {
+  background-color: var(--darkest-gray);
+}
+.background-color--dark-gray\:focus:focus {
+  background-color: var(--dark-gray);
+}
+.background-color--gray\:focus:focus {
+  background-color: var(--gray);
+}
+.background-color--light-gray\:focus:focus {
+  background-color: var(--light-gray);
+}
+.background-color--lighter-gray\:focus:focus {
+  background-color: var(--lighter-gray);
+}
+.background-color--lightest-gray\:focus:focus {
+  background-color: var(--lightest-gray);
+}
+.background-color--white\:focus:focus {
+  background-color: var(--white);
+}
+.border-radius--0\:focus:focus {
+  border-radius: 0;
+}
+.border-radius--2\:focus:focus {
+  border-radius: 2px;
+}
+.border-radius--4\:focus:focus {
+  border-radius: 4px;
+}
+.border-radius--6\:focus:focus {
+  border-radius: 6px;
+}
+.border-radius--8\:focus:focus {
+  border-radius: 8px;
+}
+.border-radius--10\:focus:focus {
+  border-radius: 10px;
+}
+.box-sizing--content-box\:focus:focus {
+  box-sizing: content-box;
+}
+.box-sizing--border-box\:focus:focus {
+  box-sizing: border-box;
+}
+.caption-side--top\:focus:focus {
+  caption-side: top;
+}
+.caption-side--bottom\:focus:focus {
+  caption-side: bottom;
+}
+.caret-color--blue\:focus:focus {
+  caret-color: var(--blue);
+}
+.md-clear-left\:focus:focus {
+  clear: left;
+}
+.md-clear-right\:focus:focus {
+  clear: right;
+}
+.caret-color--green\:focus:focus {
+  caret-color: var(--green);
+}
+.caret-color--yellow\:focus:focus {
+  caret-color: var(--yellow);
+}
+.caret-color--orange\:focus:focus {
+  caret-color: var(--orange);
+}
+.caret-color--red\:focus:focus {
+  caret-color: var(--red);
+}
+.caret-color--pink\:focus:focus {
+  caret-color: var(--pink);
+}
+.caret-color--purple\:focus:focus {
+  caret-color: var(--purple);
+}
+.caret-color--black\:focus:focus {
+  caret-color: var(--black);
+}
+.caret-color--darkest-gray\:focus:focus {
+  caret-color: var(--darkest-gray);
+}
+.caret-color--dark-gray\:focus:focus {
+  caret-color: var(--dark-gray);
+}
+.caret-color--gray\:focus:focus {
+  caret-color: var(--gray);
+}
+.caret-color--light-gray\:focus:focus {
+  caret-color: var(--light-gray);
+}
+.caret-color--lighter-gray\:focus:focus {
+  caret-color: var(--lighter-gray);
+}
+.caret-color--lightest-gray\:focus:focus {
+  caret-color: var(--lightest-gray);
+}
+.caret-color--white\:focus:focus {
+  caret-color: var(--white);
+}
+.clear--left\:focus:focus {
+  clear: left;
+}
+.clear--right\:focus:focus {
+  clear: right;
+}
+.color--blue\:focus:focus {
+  color: var(--blue);
+}
+.color--green\:focus:focus {
+  color: var(--green);
+}
+.color--yellow\:focus:focus {
+  color: var(--yellow);
+}
+.color--orange\:focus:focus {
+  color: var(--orange);
+}
+.color--red\:focus:focus {
+  color: var(--red);
+}
+.color--pink\:focus:focus {
+  color: var(--pink);
+}
+.color--purple\:focus:focus {
+  color: var(--purple);
+}
+.color--black\:focus:focus {
+  color: var(--black);
+}
+.color--darkest-gray\:focus:focus {
+  color: var(--darkest-gray);
+}
+.color--dark-gray\:focus:focus {
+  color: var(--dark-gray);
+}
+.color--gray\:focus:focus {
+  color: var(--gray);
+}
+.color--light-gray\:focus:focus {
+  color: var(--light-gray);
+}
+.color--lighter-gray\:focus:focus {
+  color: var(--lighter-gray);
+}
+.color--lightest-gray\:focus:focus {
+  color: var(--lightest-gray);
+}
+.color--white\:focus:focus {
+  color: var(--white);
+}
+.color--blue\:focus:focus {
+  color: var(--blue);
+}
+.color--green\:focus:focus {
+  color: var(--green);
+}
+.color--yellow\:focus:focus {
+  color: var(--yellow);
+}
+.color--orange\:focus:focus {
+  color: var(--orange);
+}
+.color--red\:focus:focus {
+  color: var(--red);
+}
+.color--pink\:focus:focus {
+  color: var(--pink);
+}
+.color--purple\:focus:focus {
+  color: var(--purple);
+}
+.color--black\:focus:focus {
+  color: var(--black);
+}
+.color--darkest-gray\:focus:focus {
+  color: var(--darkest-gray);
+}
+.color--dark-gray\:focus:focus {
+  color: var(--dark-gray);
+}
+.color--gray\:focus:focus {
+  color: var(--gray);
+}
+.color--light-gray\:focus:focus {
+  color: var(--light-gray);
+}
+.color--lighter-gray\:focus:focus {
+  color: var(--lighter-gray);
+}
+.color--lightest-gray\:focus:focus {
+  color: var(--lightest-gray);
+}
+.color--white\:focus:focus {
+  color: var(--white);
+}
+.column-gap--0\:focus:focus {
+  column-gap: 0;
+}
+.column-gap--4\:focus:focus {
+  column-gap: 4px;
+}
+.column-gap--8\:focus:focus {
+  column-gap: 8px;
+}
+.column-gap--16\:focus:focus {
+  column-gap: 16px;
+}
+.column-gap--32\:focus:focus {
+  column-gap: 32px;
+}
+.column-gap--48\:focus:focus {
+  column-gap: 48px;
+}
+.column-gap--64\:focus:focus {
+  column-gap: 64px;
+}
+.column-gap--96\:focus:focus {
+  column-gap: 96px;
+}
+.cursor--auto\:focus:focus {
+  cursor: auto;
+}
+.cursor--default\:focus:focus {
+  cursor: default;
+}
+.cursor--none\:focus:focus {
+  cursor: none;
+}
+.cursor--context-menu\:focus:focus {
+  cursor: context-menu;
+}
+.cursor--help\:focus:focus {
+  cursor: help;
+}
+.cursor--pointer\:focus:focus {
+  cursor: pointer;
+}
+.cursor--progress\:focus:focus {
+  cursor: progress;
+}
+.cursor--wait\:focus:focus {
+  cursor: wait;
+}
+.cursor--cell\:focus:focus {
+  cursor: cell;
+}
+.cursor--crosshair\:focus:focus {
+  cursor: crosshair;
+}
+.cursor--text\:focus:focus {
+  cursor: text;
+}
+.cursor--vertical-text\:focus:focus {
+  cursor: vertical-text;
+}
+.cursor--alias\:focus:focus {
+  cursor: alias;
+}
+.cursor--copy\:focus:focus {
+  cursor: copy;
+}
+.cursor--move\:focus:focus {
+  cursor: move;
+}
+.cursor--no-drop\:focus:focus {
+  cursor: no-drop;
+}
+.cursor--not-allowed\:focus:focus {
+  cursor: not-allowed;
+}
+.cursor--e-resize\:focus:focus {
+  cursor: e-resize;
+}
+.cursor--n-resize\:focus:focus {
+  cursor: n-resize;
+}
+.cursor--ne-resize\:focus:focus {
+  cursor: ne-resize;
+}
+.cursor--nw-resize\:focus:focus {
+  cursor: nw-resize;
+}
+.cursor--s-resize\:focus:focus {
+  cursor: s-resize;
+}
+.cursor--se-resize\:focus:focus {
+  cursor: se-resize;
+}
+.cursor--sw-resize\:focus:focus {
+  cursor: sw-resize;
+}
+.cursor--w-resize\:focus:focus {
+  cursor: w-resize;
+}
+.cursor--ew-resize\:focus:focus {
+  cursor: ew-resize;
+}
+.cursor--ns-resize\:focus:focus {
+  cursor: ns-resize;
+}
+.cursor--nesw-resize\:focus:focus {
+  cursor: nesw-resize;
+}
+.cursor--nwse-resize\:focus:focus {
+  cursor: nwse-resize;
+}
+.cursor--col-resize\:focus:focus {
+  cursor: col-resize;
+}
+.cursor--row-resize\:focus:focus {
+  cursor: row-resize;
+}
+.cursor--all-scroll\:focus:focus {
+  cursor: all-scroll;
+}
+.cursor--zoom-in\:focus:focus {
+  cursor: zoom-in;
+}
+.cursor--zoom-out\:focus:focus {
+  cursor: zoom-out;
+}
+.cursor--grab\:focus:focus {
+  cursor: grab;
+}
+.cursor--grabbing\:focus:focus {
+  cursor: grabbing;
+}
+.cursor--vertical-resize\:focus:focus {
+  cursor: vertical-resize;
+}
+.cursor--horizontal-resize\:focus:focus {
+  cursor: horizontal-resize;
+}
+.cursor--not-allowed\:focus:focus {
+  cursor: not-allowed;
+}
+.cursor--no-underline\:focus:focus {
+  cursor: no-underline;
+}
+.cursor--dashed\:focus:focus {
+  cursor: dashed;
+}
+.cursor--dotted\:focus:focus {
+  cursor: dotted;
+}
+.cursor--solid\:focus:focus {
+  cursor: solid;
+}
+.cursor--double\:focus:focus {
+  cursor: double;
+}
+.cursor--groove\:focus:focus {
+  cursor: groove;
+}
+.cursor--ridge\:focus:focus {
+  cursor: ridge;
+}
+.cursor--inset\:focus:focus {
+  cursor: inset;
+}
+.cursor--outset\:focus:focus {
+  cursor: outset;
+}
+.cursor--initial\:focus:focus {
+  cursor: initial;
+}
+.cursor--inherit\:focus:focus {
+  cursor: inherit;
+}
+.direction--ltr\:focus:focus {
+  direction: ltr;
+}
+.direction--rtl\:focus:focus {
+  direction: rtl;
+}
+.direction--initial\:focus:focus {
+  direction: initial;
+}
+.direction--inherit\:focus:focus {
+  direction: inherit;
+}
+.display--block\:focus:focus {
+  display: block;
+}
+.display--inline\:focus:focus {
+  display: inline;
+}
+.display--inline-block\:focus:focus {
+  display: inline-block;
+}
+.display--flex\:focus:focus {
+  display: flex;
+}
+.display--inline-flex\:focus:focus {
+  display: inline-flex;
+}
+.display--grid\:focus:focus {
+  display: grid;
+}
+.display--inline-grid\:focus:focus {
+  display: inline-grid;
+}
+.display--table\:focus:focus {
+  display: table;
+}
+.display--table-cell\:focus:focus {
+  display: table-cell;
+}
+.display--table-row\:focus:focus {
+  display: table-row;
+}
+.display--none\:focus:focus {
+  display: none;
+}
+.display--initial\:focus:focus {
+  display: initial;
+}
+.display--inherit\:focus:focus {
+  display: inherit;
+}
+.empty-cells--show\:focus:focus {
+  empty-cells: show;
+}
+.empty-cells--hide\:focus:focus {
+  empty-cells: hide;
+}
+.empty-cells--inherit\:focus:focus {
+  empty-cells: inherit;
+}
+.flex-basis--auto\:focus:focus {
+  flex-basis: auto;
+}
+.flex-basis--content\:focus:focus {
+  flex-basis: content;
+}
+.fill--blue\:focus:focus {
+  fill: var(--blue);
+}
+.fill--green\:focus:focus {
+  fill: var(--green);
+}
+.fill--yellow\:focus:focus {
+  fill: var(--yellow);
+}
+.fill--orange\:focus:focus {
+  fill: var(--orange);
+}
+.fill--red\:focus:focus {
+  fill: var(--red);
+}
+.fill--pink\:focus:focus {
+  fill: var(--pink);
+}
+.fill--purple\:focus:focus {
+  fill: var(--purple);
+}
+.fill--black\:focus:focus {
+  fill: var(--black);
+}
+.fill--darkest-gray\:focus:focus {
+  fill: var(--darkest-gray);
+}
+.fill--dark-gray\:focus:focus {
+  fill: var(--dark-gray);
+}
+.fill--gray\:focus:focus {
+  fill: var(--gray);
+}
+.fill--light-gray\:focus:focus {
+  fill: var(--light-gray);
+}
+.fill--lighter-gray\:focus:focus {
+  fill: var(--lighter-gray);
+}
+.fill--lightest-gray\:focus:focus {
+  fill: var(--lightest-gray);
+}
+.fill--white\:focus:focus {
+  fill: var(--white);
+}
+.flex-basis--fill\:focus:focus {
+  flex-basis: fill;
+}
+.flex-basis--max-content\:focus:focus {
+  flex-basis: max-content;
+}
+.flex-basis--min-content\:focus:focus {
+  flex-basis: min-content;
+}
+.flex-basis--fit-content\:focus:focus {
+  flex-basis: fit-content;
+}
+.flex-direction--row\:focus:focus {
+  flex-direction: row;
+}
+.flex-direction--row-reverse\:focus:focus {
+  flex-direction: row-reverse;
+}
+.flex-direction--column\:focus:focus {
+  flex-direction: column;
+}
+.flex-direction--column-reverse\:focus:focus {
+  flex-direction: column-reverse;
+}
+.flex-flow--row\:focus:focus {
+  flex-flow: row;
+}
+.flex-flow--row-reverse\:focus:focus {
+  flex-flow: row-reverse;
+}
+.flex-flow--column\:focus:focus {
+  flex-flow: column;
+}
+.flex-flow--column-reverse\:focus:focus {
+  flex-flow: column-reverse;
+}
+.flex-flow--wrap\:focus:focus {
+  flex-flow: wrap;
+}
+.flex-flow--wrap-reverse\:focus:focus {
+  flex-flow: wrap-reverse;
+}
+.flex-flow--nowrap\:focus:focus {
+  flex-flow: nowrap;
+}
+.flex-wrap--nowrap\:focus:focus {
+  flex-wrap: nowrap;
+}
+.flex-wrap--wrap\:focus:focus {
+  flex-wrap: wrap;
+}
+.flex-wrap--wrap-reverse\:focus:focus {
+  flex-wrap: wrap-reverse;
+}
+.font-family--serif\:focus:focus {
+  font-family: var(--font-family-serif);
+}
+.font-family--sans-serif\:focus:focus {
+  font-family: var(--font-family-sans-serif);
+}
+.font-family--monospace\:focus:focus {
+  font-family: var(--font-family-mono);
+}
+.font-family--cursive\:focus:focus {
+  font-family: cursive;
+}
+.font-family--fantasy\:focus:focus {
+  font-family: fantasy;
+}
+.font-family--system\:focus:focus {
+  font-family: system-ui;
+}
+.font-family--inherit\:focus:focus {
+  font-family: inherit;
+}
+.font-kerning--auto\:focus:focus {
+  font-kerning: auto;
+}
+.font-kerning--normal\:focus:focus {
+  font-kerning: normal;
+}
+.font-kerning--none\:focus:focus {
+  font-kerning: none;
+}
+.font-optical-sizing--auto\:focus:focus {
+  font-optical-sizing: auto;
+}
+.font-optical-sizing--none\:focus:focus {
+  font-optical-sizing: none;
+}
+.font-size--8\:focus:focus {
+  font-size: 8px;
+}
+.font-size--10\:focus:focus {
+  font-size: 10px;
+}
+.font-size--12\:focus:focus {
+  font-size: 12px;
+}
+.font-size--14\:focus:focus {
+  font-size: 14px;
+}
+.font-size--16\:focus:focus {
+  font-size: 16px;
+}
+.font-size--22\:focus:focus {
+  font-size: 22px;
+}
+.font-size--24\:focus:focus {
+  font-size: 24px;
+}
+.font-size--28\:focus:focus {
+  font-size: 28px;
+}
+.font-size--32\:focus:focus {
+  font-size: 32px;
+}
+.font-size--36\:focus:focus {
+  font-size: 36px;
+}
+.font-size--45\:focus:focus {
+  font-size: 45px;
+}
+.font-size--57\:focus:focus {
+  font-size: 57px;
+}
+.font-stretch--ultra-condensed\:focus:focus {
+  font-stretch: ultra-condensed;
+}
+.font-stretch--extra-condensed\:focus:focus {
+  font-stretch: extra-condensed;
+}
+.font-stretch--condensed\:focus:focus {
+  font-stretch: condensed;
+}
+.font-stretch--semi-condensed\:focus:focus {
+  font-stretch: semi-condensed;
+}
+.font-stretch--normal\:focus:focus {
+  font-stretch: normal;
+}
+.font-stretch--semi-expanded\:focus:focus {
+  font-stretch: semi-expanded;
+}
+.font-stretch--expanded\:focus:focus {
+  font-stretch: expanded;
+}
+.font-stretch--extra-expanded\:focus:focus {
+  font-stretch: extra-expanded;
+}
+.font-stretch--ultra-expanded\:focus:focus {
+  font-stretch: ultra-expanded;
+}
+.font-stretch--wider\:focus:focus {
+  font-stretch: wider;
+}
+.font-stretch--narrower\:focus:focus {
+  font-stretch: narrower;
+}
+.font-style--normal\:focus:focus {
+  font-style: normal;
+}
+.font-style--italic\:focus:focus {
+  font-style: italic;
+}
+.font-style--oblique\:focus:focus {
+  font-style: oblique;
+}
+.font-style--inherit\:focus:focus {
+  font-style: inherit;
+}
+.font-variant-caps--normal\:focus:focus {
+  font-variant-caps: normal;
+}
+.font-variant-caps--small-caps\:focus:focus {
+  font-variant-caps: small-caps;
+}
+.font-variant-caps--all-small-caps\:focus:focus {
+  font-variant-caps: all-small-caps;
+}
+.font-variant-caps--petite-caps\:focus:focus {
+  font-variant-caps: petite-caps;
+}
+.font-variant-caps--all-petite-caps\:focus:focus {
+  font-variant-caps: all-petite-caps;
+}
+.font-variant-caps--unicase\:focus:focus {
+  font-variant-caps: unicase;
+}
+.font-variant-caps--titling-caps\:focus:focus {
+  font-variant-caps: titling-caps;
+}
+.font-weight--100\:focus:focus {
+  font-weight: 100;
+}
+.font-weight--200\:focus:focus {
+  font-weight: 200;
+}
+.font-weight--300\:focus:focus {
+  font-weight: 300;
+}
+.font-weight--400\:focus:focus {
+  font-weight: 400;
+}
+.font-weight--500\:focus:focus {
+  font-weight: 500;
+}
+.font-weight--600\:focus:focus {
+  font-weight: 600;
+}
+.font-weight--700\:focus:focus {
+  font-weight: 700;
+}
+.font-weight--800\:focus:focus {
+  font-weight: 800;
+}
+.font-weight--900\:focus:focus {
+  font-weight: 900;
+}
+.font-weight--normal\:focus:focus {
+  font-weight: normal;
+}
+.font-weight--bold\:focus:focus {
+  font-weight: bold;
+}
+.font-weight--lighter\:focus:focus {
+  font-weight: lighter;
+}
+.font-weight--bolder\:focus:focus {
+  font-weight: bolder;
+}
+.font-weight--inherit\:focus:focus {
+  font-weight: inherit;
+}
+.gap--4\:focus:focus {
+  gap: 4px;
+}
+.gap--8\:focus:focus {
+  gap: 8px;
+}
+.gap--16\:focus:focus {
+  gap: 16px;
+}
+.gap--32\:focus:focus {
+  gap: 32px;
+}
+.gap--48\:focus:focus {
+  gap: 48px;
+}
+.gap--64\:focus:focus {
+  gap: 64px;
+}
+.grid-auto-columns--min-content\:focus:focus {
+  grid-auto-columns: min-content;
+}
+.hanging-punctuation--none\:focus:focus {
+  hanging-punctuation: none;
+}
+.hanging-punctuation--first\:focus:focus {
+  hanging-punctuation: first;
+}
+.hanging-punctuation--last\:focus:focus {
+  hanging-punctuation: last;
+}
+.hanging-punctuation--allow-end\:focus:focus {
+  hanging-punctuation: allow-end;
+}
+.hanging-punctuation--force-end\:focus:focus {
+  hanging-punctuation: force-end;
+}
+.height--100vh\:focus:focus {
+  height: 100vh;
+}
+.height--100dvh\:focus:focus {
+  height: 100dvh;
+}
+.height--100vw\:focus:focus {
+  height: 100vw;
+}
+.height--100dv\:focus:focus {
+  height: 100dv;
+}
+.height--100vmin\:focus:focus {
+  height: 100vmin;
+}
+.height--100dvm\:focus:focus {
+  height: 100dvm;
+}
+.height--100vmax\:focus:focus {
+  height: 100vmax;
+}
+.height--100dvmax\:focus:focus {
+  height: 100dvmax;
+}
+.height--100v\:focus:focus {
+  height: 100v;
+}
+.height--100vh\:focus:focus {
+  height: 100vh;
+}
+.height--100dvh\:focus:focus {
+  height: 100dvh;
+}
+.height--100vw\:focus:focus {
+  height: 100vw;
+}
+.height--100svw\:focus:focus {
+  height: 100svw;
+}
+.height--100vmin\:focus:focus {
+  height: 100vmin;
+}
+.height--100dvm\:focus:focus {
+  height: 100dvm;
+}
+.height--100\:focus:focus {
+  height: 100%;
+}
+.height--auto\:focus:focus {
+  height: auto;
+}
+.height--inherit\:focus:focus {
+  height: inherit;
+}
+.height--initial\:focus:focus {
+  height: initial;
+}
+.height--unset\:focus:focus {
+  height: unset;
+}
+.height--max-content\:focus:focus {
+  height: max-content;
+}
+.height--min-content\:focus:focus {
+  height: min-content;
+}
+.image-orientation--none\:focus:focus {
+  image-orientation: none;
+}
+.image-orientation--flip\:focus:focus {
+  image-orientation: flip;
+}
+.image-orientation--from-image\:focus:focus {
+  image-orientation: from-image;
+}
+.image-rendering--auto\:focus:focus {
+  image-rendering: auto;
+}
+.image-rendering--crisp-edges\:focus:focus {
+  image-rendering: crisp-edges;
+}
+.image-rendering--pixelated\:focus:focus {
+  image-rendering: pixelated;
+}
+.justify-content--flex-start\:focus:focus {
+  justify-content: flex-start;
+}
+.justify-content--flex-end\:focus:focus {
+  justify-content: flex-end;
+}
+.justify-content--center\:focus:focus {
+  justify-content: center;
+}
+.justify-content--space-between\:focus:focus {
+  justify-content: space-between;
+}
+.justify-content--space-around\:focus:focus {
+  justify-content: space-around;
+}
+.justify-content--space-evenly\:focus:focus {
+  justify-content: space-evenly;
+}
+.justify-content--start\:focus:focus {
+  justify-content: start;
+}
+.justify-content--end\:focus:focus {
+  justify-content: end;
+}
+.justify-content--left\:focus:focus {
+  justify-content: left;
+}
+.justify-content--right\:focus:focus {
+  justify-content: right;
+}
+.justify-content--baseline\:focus:focus {
+  justify-content: baseline;
+}
+.justify-content--first-baseline\:focus:focus {
+  justify-content: first baseline;
+}
+.justify-content--last-baseline\:focus:focus {
+  justify-content: last baseline;
+}
+.justify-content--safe-start\:focus:focus {
+  justify-content: safe start;
+}
+.justify-content--safe-end\:focus:focus {
+  justify-content: safe end;
+}
+.justify-content--safe-center\:focus:focus {
+  justify-content: safe center;
+}
+.justify-content--unsafe-start\:focus:focus {
+  justify-content: unsafe start;
+}
+.justify-content--unsafe-end\:focus:focus {
+  justify-content: unsafe end;
+}
+.justify-content--unsafe-center\:focus:focus {
+  justify-content: unsafe center;
+}
+.justify-items--stretch\:focus:focus {
+  justify-items: stretch;
+}
+.justify-items--center\:focus:focus {
+  justify-items: center;
+}
+.justify-items--start\:focus:focus {
+  justify-items: start;
+}
+.justify-items--end\:focus:focus {
+  justify-items: end;
+}
+.justify-items--flex-start\:focus:focus {
+  justify-items: flex-start;
+}
+.justify-items--flex-end\:focus:focus {
+  justify-items: flex-end;
+}
+.justify-items--baseline\:focus:focus {
+  justify-items: baseline;
+}
+.justify-items--first-baseline\:focus:focus {
+  justify-items: first baseline;
+}
+.justify-items--last-baseline\:focus:focus {
+  justify-items: last baseline;
+}
+.justify-self--auto\:focus:focus {
+  justify-self: auto;
+}
+.justify-self--normal\:focus:focus {
+  justify-self: normal;
+}
+.justify-self--stretch\:focus:focus {
+  justify-self: stretch;
+}
+.justify-self--center\:focus:focus {
+  justify-self: center;
+}
+.justify-self--start\:focus:focus {
+  justify-self: start;
+}
+.justify-self--end\:focus:focus {
+  justify-self: end;
+}
+.justify-self--flex-start\:focus:focus {
+  justify-self: flex-start;
+}
+.justify-self--flex-end\:focus:focus {
+  justify-self: flex-end;
+}
+.justify-self--self-start\:focus:focus {
+  justify-self: self-start;
+}
+.justify-self--self-end\:focus:focus {
+  justify-self: self-end;
+}
+.justify-self--left\:focus:focus {
+  justify-self: left;
+}
+.justify-self--right\:focus:focus {
+  justify-self: right;
+}
+.justify-self--baseline\:focus:focus {
+  justify-self: baseline;
+}
+.justify-self--first-baseline\:focus:focus {
+  justify-self: first baseline;
+}
+.justify-self--last-baseline\:focus:focus {
+  justify-self: last baseline;
+}
+.left--0\:focus:focus {
+  left: 0;
+}
+.left--4\:focus:focus {
+  left: 4px;
+}
+.left--8\:focus:focus {
+  left: 8px;
+}
+.left--12\:focus:focus {
+  left: 12px;
+}
+.left--16\:focus:focus {
+  left: 16px;
+}
+.left--32\:focus:focus {
+  left: 32px;
+}
+.left--48\:focus:focus {
+  left: 48px;
+}
+.left--64\:focus:focus {
+  left: 64px;
+}
+.line-break--auto\:focus:focus {
+  line-break: auto;
+}
+.line-break--loose\:focus:focus {
+  line-break: loose;
+}
+.line-break--normal\:focus:focus {
+  line-break: normal;
+}
+.line-break--strict\:focus:focus {
+  line-break: strict;
+}
+.line-break--anywhere\:focus:focus {
+  line-break: anywhere;
+}
+.line-height--100\:focus:focus {
+  line-height: 100%;
+}
+.line-height--110\:focus:focus {
+  line-height: 110%;
+}
+.line-height--120\:focus:focus {
+  line-height: 120%;
+}
+.line-height--130\:focus:focus {
+  line-height: 130%;
+}
+.line-height--140\:focus:focus {
+  line-height: 140%;
+}
+.line-height--150\:focus:focus {
+  line-height: 150%;
+}
+.line-height--normal\:focus:focus {
+  line-height: normal;
+}
+.list-style-type--disc\:focus:focus {
+  list-style-type: disc;
+}
+.list-style-type--circle\:focus:focus {
+  list-style-type: circle;
+}
+.list-style-type--square\:focus:focus {
+  list-style-type: square;
+}
+.list-style-type--decimal\:focus:focus {
+  list-style-type: decimal;
+}
+.list-style-type--decimal-leading-zero\:focus:focus {
+  list-style-type: decimal-leading-zero;
+}
+.list-style-type--lower-roman\:focus:focus {
+  list-style-type: lower-roman;
+}
+.list-style-type--upper-roman\:focus:focus {
+  list-style-type: upper-roman;
+}
+.list-style-type--lower-alpha\:focus:focus {
+  list-style-type: lower-alpha;
+}
+.list-style-type--upper-alpha\:focus:focus {
+  list-style-type: upper-alpha;
+}
+.list-style-type--none\:focus:focus {
+  list-style-type: none;
+}
+.margin--0\:focus:focus {
+  margin: 0;
+}
+.margin--4\:focus:focus {
+  margin: 4px;
+}
+.margin--8\:focus:focus {
+  margin: 8px;
+}
+.margin--16\:focus:focus {
+  margin: 16px;
+}
+.margin--24\:focus:focus {
+  margin: 24px;
+}
+.margin--32\:focus:focus {
+  margin: 32px;
+}
+.margin--48\:focus:focus {
+  margin: 48px;
+}
+.margin--64\:focus:focus {
+  margin: 64px;
+}
+.margin--96\:focus:focus {
+  margin: 96px;
+}
+.margin-block--auto\:focus:focus {
+  margin-block: 0;
+}
+.margin-block--0\:focus:focus {
+  margin-block: 0;
+}
+.margin-block--4\:focus:focus {
+  margin-block: 4px;
+}
+.margin-block--8\:focus:focus {
+  margin-block: 8px;
+}
+.margin-block--16\:focus:focus {
+  margin-block: 16px;
+}
+.margin-block--24\:focus:focus {
+  margin-block: 24px;
+}
+.margin-block--32\:focus:focus {
+  margin-block: 32px;
+}
+.margin-block--48\:focus:focus {
+  margin-block: 48px;
+}
+.margin-block--64\:focus:focus {
+  margin-block: 64px;
+}
+.margin-block--96\:focus:focus {
+  margin-block: 96px;
+}
+.margin-block-end--0\:focus:focus {
+  margin-block-end: 0;
+}
+.margin-block-end--4\:focus:focus {
+  margin-block-end: 4px;
+}
+.margin-block-end--8\:focus:focus {
+  margin-block-end: 8px;
+}
+.margin-block-end--16\:focus:focus {
+  margin-block-end: 16px;
+}
+.margin-block-end--32\:focus:focus {
+  margin-block-end: 32px;
+}
+.margin-block-end--48\:focus:focus {
+  margin-block-end: 48px;
+}
+.margin-block-end--64\:focus:focus {
+  margin-block-end: 64px;
+}
+.margin-block-end--96\:focus:focus {
+  margin-block-end: 96px;
+}
+.margin-block-start--0\:focus:focus {
+  margin-block-start: 0;
+}
+.margin-block-start--4\:focus:focus {
+  margin-block-start: 4px;
+}
+.margin-block-start--8\:focus:focus {
+  margin-block-start: 8px;
+}
+.margin-block-start--16\:focus:focus {
+  margin-block-start: 16px;
+}
+.margin-block-start--32\:focus:focus {
+  margin-block-start: 32px;
+}
+.margin-block-start--48\:focus:focus {
+  margin-block-start: 48px;
+}
+.margin-block-start--64\:focus:focus {
+  margin-block-start: 64px;
+}
+.margin-block-start--96\:focus:focus {
+  margin-block-start: 96px;
+}
+.margin-bottom--0\:focus:focus {
+  margin-bottom: 0;
+}
+.margin-bottom--4\:focus:focus {
+  margin-bottom: 4px;
+}
+.margin-bottom--8\:focus:focus {
+  margin-bottom: 8px;
+}
+.margin-bottom--16\:focus:focus {
+  margin-bottom: 16px;
+}
+.margin-bottom--32\:focus:focus {
+  margin-bottom: 32px;
+}
+.margin-bottom--48\:focus:focus {
+  margin-bottom: 48px;
+}
+.margin-bottom--64\:focus:focus {
+  margin-bottom: 64px;
+}
+.margin-bottom--96\:focus:focus {
+  margin-bottom: 96px;
+}
+.margin-inline--auto\:focus:focus {
+  margin-inline: auto;
+}
+.margin-inline--0\:focus:focus {
+  margin-inline: 0;
+}
+.margin-inline--4\:focus:focus {
+  margin-inline: 4px;
+}
+.margin-inline--8\:focus:focus {
+  margin-inline: 8px;
+}
+.margin-inline--16\:focus:focus {
+  margin-inline: 16px;
+}
+.margin-inline--24\:focus:focus {
+  margin-inline: 24px;
+}
+.margin-inline--32\:focus:focus {
+  margin-inline: 32px;
+}
+.margin-inline--48\:focus:focus {
+  margin-inline: 48px;
+}
+.margin-inline--64\:focus:focus {
+  margin-inline: 64px;
+}
+.margin-inline--96\:focus:focus {
+  margin-inline: 96px;
+}
+.margin-inline-end--0\:focus:focus {
+  margin-inline-end: 0;
+}
+.margin-inline-end--4\:focus:focus {
+  margin-inline-end: 4px;
+}
+.margin-inline-end--8\:focus:focus {
+  margin-inline-end: 8px;
+}
+.margin-inline-end--16\:focus:focus {
+  margin-inline-end: 16px;
+}
+.margin-inline-end--32\:focus:focus {
+  margin-inline-end: 32px;
+}
+.margin-inline-end--48\:focus:focus {
+  margin-inline-end: 48px;
+}
+.margin-inline-end--64\:focus:focus {
+  margin-inline-end: 64px;
+}
+.margin-inline-end--96\:focus:focus {
+  margin-inline-end: 96px;
+}
+.margin-inline-start--0\:focus:focus {
+  margin-inline-start: 0;
+}
+.margin-inline-start--4\:focus:focus {
+  margin-inline-start: 4px;
+}
+.margin-inline-start--8\:focus:focus {
+  margin-inline-start: 8px;
+}
+.margin-inline-start--16\:focus:focus {
+  margin-inline-start: 16px;
+}
+.margin-inline-start--32\:focus:focus {
+  margin-inline-start: 32px;
+}
+.margin-inline-start--48\:focus:focus {
+  margin-inline-start: 48px;
+}
+.margin-inline-start--64\:focus:focus {
+  margin-inline-start: 64px;
+}
+.margin-inline-start--96\:focus:focus {
+  margin-inline-start: 96px;
+}
+.margin-left--0\:focus:focus {
+  margin-left: 0;
+}
+.margin-left--4\:focus:focus {
+  margin-left: 4px;
+}
+.margin-left--8\:focus:focus {
+  margin-left: 8px;
+}
+.margin-left--16\:focus:focus {
+  margin-left: 16px;
+}
+.margin-left--32\:focus:focus {
+  margin-left: 32px;
+}
+.margin-left--48\:focus:focus {
+  margin-left: 48px;
+}
+.margin-left--64\:focus:focus {
+  margin-left: 64px;
+}
+.margin-left--96\:focus:focus {
+  margin-left: 96px;
+}
+.margin-right--0\:focus:focus {
+  margin-right: 0;
+}
+.margin-right--4\:focus:focus {
+  margin-right: 4px;
+}
+.margin-right--8\:focus:focus {
+  margin-right: 8px;
+}
+.margin-right--16\:focus:focus {
+  margin-right: 16px;
+}
+.margin-right--32\:focus:focus {
+  margin-right: 32px;
+}
+.margin-right--48\:focus:focus {
+  margin-right: 48px;
+}
+.margin-right--64\:focus:focus {
+  margin-right: 64px;
+}
+.margin-right--96\:focus:focus {
+  margin-right: 96px;
+}
+.margin-top--0\:focus:focus {
+  margin-top: 0;
+}
+.margin-top--4\:focus:focus {
+  margin-top: 4px;
+}
+.margin-top--8\:focus:focus {
+  margin-top: 8px;
+}
+.margin-top--16\:focus:focus {
+  margin-top: 16px;
+}
+.margin-top--32\:focus:focus {
+  margin-top: 32px;
+}
+.margin-top--48\:focus:focus {
+  margin-top: 48px;
+}
+.margin-top--64\:focus:focus {
+  margin-top: 64px;
+}
+.margin-top--96\:focus:focus {
+  margin-top: 96px;
+}
+.max-width--100\:focus:focus {
+  max-width: 100%;
+}
+.max-width--sm-device\:focus:focus {
+  max-width: var(--sm-device-width);
+}
+.max-width--md-device\:focus:focus {
+  max-width: var(--md-device-width);
+}
+.max-width--lg-device\:focus:focus {
+  max-width: var(--lg-device-width);
+}
+.max-width--xl-device\:focus:focus {
+  max-width: var(--xl-device-width);
+}
+.max-width--xxl-device\:focus:focus {
+  max-width: var(--xxl-device-width);
+}
+.min-height--100vh\:focus:focus {
+  min-height: 100vh;
+}
+.mix-blend-mode--normal\:focus:focus {
+  mix-blend-mode: normal;
+}
+.mix-blend-mode--multiply\:focus:focus {
+  mix-blend-mode: multiply;
+}
+.mix-blend-mode--screen\:focus:focus {
+  mix-blend-mode: screen;
+}
+.mix-blend-mode--overlay\:focus:focus {
+  mix-blend-mode: overlay;
+}
+.mix-blend-mode--darken\:focus:focus {
+  mix-blend-mode: darken;
+}
+.mix-blend-mode--lighten\:focus:focus {
+  mix-blend-mode: lighten;
+}
+.object-fit--fill\:focus:focus {
+  object-fit: fill;
+}
+.object-fit--contain\:focus:focus {
+  object-fit: contain;
+}
+.object-fit--cover\:focus:focus {
+  object-fit: cover;
+}
+.object-fit--none\:focus:focus {
+  object-fit: none;
+}
+.object-fit--scale-down\:focus:focus {
+  object-fit: scale-down;
+}
+.opacity--0\:focus:focus {
+  opacity: 0;
+}
+.opacity--01\:focus:focus {
+  opacity: 0.1;
+}
+.opacity--02\:focus:focus {
+  opacity: 0.2;
+}
+.opacity--03\:focus:focus {
+  opacity: 0.3;
+}
+.opacity--04\:focus:focus {
+  opacity: 0.4;
+}
+.opacity--05\:focus:focus {
+  opacity: 0.5;
+}
+.opacity--06\:focus:focus {
+  opacity: 0.6;
+}
+.opacity--07\:focus:focus {
+  opacity: 0.7;
+}
+.opacity--08\:focus:focus {
+  opacity: 0.8;
+}
+.opacity--09\:focus:focus {
+  opacity: 0.9;
+}
+.opacity--1\:focus:focus {
+  opacity: 1;
+}
+.order--1\:focus:focus {
+  order: 1;
+}
+.order--2\:focus:focus {
+  order: 2;
+}
+.order--3\:focus:focus {
+  order: 3;
+}
+.order--4\:focus:focus {
+  order: 4;
+}
+.order--5\:focus:focus {
+  order: 5;
+}
+.order--6\:focus:focus {
+  order: 6;
+}
+.order--7\:focus:focus {
+  order: 7;
+}
+.order--8\:focus:focus {
+  order: 8;
+}
+.order--9\:focus:focus {
+  order: 9;
+}
+.order--10\:focus:focus {
+  order: 10;
+}
+.order--11\:focus:focus {
+  order: 11;
+}
+.order--12\:focus:focus {
+  order: 12;
+}
+.outline-color--blue\:focus:focus {
+  outline-color: var(--blue);
+}
+.outline-color--green\:focus:focus {
+  outline-color: var(--green);
+}
+.outline-color--yellow\:focus:focus {
+  outline-color: var(--yellow);
+}
+.outline-color--orange\:focus:focus {
+  outline-color: var(--orange);
+}
+.outline-color--red\:focus:focus {
+  outline-color: var(--red);
+}
+.outline-color--pink\:focus:focus {
+  outline-color: var(--pink);
+}
+.outline-color--purple\:focus:focus {
+  outline-color: var(--purple);
+}
+.outline-color--black\:focus:focus {
+  outline-color: var(--black);
+}
+.outline-color--darkest-gray\:focus:focus {
+  outline-color: var(--darkest-gray);
+}
+.outline-color--dark-gray\:focus:focus {
+  outline-color: var(--dark-gray);
+}
+.outline-color--gray\:focus:focus {
+  outline-color: var(--gray);
+}
+.outline-color--light-gray\:focus:focus {
+  outline-color: var(--light-gray);
+}
+.outline-color--lighter-gray\:focus:focus {
+  outline-color: var(--lighter-gray);
+}
+.outline-color--lightest-gray\:focus:focus {
+  outline-color: var(--lightest-gray);
+}
+.outline-color--white\:focus:focus {
+  outline-color: var(--white);
+}
+.outline-style--none\:focus:focus {
+  outline-style: none;
+}
+.outline-style--solid\:focus:focus {
+  outline-style: solid;
+}
+.outline-style--dotted\:focus:focus {
+  outline-style: dotted;
+}
+.outline-style--dashed\:focus:focus {
+  outline-style: dashed;
+}
+.outline-style--double\:focus:focus {
+  outline-style: double;
+}
+.outline-style--groove\:focus:focus {
+  outline-style: groove;
+}
+.outline-style--ridge\:focus:focus {
+  outline-style: ridge;
+}
+.outline-style--inset\:focus:focus {
+  outline-style: inset;
+}
+.outline-style--outset\:focus:focus {
+  outline-style: outset;
+}
+.outline-width--0\:focus:focus {
+  outline-width: 0;
+}
+.overflow--visible\:focus:focus {
+  overflow: visible;
+}
+.overflow--hidden\:focus:focus {
+  overflow: hidden;
+}
+.overflow--scroll\:focus:focus {
+  overflow: scroll;
+}
+.overflow--auto\:focus:focus {
+  overflow: auto;
+}
+.overflow-block--visible\:focus:focus {
+  overflow-block: visible;
+}
+.overflow-block--hidden\:focus:focus {
+  overflow-block: hidden;
+}
+.overflow-block--scroll\:focus:focus {
+  overflow-block: scroll;
+}
+.overflow-block--auto\:focus:focus {
+  overflow-block: auto;
+}
+.overflow-inline--visible\:focus:focus {
+  overflow-inline: visible;
+}
+.overflow-inline--hidden\:focus:focus {
+  overflow-inline: hidden;
+}
+.overflow-inline--scroll\:focus:focus {
+  overflow-inline: scroll;
+}
+.overflow-inline--auto\:focus:focus {
+  overflow-inline: auto;
+}
+.overflow-wrap--normal\:focus:focus {
+  overflow-wrap: normal;
+}
+.overflow-wrap--break-word\:focus:focus {
+  overflow-wrap: break-word;
+}
+.overflow-x--visible\:focus:focus {
+  overflow-x: visible;
+}
+.overflow-x--hidden\:focus:focus {
+  overflow-x: hidden;
+}
+.overflow-x--scroll\:focus:focus {
+  overflow-x: scroll;
+}
+.overflow-x--auto\:focus:focus {
+  overflow-x: auto;
+}
+.overflow-y--visible\:focus:focus {
+  overflow-y: visible;
+}
+.overflow-y--hidden\:focus:focus {
+  overflow-y: hidden;
+}
+.overflow-y--scroll\:focus:focus {
+  overflow-y: scroll;
+}
+.overflow-y--auto\:focus:focus {
+  overflow-y: auto;
+}
+.overscroll-behavior--auto\:focus:focus {
+  overscroll-behavior: auto;
+}
+.overscroll-behavior--auto\:focus:focus {
+  overscroll-behavior: auto;
+}
+.overscroll-behavior--contain\:focus:focus {
+  overscroll-behavior: contain;
+}
+.overscroll-behavior--none\:focus:focus {
+  overscroll-behavior: none;
+}
+.padding--0\:focus:focus {
+  padding: 0;
+}
+.padding--4\:focus:focus {
+  padding: 4px;
+}
+.padding--8\:focus:focus {
+  padding: 8px;
+}
+.padding--16\:focus:focus {
+  padding: 16px;
+}
+.padding--24\:focus:focus {
+  padding: 24px;
+}
+.padding--32\:focus:focus {
+  padding: 32px;
+}
+.padding--48\:focus:focus {
+  padding: 48px;
+}
+.padding--64\:focus:focus {
+  padding: 64px;
+}
+.padding--96\:focus:focus {
+  padding: 96px;
+}
+.padding-block--0\:focus:focus {
+  padding-block: 0;
+}
+.padding-block--4\:focus:focus {
+  padding-block: 4px;
+}
+.padding-block--8\:focus:focus {
+  padding-block: 8px;
+}
+.padding-block--16\:focus:focus {
+  padding-block: 16px;
+}
+.padding-block--24\:focus:focus {
+  padding-block: 24px;
+}
+.padding-block--32\:focus:focus {
+  padding-block: 32px;
+}
+.padding-block--48\:focus:focus {
+  padding-block: 48px;
+}
+.padding-block--64\:focus:focus {
+  padding-block: 64px;
+}
+.padding-block--96\:focus:focus {
+  padding-block: 96px;
+}
+.padding-inline--0\:focus:focus {
+  padding-inline: 0;
+}
+.padding-inline--4\:focus:focus {
+  padding-inline: 4px;
+}
+.padding-inline--8\:focus:focus {
+  padding-inline: 8px;
+}
+.padding-inline--16\:focus:focus {
+  padding-inline: 16px;
+}
+.padding-inline--24\:focus:focus {
+  padding-inline: 24px;
+}
+.padding-inline--32\:focus:focus {
+  padding-inline: 32px;
+}
+.padding-inline--48\:focus:focus {
+  padding-inline: 48px;
+}
+.padding-inline--64\:focus:focus {
+  padding-inline: 64px;
+}
+.padding-inline--96\:focus:focus {
+  padding-inline: 96px;
+}
+.padding-top--0\:focus:focus {
+  padding-top: 0;
+}
+.padding-top--4\:focus:focus {
+  padding-top: 4px;
+}
+.padding-top--8\:focus:focus {
+  padding-top: 8px;
+}
+.padding-top--16\:focus:focus {
+  padding-top: 16px;
+}
+.padding-top--24\:focus:focus {
+  padding-top: 24px;
+}
+.padding-top--32\:focus:focus {
+  padding-top: 32px;
+}
+.padding-top--48\:focus:focus {
+  padding-top: 48px;
+}
+.padding-top--64\:focus:focus {
+  padding-top: 64px;
+}
+.padding-top--96\:focus:focus {
+  padding-top: 96px;
+}
+.padding-bottom--0\:focus:focus {
+  padding-bottom: 0;
+}
+.padding-bottom--4\:focus:focus {
+  padding-bottom: 4px;
+}
+.padding-bottom--8\:focus:focus {
+  padding-bottom: 8px;
+}
+.padding-bottom--16\:focus:focus {
+  padding-bottom: 16px;
+}
+.padding-bottom--24\:focus:focus {
+  padding-bottom: 24px;
+}
+.padding-bottom--32\:focus:focus {
+  padding-bottom: 32px;
+}
+.padding-bottom--48\:focus:focus {
+  padding-bottom: 48px;
+}
+.padding-bottom--64\:focus:focus {
+  padding-bottom: 64px;
+}
+.padding-bottom--96\:focus:focus {
+  padding-bottom: 96px;
+}
+.padding-start--0\:focus:focus {
+  padding-inline-start: 0;
+}
+.padding-start--4\:focus:focus {
+  padding-inline-start: 4px;
+}
+.padding-start--8\:focus:focus {
+  padding-inline-start: 8px;
+}
+.padding-start--16\:focus:focus {
+  padding-inline-start: 16px;
+}
+.padding-start--24\:focus:focus {
+  padding-inline-start: 24px;
+}
+.padding-start--32\:focus:focus {
+  padding-inline-start: 32px;
+}
+.padding-start--48\:focus:focus {
+  padding-inline-start: 48px;
+}
+.padding-start--64\:focus:focus {
+  padding-inline-start: 64px;
+}
+.padding-start--96\:focus:focus {
+  padding-inline-start: 96px;
+}
+.padding-end--0\:focus:focus {
+  padding-inline-end: 0;
+}
+.padding-end--4\:focus:focus {
+  padding-inline-end: 4px;
+}
+.padding-end--8\:focus:focus {
+  padding-inline-end: 8px;
+}
+.padding-end--16\:focus:focus {
+  padding-inline-end: 16px;
+}
+.padding-end--24\:focus:focus {
+  padding-inline-end: 24px;
+}
+.padding-end--32\:focus:focus {
+  padding-inline-end: 32px;
+}
+.padding-end--48\:focus:focus {
+  padding-inline-end: 48px;
+}
+.padding-end--64\:focus:focus {
+  padding-inline-end: 64px;
+}
+.padding-end--96\:focus:focus {
+  padding-inline-end: 96px;
+}
+.pointer-events--auto\:focus:focus {
+  pointer-events: auto;
+}
+.pointer-events--none\:focus:focus {
+  pointer-events: none;
+}
+.pointer-events--visiblePainted\:focus:focus {
+  pointer-events: visiblePainted;
+}
+.pointer-events--visibleFill\:focus:focus {
+  pointer-events: visibleFill;
+}
+.pointer-events--visibleStroke\:focus:focus {
+  pointer-events: visibleStroke;
+}
+.position--static\:focus:focus {
+  position: static;
+}
+.position--relative\:focus:focus {
+  position: relative;
+}
+.position--absolute\:focus:focus {
+  position: absolute;
+}
+.position--fixed\:focus:focus {
+  position: fixed;
+}
+.position--sticky\:focus:focus {
+  position: sticky;
+}
+.resize--none\:focus:focus {
+  resize: none;
+}
+.resize--both\:focus:focus {
+  resize: both;
+}
+.resize--horizontal\:focus:focus {
+  resize: horizontal;
+}
+.resize--vertical\:focus:focus {
+  resize: vertical;
+}
+.row-gap--0\:focus:focus {
+  row-gap: 0;
+}
+.row-gap--4\:focus:focus {
+  row-gap: 4px;
+}
+.row-gap--8\:focus:focus {
+  row-gap: 8px;
+}
+.row-gap--16\:focus:focus {
+  row-gap: 16px;
+}
+.row-gap--24\:focus:focus {
+  row-gap: 24px;
+}
+.row-gap--32\:focus:focus {
+  row-gap: 32px;
+}
+.row-gap--48\:focus:focus {
+  row-gap: 48px;
+}
+.row-gap--64\:focus:focus {
+  row-gap: 64px;
+}
+.row-gap--96\:focus:focus {
+  row-gap: 96px;
+}
+.scroll-behavior--auto\:focus:focus {
+  scroll-behavior: auto;
+}
+.scroll-behavior--smooth\:focus:focus {
+  scroll-behavior: smooth;
+}
+.scroll-snap-align--none\:focus:focus {
+  scroll-snap-align: none;
+}
+.scroll-snap-align--start\:focus:focus {
+  scroll-snap-align: start;
+}
+.scroll-snap-align--center\:focus:focus {
+  scroll-snap-align: center;
+}
+.scroll-snap-align--end\:focus:focus {
+  scroll-snap-align: end;
+}
+.scroll-snap-stop--normal\:focus:focus {
+  scroll-snap-stop: normal;
+}
+.scroll-snap-stop--always\:focus:focus {
+  scroll-snap-stop: always;
+}
+.scroll-snap-type--none\:focus:focus {
+  scroll-snap-type: none;
+}
+.scroll-snap-type--mandatory\:focus:focus {
+  scroll-snap-type: mandatory;
+}
+.scroll-snap-type--proximity\:focus:focus {
+  scroll-snap-type: proximity;
+}
+.template-columns--2\:focus:focus {
+  grid-template-columns: repeat(2, 1fr);
+}
+.template-columns--3\:focus:focus {
+  grid-template-columns: repeat(3, 1fr);
+}
+.template-columns--4\:focus:focus {
+  grid-template-columns: repeat(4, 1fr);
+}
+.template-columns--5\:focus:focus {
+  grid-template-columns: repeat(5, 1fr);
+}
+.template-columns--6\:focus:focus {
+  grid-template-columns: repeat(6, 1fr);
+}
+.template-columns--7\:focus:focus {
+  grid-template-columns: repeat(7, 1fr);
+}
+.template-columns--8\:focus:focus {
+  grid-template-columns: repeat(8, 1fr);
+}
+.template-columns--9\:focus:focus {
+  grid-template-columns: repeat(9, 1fr);
+}
+.template-columns--10\:focus:focus {
+  grid-template-columns: repeat(10, 1fr);
+}
+.template-columns--11\:focus:focus {
+  grid-template-columns: repeat(11, 1fr);
+}
+.template-columns--12\:focus:focus {
+  grid-template-columns: repeat(12, 1fr);
+}
+.text-align--left\:focus:focus {
+  text-align: left;
+}
+.text-align--right\:focus:focus {
+  text-align: right;
+}
+.text-align--center\:focus:focus {
+  text-align: center;
+}
+.text-align--justify\:focus:focus {
+  text-align: justify;
+}
+.text-transform--none\:focus:focus {
+  text-transform: none;
+}
+.text-transform--capitalize\:focus:focus {
+  text-transform: capitalize;
+}
+.text-transform--uppercase\:focus:focus {
+  text-transform: uppercase;
+}
+.text-transform--lowercase\:focus:focus {
+  text-transform: lowercase;
+}
+.width--100\:focus:focus {
+  width: 100%;
+}
+.writing-mode--horizontal-tb\:focus:focus {
+  writing-mode: horizontal-tb;
+}
+.writing-mode--vertical-rl\:focus:focus {
+  writing-mode: vertical-rl;
+}
+.writing-mode--vertical-lr\:focus:focus {
+  writing-mode: vertical-lr;
+}
+.z-index--auto\:focus:focus {
+  z-index: auto;
+}
+.z-index--0\:focus:focus {
+  z-index: 0;
+}
+.z-index--1\:focus:focus {
+  z-index: 1;
+}
+.z-index--4\:focus:focus {
+  z-index: 4;
+}
+.z-index--8\:focus:focus {
+  z-index: 8;
+}
+.z-index--16\:focus:focus {
+  z-index: 16;
+}
+.z-index--24\:focus:focus {
+  z-index: 24;
+}
+.z-index--32\:focus:focus {
+  z-index: 32;
+}
+
+/* Elevación 0 */
+.elevation--0\:focus:focus {
+  box-shadow: none;
+}
+
+/* Elevación 1 */
+.elevation--1\:focus:focus {
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14),
+    0 1px 3px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Elevación 2 */
+.elevation--2\:focus:focus {
+  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Elevación 3 */
+.elevation--3\:focus:focus {
+  box-shadow: 0 3px 3px -2px rgba(0, 0, 0, 0.2), 0 3px 4px 0 rgba(0, 0, 0, 0.14),
+    0 1px 8px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Elevación 4 */
+.elevation--4\:focus:focus {
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+    0 1px 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Elevación 5 */
+.elevation--5\:focus:focus {
+  box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 0 5px 8px 0 rgba(0, 0, 0, 0.14),
+    0 1px 14px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Elevación 6 */
+.elevation--6\:focus:focus {
+  box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2),
+    0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Elevación 7 */
+.elevation--7\:focus:focus {
+  box-shadow: 0 4px 5px -2px rgba(0, 0, 0, 0.2),
+    0 7px 10px 1px rgba(0, 0, 0, 0.14), 0 2px 16px 1px rgba(0, 0, 0, 0.12);
+}
+
+/* Elevación 8 */
+.elevation--8\:focus:focus {
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* Elevación 9 */
+.elevation--9\:focus:focus {
+  box-shadow: 0 5px 6px -3px rgba(0, 0, 0, 0.2),
+    0 9px 12px 1px rgba(0, 0, 0, 0.14), 0 3px 16px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* Elevación 10 */
+.elevation--10\:focus:focus {
+  box-shadow: 0 6px 6px -3px rgba(0, 0, 0, 0.2),
+    0 10px 14px 1px rgba(0, 0, 0, 0.14), 0 4px 18px 3px rgba(0, 0, 0, 0.12);
+}

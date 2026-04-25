@@ -1,0 +1,93 @@
+/** @format */
+
+.c-aside-grid {
+  grid-template-columns: 250px auto;
+}
+
+.c-exam-aside-grid {
+  grid-template-columns: 350px auto;
+}
+
+.c-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.c-smallbutton {
+  border: none;
+  box-shadow: 0px 1px 2px 0px #7c65440d;
+  box-shadow: 0px -2px 0px 0px #7c65440d inset;
+  box-shadow: 0px 0px 0px 1px #7c65442e inset;
+}
+
+.c-input {
+  box-shadow: 0px 1px 2px 0px #8181810d;
+  box-shadow: 0px -2px 0px 0px #9999990d inset;
+  box-shadow: 0px 0px 0px 1px #7f7f7f2e inset;
+  border-radius: 5px;
+  padding-inline: 12px;
+  padding-block: 9px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.c-input::placeholder {
+  color: var(--lighter-gray);
+}
+
+.c-select {
+  background: #fff url(/down.png) no-repeat right center;
+  padding-inline-start: 12px;
+  padding-inline-end: 16px;
+  padding-block: 9px;
+  background-size: 32px 24px;
+  box-sizing: border-box;
+}
+
+.c-select:required:invalid {
+  color: var(--lighter-gray);
+}
+
+.c-answer--item p {
+  color: var(--gray);
+  font-size: 14px;
+  margin: 0;
+  line-height: normal;
+}
+.c-answer--item p strong {
+  color: var(--dark-gray);
+  font-weight: 600;
+}
+
+.c-answer--item code {
+  color: var(--green);
+  font-family:
+    SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  letter-spacing: -0.05em;
+  font-weight: 500;
+  border-radius: 3px;
+}
+
+.c-campaign-content p,
+.c-campaign-content ul,
+.c-campaign-content ol {
+  font-family: var(--font-family-sans);
+  letter-spacing: -0.02em;
+  line-height: 150%;
+  font-weight: 400;
+  color: var(--dark-gray);
+  margin-top: 0;
+}
+
+.c-campaign-content h1,
+.c-campaign-content h2 {
+  color: var(--dark-green);
+}
+
+.c-campaign-content h3,
+.c-campaign-content h4 {
+  font-weight: 500;
+  color: var(--dark-green);
+}
