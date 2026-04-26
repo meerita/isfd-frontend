@@ -1,39 +1,39 @@
 /** @format */
 
 // File: src/_types/country.ts
-// Purpose: Shared country domain types for API responses and UI consumption
+// Purpose: Country domain types aligned with backend v2 contracts
 // Author: Diego M. Lafuente
 // Email: dlafuente@gmail.com
 
-import type { Continent } from '@/_constants/continents';
 import type { ApiErrorResponse } from '@/_types/api';
 
 export type Country = Readonly<{
   id: string;
-  countryCode: string;
   name: string;
-  localizedName: string;
-  continent: Continent;
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
-  provinces?: ReadonlyArray<string>;
-  coordinates?: Readonly<{
-    lat: number;
-    lng: number;
-  }>;
+  slug: string;
+  translationKey: string;
+  flagImageUrl: string | null;
+  iso2Code: string | null;
+  iso3Code: string | null;
+  continentCode: string | null;
+  isActive: boolean;
+  // Present in admin list only
+  provinceCount?: number;
+  cityCount?: number;
 }>;
 
-export type CountriesPagination = Readonly<{
+export type GeoMetadata = Readonly<{
   page: number;
-  limit: number;
+  pageSize: number;
   totalItems: number;
   totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }>;
 
 export type CountriesResponse = Readonly<{
   data: ReadonlyArray<Country>;
-  pagination: CountriesPagination;
+  metadata: GeoMetadata;
 }>;
 
 export interface CountryActionState {

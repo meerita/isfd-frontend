@@ -34,7 +34,7 @@ export default function ListItemIconOnly({
   return (
     <li {...rest}>
       <Link href={href} className={listStyles.join(' ')} prefetch={true}>
-        <Icon fill={active ? 'white' : 'green'} name={icon} size={24} />
+        <Icon fill={active ? 'white' : 'black'} name={icon} size={24} />
       </Link>
     </li>
   );

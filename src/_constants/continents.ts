@@ -1,31 +1,33 @@
 /** @format */
 
-const RAW_CONTINENTS = [
-  'EUROPE',
-  'ASIA',
-  'AFRICA',
-  'NORTH_AMERICA',
-  'SOUTH_AMERICA',
-  'OCEANIA',
-  'ANTARCTICA',
+// Continent codes as returned by the backend (ISO standard 2-letter codes)
+const RAW_CONTINENT_CODES = [
+  'EU',
+  'AS',
+  'AF',
+  'NA',
+  'SA',
+  'OC',
+  'AN',
 ] as const;
 
-export type Continent = (typeof RAW_CONTINENTS)[number];
+export type ContinentCode = (typeof RAW_CONTINENT_CODES)[number];
 
-const CONTINENT_LABELS: Readonly<Record<Continent, string>> = {
-  EUROPE: 'Europe',
-  ASIA: 'Asia',
-  AFRICA: 'Africa',
-  NORTH_AMERICA: 'North America',
-  SOUTH_AMERICA: 'South America',
-  OCEANIA: 'Oceania',
-  ANTARCTICA: 'Antarctica',
+const CONTINENT_LABELS: Readonly<Record<ContinentCode, string>> = {
+  EU: 'Europe',
+  AS: 'Asia',
+  AF: 'Africa',
+  NA: 'North America',
+  SA: 'South America',
+  OC: 'Oceania',
+  AN: 'Antarctica',
 };
 
-const CONTINENTS: ReadonlyArray<Readonly<{ value: Continent; label: string }>> =
-  RAW_CONTINENTS.map(value => ({
-    value,
-    label: CONTINENT_LABELS[value],
-  }));
+const CONTINENTS: ReadonlyArray<
+  Readonly<{ value: ContinentCode; label: string }>
+> = RAW_CONTINENT_CODES.map(value => ({
+  value,
+  label: CONTINENT_LABELS[value],
+}));
 
 export default CONTINENTS;

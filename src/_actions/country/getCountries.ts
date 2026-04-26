@@ -3,50 +3,76 @@
 'use server';
 
 // File: src/_actions/country/getCountries.ts
-// Purpose: Fetch paginated countries list while wiring auth cookies on the server
-// Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
-
-import { cookies } from 'next/headers';
+// Purpose: Fetch paginated countries list from the admin endpoint
 
 import API_ROUTES from '@/_constants/apiRoutes';
-import { ACCESS_TOKEN_COOKIE } from '@/_lib/authTokens';
+import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
 import api from '@/_lib/axiosInstance';
 import type { CountriesResponse } from '@/_types/country';
+import { mapCountry, mapMetadata } from './mappers';
 
-const DEFAULT_QUERY: Readonly<{ page: number; limit: number }> = {
-  page: 1,
-  limit: 20,
-};
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
 
-const EMPTY_COUNTRIES_RESPONSE: CountriesResponse = {
+const EMPTY_RESPONSE: CountriesResponse = {
   data: [],
-  pagination: {
-    page: DEFAULT_QUERY.page,
-    limit: DEFAULT_QUERY.limit,
+  metadata: {
+    page: DEFAULT_PAGE,
+    pageSize: DEFAULT_PAGE_SIZE,
     totalItems: 0,
     totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
   },
 };
 
 export async function getCountries(
-  query: Partial<typeof DEFAULT_QUERY> = DEFAULT_QUERY,
+  query: Readonly<{
+    page?: number;
+    pageSize?: number;
+    sort?: string;
+    status?: 'all' | 'active' | 'inactive';
+  }> = {},
 ): Promise<CountriesResponse> {
-  const { page = DEFAULT_QUERY.page, limit = DEFAULT_QUERY.limit } = query;
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
+  const {
+    page = DEFAULT_PAGE,
+    pageSize = DEFAULT_PAGE_SIZE,
+    sort,
+    status,
+  } = query;
+  const headers = await getAuthenticatedRequestHeaders({
+    refreshIfNeeded: true,
+  });
+  const params: Record<string, string | number> = { page, page_size: pageSize };
+  if (sort) params.sort = sort;
+  if (status) params.status = status;
 
   try {
-    const { data } = await api.get<CountriesResponse>(API_ROUTES.COUNTRIES, {
-      params: { page, limit },
-      headers: accessToken
-        ? { Authorization: `Bearer ${accessToken}` }
-        : undefined,
+    const { data } = await api.get<unknown>(API_ROUTES.COUNTRIES_ADMIN, {
+      params,
+      headers,
     });
 
-    return data;
+    if (
+      typeof data !== 'object' ||
+      data === null ||
+      !Array.isArray((data as Record<string, unknown>).data)
+    ) {
+      return EMPTY_RESPONSE;
+    }
+
+    const raw = data as {
+      data: Record<string, unknown>[];
+      metadata?: Record<string, unknown>;
+    };
+    return {
+      data: raw.data.map(mapCountry),
+      metadata: raw.metadata
+        ? mapMetadata(raw.metadata)
+        : EMPTY_RESPONSE.metadata,
+    };
   } catch (error) {
-    console.error('Failed to fetch countries', error);
-    return EMPTY_COUNTRIES_RESPONSE;
+    console.error('Failed to fetch admin countries', error);
+    return EMPTY_RESPONSE;
   }
 }

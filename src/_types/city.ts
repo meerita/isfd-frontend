@@ -1,41 +1,30 @@
 /** @format */
 
 // File: src/_types/city.ts
-// Purpose: Shared city domain types for API responses
+// Purpose: City domain types aligned with backend v2 contracts
 // Author: Diego M. Lafuente
 // Email: dlafuente@gmail.com
 
-import type { Continent } from '@/_constants/continents';
 import type { ApiErrorResponse } from '@/_types/api';
+import type { GeoMetadata } from '@/_types/country';
 
 export type City = Readonly<{
   id: string;
+  countryId: string;
+  countryName: string | null;
   name: string;
-  countryCode: string;
-  country: string;
-  continent: Continent;
-  province?: string;
-  capital?: boolean;
-  latitude?: number;
-  longitude?: number;
-  coordinates?: Readonly<{
-    lat: number;
-    lng: number;
-  }>;
-  createdAt?: string;
-  updatedAt?: string;
-}>;
-
-export type CitiesPagination = Readonly<{
-  page: number;
-  limit: number;
-  totalItems: number;
-  totalPages: number;
+  slug: string;
+  translationKey: string;
+  regionName: string | null;
+  provinceName: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  isActive: boolean;
 }>;
 
 export type CitiesResponse = Readonly<{
   data: ReadonlyArray<City>;
-  pagination?: CitiesPagination;
+  metadata: GeoMetadata;
 }>;
 
 export interface CityActionState {

@@ -3,115 +3,35 @@
 'use server';
 
 // File: src/_actions/city/updateCity.ts
-// Purpose: Update city records via PATCH wiring auth cookies
-// Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
+// Purpose: Update a city via the admin API (partial PATCH)
 
 import { revalidatePath } from 'next/cache';
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
-import type { City, CityActionState } from '@/_types/city';
+import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
 import api from '@/_lib/axiosInstance';
-import { logApiError, normalizeApiError } from '@/_lib/apiError';
+import type { CityActionState } from '@/_types/city';
 
-type UpdateCityPayload = Readonly<{
-  cityId: City['id'] | null;
-  name: string;
-  countryCode: string;
-  country?: string;
-  continent: City['continent'];
-  province?: string;
-  capital: boolean;
-  coordinates: Readonly<{ lat: number | null; lng: number | null }>;
-}>;
+function str(formData: FormData, key: string): string {
+  const v = formData.get(key);
+  return typeof v === 'string' ? v.trim() : '';
+}
 
-const getStringValue = (formData: FormData, key: string): string => {
-  const value = formData.get(key);
-  return typeof value === 'string' ? value.trim() : '';
-};
+function normalizeNumericInput(raw: string): string {
+  return raw.trim().replaceAll(/\s+/g, '').replaceAll('\u2212', '-').replaceAll(',', '.');
+}
 
-const getOptionalStringValue = (
-  formData: FormData,
-  key: string,
-): string | undefined => {
-  const value = getStringValue(formData, key);
-  return value.length > 0 ? value : undefined;
-};
-
-const normalizeNumericInput = (rawValue: string): string =>
-  rawValue
-    .trim()
-    .replaceAll(/\s+/g, '')
-    .replaceAll('\u2212', '-')
-    .replaceAll(',', '.');
-
-const getNumberValue = (formData: FormData, key: string): number | null => {
-  const value = formData.get(key);
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const normalized = normalizeNumericInput(value);
-  if (normalized.length === 0) {
-    return null;
-  }
-
+function num(formData: FormData, key: string): number | null {
+  const v = formData.get(key);
+  if (typeof v !== 'string') return null;
+  const normalized = normalizeNumericInput(v);
+  if (!normalized) return null;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
-};
+}
 
-const getBooleanValue = (formData: FormData, key: string): boolean => {
-  const value = formData.get(key);
-  if (typeof value !== 'string') {
-    return false;
-  }
-
-  const normalized = value.toLowerCase();
-  return normalized === 'true' || normalized === 'on' || normalized === '1';
-};
-
-const buildPayload = (formData: FormData): UpdateCityPayload => ({
-  cityId: getStringValue(formData, 'cityId') || null,
-  name: getStringValue(formData, 'name'),
-  countryCode: getStringValue(formData, 'countryCode'),
-  country: getOptionalStringValue(formData, 'countryName'),
-  continent: getStringValue(formData, 'continent') as City['continent'],
-  province: getOptionalStringValue(formData, 'province'),
-  capital: getBooleanValue(formData, 'capital'),
-  coordinates: {
-    lat: getNumberValue(formData, 'latitude'),
-    lng: getNumberValue(formData, 'longitude'),
-  },
-});
-
-const buildRequestBody = (
-  payload: UpdateCityPayload,
-): Record<string, unknown> => {
-  const body: Record<string, unknown> = {
-    name: payload.name,
-    countryCode: payload.countryCode,
-    continent: payload.continent,
-    capital: payload.capital,
-  };
-
-  if (payload.country) {
-    body.country = payload.country;
-  }
-
-  if (payload.province) {
-    body.province = payload.province;
-  }
-
-  const { lat, lng } = payload.coordinates;
-  if (typeof lat === 'number' && typeof lng === 'number') {
-    body.coordinates = { lat, lng };
-  }
-
-  return body;
-};
-
-const FORM_ERROR_RESPONSE: CityActionState = {
+const MISSING_ID_RESPONSE: CityActionState = {
   status: 'error',
   error: {
     reason: 'FORM_VALIDATION_ERROR',
@@ -120,36 +40,63 @@ const FORM_ERROR_RESPONSE: CityActionState = {
   },
 };
 
+const MISSING_COUNTRY_RESPONSE: CityActionState = {
+  status: 'error',
+  error: {
+    reason: 'CITY_COUNTRY_ID_REQUIRED',
+    message: 'Country is required.',
+    error: 'field "country_id" cannot be null',
+  },
+};
+
+const MISSING_NAME_RESPONSE: CityActionState = {
+  status: 'error',
+  error: {
+    reason: 'CITY_NAME_REQUIRED',
+    message: 'City name is required.',
+    error: 'field "name" cannot be null',
+  },
+};
+
 export async function updateCity(
   _prevState: CityActionState,
   formData: FormData,
 ): Promise<CityActionState> {
-  const payload = buildPayload(formData);
-  const { cityId } = payload;
+  const cityId = str(formData, 'cityId');
+  if (!cityId) return MISSING_ID_RESPONSE;
 
-  if (!cityId) {
-    return FORM_ERROR_RESPONSE;
-  }
+  const country_id = str(formData, 'countryId');
+  if (!country_id) return MISSING_COUNTRY_RESPONSE;
+
+  const name = str(formData, 'name');
+  if (!name) return MISSING_NAME_RESPONSE;
+
+  const region_name = str(formData, 'regionName') || null;
+  const province_name = str(formData, 'provinceName') || null;
+  const latitude = num(formData, 'latitude');
+  const longitude = num(formData, 'longitude');
+  const is_active = formData.get('isActive') === 'true';
+
+  const body: Record<string, unknown> = {
+    country_id,
+    name,
+    region_name,
+    province_name,
+    latitude,
+    longitude,
+    is_active,
+  };
 
   const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
-  const body = buildRequestBody(payload);
 
   try {
-    await api.patch(API_ROUTES.CITY_BY_ID(cityId), body, {
-      headers,
-    });
-
+    await api.patch(API_ROUTES.CITY_ADMIN_BY_ID(cityId), body, { headers });
     revalidatePath(NAVIGATION.CITIES);
     revalidatePath(NAVIGATION.CITY_BY_ID(cityId));
-
     return { status: 'success' } satisfies CityActionState;
   } catch (error) {
     const normalized = normalizeApiError(error);
     logApiError(normalized);
-
-    return {
-      status: 'error',
-      error: normalized.data,
-    } satisfies CityActionState;
+    return { status: 'error', error: normalized.data } satisfies CityActionState;
   }
 }

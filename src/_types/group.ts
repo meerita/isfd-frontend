@@ -5,7 +5,7 @@
 // Author: Diego M. Lafuente
 // Email: dlafuente@gmail.com
 
-import type { Continent } from '@/_constants/continents';
+import type { ContinentCode } from '@/_constants/continents';
 import type { ApiErrorResponse } from '@/_types/api';
 import type { Gender } from '@/_types/genders';
 import type { UserSkillLevel } from '@/_types/user';
@@ -49,7 +49,7 @@ export type GroupSport = Readonly<{
 }>;
 
 export type GroupLocation = Readonly<{
-  continent?: Continent;
+  continent?: ContinentCode;
   country?: string;
   localizedName?: string;
   province?: string;

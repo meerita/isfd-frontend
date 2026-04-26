@@ -3,61 +3,41 @@
 'use server';
 
 // File: src/_actions/city/getCitiesCatalogByCountryCode.ts
-// Purpose: Fetch the full cities catalog for a country to power dependent forms
+// Purpose: Fetch all cities for a country to power dependent forms (by countryId)
+// Note: Admin cities API has no metadata; fetches with large page_size.
 // Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
 
 import { getCities } from '@/_actions/city/getCities';
 import type { City } from '@/_types/city';
 
-const PAGE_LIMIT = 200;
+const CATALOG_PAGE_SIZE = 500;
 
 function sortCities(cities: ReadonlyArray<City>): ReadonlyArray<City> {
-  return [...cities].sort(function sortByName(
-    cityA: City,
-    cityB: City,
-  ): number {
-    return cityA.name.localeCompare(cityB.name, 'en', {
-      sensitivity: 'base',
-    });
-  });
+  return [...cities].sort((a, b) =>
+    a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }),
+  );
 }
 
+/** @deprecated Use getCitiesCatalogByCountryId instead */
 export async function getCitiesCatalogByCountryCode(
-  countryCode: string,
+  _countryCode: string,
 ): Promise<ReadonlyArray<City>> {
-  const normalizedCountryCode = countryCode.trim().toUpperCase();
+  console.warn(
+    '[getCitiesCatalogByCountryCode] Deprecated. Use getCitiesCatalogByCountryId with a country UUID.',
+  );
+  return [];
+}
 
-  if (!normalizedCountryCode) {
-    return [];
-  }
+export async function getCitiesCatalogByCountryId(
+  countryId: string,
+): Promise<ReadonlyArray<City>> {
+  if (!countryId.trim()) return [];
 
-  const firstResponse = await getCities({
-    countryCode: normalizedCountryCode,
-    page: 1,
-    limit: PAGE_LIMIT,
+  const response = await getCities({
+    countryId,
+    pageSize: CATALOG_PAGE_SIZE,
+    status: 'active',
   });
-  const totalPages = Math.max(1, firstResponse.pagination?.totalPages || 1);
 
-  if (totalPages === 1) {
-    return sortCities(firstResponse.data);
-  }
-
-  const remainingResponses = await Promise.all(
-    Array.from({ length: totalPages - 1 }, function buildPage(_, index) {
-      return getCities({
-        countryCode: normalizedCountryCode,
-        page: index + 2,
-        limit: PAGE_LIMIT,
-      });
-    }),
-  );
-
-  return sortCities(
-    [firstResponse, ...remainingResponses].flatMap(
-      function extractData(response) {
-        return response.data;
-      },
-    ),
-  );
+  return sortCities(response.data);
 }

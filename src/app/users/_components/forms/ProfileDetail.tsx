@@ -21,7 +21,7 @@ import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import Text from '@/_components/typography/Text';
 import Title from '@/_components/typography/Title';
-import CONTINENTS, { type Continent } from '@/_constants/continents';
+import CONTINENTS, { type ContinentCode } from '@/_constants/continents';
 import type { City } from '@/_types/city';
 import type { Country } from '@/_types/country';
 import { GENDERS } from '@/_types/genders';
@@ -41,7 +41,7 @@ type ProfileDetailFormState = Readonly<{
   weight: string;
   birthdate: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
-  continent: Continent | '';
+  continent: ContinentCode | '';
   country: string;
   localizedName: string;
   province: string;
@@ -54,21 +54,17 @@ type ProfileDetailFormState = Readonly<{
 }>;
 
 type UserCountryOption = Readonly<
-  Pick<
-    Country,
-    'id' | 'name' | 'localizedName' | 'countryCode' | 'continent' | 'provinces'
-  >
+  Pick<Country, 'id' | 'name' | 'continentCode' | 'iso2Code'>
 >;
 
 type UserCityOption = Readonly<{
   id: string;
   name: string;
-  country: string;
-  countryCode: string;
-  continent: City['continent'];
-  province?: string;
-  latitude?: number;
-  longitude?: number;
+  countryId: string;
+  provinceName: string | null;
+  regionName: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }>;
 
 function renderGenderOptions(): React.ReactNode[] {
@@ -80,17 +76,10 @@ function renderGenderOptions(): React.ReactNode[] {
 }
 
 function formatDateForInput(dateString: string | null | undefined): string {
-  if (!dateString) {
-    return '';
-  }
-
+  if (!dateString) return '';
   try {
     const date = new Date(dateString);
-
-    if (Number.isNaN(date.getTime())) {
-      return '';
-    }
-
+    if (Number.isNaN(date.getTime())) return '';
     return date.toISOString().split('T')[0];
   } catch {
     return '';
@@ -102,22 +91,10 @@ function normalizeBirthdateForApi(value: string): Readonly<{
   value: string | null;
 }> {
   const normalizedValue = value.trim();
-
-  if (!normalizedValue) {
-    return {
-      isValid: true,
-      value: null,
-    };
-  }
+  if (!normalizedValue) return { isValid: true, value: null };
 
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalizedValue);
-
-  if (!match) {
-    return {
-      isValid: false,
-      value: null,
-    };
-  }
+  if (!match) return { isValid: false, value: null };
 
   const year = Number(match[1]);
   const month = Number(match[2]);
@@ -130,16 +107,10 @@ function normalizeBirthdateForApi(value: string): Readonly<{
     normalizedDate.getUTCMonth() !== month - 1 ||
     normalizedDate.getUTCDate() !== day
   ) {
-    return {
-      isValid: false,
-      value: null,
-    };
+    return { isValid: false, value: null };
   }
 
-  return {
-    isValid: true,
-    value: normalizedDate.toISOString(),
-  };
+  return { isValid: true, value: normalizedDate.toISOString() };
 }
 
 function createInitialFormState(user: User): ProfileDetailFormState {
@@ -154,7 +125,7 @@ function createInitialFormState(user: User): ProfileDetailFormState {
     weight: user.profile?.characteristics?.weight?.toString() ?? '',
     birthdate: formatDateForInput(user.profile?.characteristics?.birthdate),
     gender: user.profile?.characteristics?.gender ?? 'OTHER',
-    continent: user.profile?.location?.continent ?? '',
+    continent: (user.profile?.location?.continent as ContinentCode) ?? '',
     country: user.profile?.location?.country ?? '',
     localizedName: user.profile?.location?.localizedName ?? '',
     province: user.profile?.location?.province ?? '',
@@ -167,90 +138,66 @@ function createInitialFormState(user: User): ProfileDetailFormState {
   } satisfies ProfileDetailFormState;
 }
 
-function normalizeText(value: string | undefined): string {
+function normalizeText(value: string | undefined | null): string {
   return value?.trim().toLowerCase() ?? '';
 }
 
 function sortCountries(
   countries: ReadonlyArray<UserCountryOption>,
 ): ReadonlyArray<UserCountryOption> {
-  return [...countries].sort(function compareCountries(
-    countryA: UserCountryOption,
-    countryB: UserCountryOption,
-  ): number {
-    return countryA.name.localeCompare(countryB.name, 'en', {
-      sensitivity: 'base',
-    });
+  return [...countries].sort(function compareCountries(a, b) {
+    return a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
   });
-}
-
-function sortProvinceNames(
-  values: ReadonlyArray<string>,
-): ReadonlyArray<string> {
-  return [...values]
-    .map(function trimProvince(value: string): string {
-      return value.trim();
-    })
-    .filter(Boolean)
-    .sort(function compareProvinceNames(
-      valueA: string,
-      valueB: string,
-    ): number {
-      return valueA.localeCompare(valueB, 'en', { sensitivity: 'base' });
-    });
-}
-
-function resolveProvinceSelection(
-  provinceOptions: ReadonlyArray<string>,
-  currentProvince: string,
-): string {
-  if (provinceOptions.length === 0) {
-    return '';
-  }
-
-  if (provinceOptions.includes(currentProvince)) {
-    return currentProvince;
-  }
-
-  return provinceOptions[0];
 }
 
 function toCityOption(city: City): UserCityOption {
   return {
     id: city.id,
     name: city.name,
-    country: city.country,
-    countryCode: city.countryCode,
-    continent: city.continent,
-    province: city.province,
-    latitude: city.coordinates?.lat ?? city.latitude,
-    longitude: city.coordinates?.lng ?? city.longitude,
+    countryId: city.countryId,
+    provinceName: city.provinceName,
+    regionName: city.regionName,
+    latitude: city.latitude,
+    longitude: city.longitude,
   };
 }
 
 function findMatchingCountry(
   countries: ReadonlyArray<UserCountryOption>,
-  formData: ProfileDetailFormState,
+  countryName: string,
 ): UserCountryOption | undefined {
-  const normalizedCountry = normalizeText(formData.country);
-
+  const normalized = normalizeText(countryName);
   return countries.find(function matchCountry(country) {
     return (
-      normalizeText(country.name) === normalizedCountry ||
-      normalizeText(country.localizedName) === normalizedCountry ||
-      normalizeText(country.countryCode) === normalizedCountry
+      normalizeText(country.name) === normalized ||
+      normalizeText(country.iso2Code) === normalized
     );
   });
 }
 
 function findMatchingCity(
   cities: ReadonlyArray<UserCityOption>,
-  formData: ProfileDetailFormState,
+  cityName: string,
 ): UserCityOption | undefined {
-  const normalizedCity = normalizeText(formData.city);
-
+  const normalized = normalizeText(cityName);
   return cities.find(function matchCity(city) {
-    return normalizeText(city.name) === normalizedCity;
+    return normalizeText(city.name) === normalized;
+  });
+}
+
+function uniqueProvinceNames(
+  cities: ReadonlyArray<UserCityOption>,
+): ReadonlyArray<string> {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const city of cities) {
+    if (city.provinceName && !seen.has(city.provinceName)) {
+      seen.add(city.provinceName);
+      result.push(city.provinceName);
+    }
+  }
+  return result.sort(function compareProvinces(a, b) {
+    return a.localeCompare(b, 'en', { sensitivity: 'base' });
   });
 }
 
@@ -258,19 +205,12 @@ function updateLocationFormData(
   currentState: ProfileDetailFormState,
   nextFields: Readonly<Partial<ProfileDetailFormState>>,
 ): ProfileDetailFormState {
-  return {
-    ...currentState,
-    ...nextFields,
-  } satisfies ProfileDetailFormState;
+  return { ...currentState, ...nextFields } satisfies ProfileDetailFormState;
 }
 
 function parseNumberOrZero(value: string): number {
   const parsedValue = Number(value);
-
-  if (!Number.isFinite(parsedValue)) {
-    return 0;
-  }
-
+  if (!Number.isFinite(parsedValue)) return 0;
   return parsedValue;
 }
 
@@ -280,17 +220,11 @@ function buildCoords(
 ): Readonly<{ lat: number; lng: number }> | null {
   const normalizedLatitude = latitude.trim();
   const normalizedLongitude = longitude.trim();
-
-  if (!normalizedLatitude || !normalizedLongitude) {
-    return null;
-  }
+  if (!normalizedLatitude || !normalizedLongitude) return null;
 
   const lat = Number(normalizedLatitude);
   const lng = Number(normalizedLongitude);
-
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return null;
-  }
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
   return { lat, lng };
 }
@@ -302,13 +236,14 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
   const [countries, setCountries] = useState<ReadonlyArray<UserCountryOption>>(
     [],
   );
-  const [cityOptions, setCityOptions] = useState<ReadonlyArray<UserCityOption>>(
-    [],
-  );
-  const [selectedContinent, setSelectedContinent] = useState<Continent | ''>(
-    user.profile?.location?.continent ?? '',
-  );
-  const [selectedCountryCode, setSelectedCountryCode] = useState('');
+  // All cities for selected country — province filter applied client-side
+  const [allCitiesForCountry, setAllCitiesForCountry] = useState<
+    ReadonlyArray<UserCityOption>
+  >([]);
+  const [selectedContinent, setSelectedContinent] = useState<
+    ContinentCode | ''
+  >((user.profile?.location?.continent as ContinentCode) ?? '');
+  const [selectedCountryId, setSelectedCountryId] = useState('');
   const [selectedProvince, setSelectedProvince] = useState(
     user.profile?.location?.province ?? '',
   );
@@ -319,19 +254,21 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
   const [citiesError, setCitiesError] = useState('');
 
   const sortedCountries = sortCountries(countries);
-  const filteredCountries = sortedCountries.filter(
-    function filterCountry(country) {
-      return selectedContinent ? country.continent === selectedContinent : true;
-    },
-  );
-  const selectedCountry = filteredCountries.find(function findCountry(country) {
-    return country.countryCode === selectedCountryCode;
+  const filteredCountries = sortedCountries.filter(function filterCountry(
+    country,
+  ) {
+    return selectedContinent ? country.continentCode === selectedContinent : true;
   });
-  const provinceOptions = sortProvinceNames(selectedCountry?.provinces ?? []);
-  const resolvedProvince = resolveProvinceSelection(
-    provinceOptions,
-    selectedProvince,
-  );
+  const selectedCountry = filteredCountries.find(function findCountry(country) {
+    return country.id === selectedCountryId;
+  });
+
+  const provinceOptions = uniqueProvinceNames(allCitiesForCountry);
+  const cityOptions = selectedProvince
+    ? allCitiesForCountry.filter(function filterByProvince(city) {
+        return city.provinceName === selectedProvince;
+      })
+    : allCitiesForCountry;
 
   useEffect(function loadCountriesOnMount() {
     let cancelled = false;
@@ -342,29 +279,19 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
 
       try {
         const catalog = await getAllCountries();
-
-        if (cancelled) {
-          return;
-        }
-
+        if (cancelled) return;
         setCountries(catalog);
       } catch (error: unknown) {
-        if (cancelled) {
-          return;
-        }
-
+        if (cancelled) return;
         console.error('Failed to load countries for user profile form', error);
         setCountries([]);
         setCountriesError('We could not load countries for the location form.');
       } finally {
-        if (!cancelled) {
-          setIsCountriesPending(false);
-        }
+        if (!cancelled) setIsCountriesPending(false);
       }
     }
 
     void loadCountries();
-
     return function cleanup() {
       cancelled = true;
     };
@@ -372,62 +299,33 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
 
   useEffect(
     function syncInitialCountrySelection() {
-      if (countries.length === 0 || selectedCountryCode) {
-        return;
-      }
+      if (countries.length === 0 || selectedCountryId) return;
 
-      const matchedCountry = findMatchingCountry(countries, formData);
+      const matchedCountry = findMatchingCountry(countries, formData.country);
+      if (!matchedCountry) return;
 
-      if (!matchedCountry) {
-        return;
-      }
-
-      setSelectedContinent(matchedCountry.continent);
-      setSelectedCountryCode(matchedCountry.countryCode);
+      setSelectedContinent(
+        (matchedCountry.continentCode as ContinentCode) ?? '',
+      );
+      setSelectedCountryId(matchedCountry.id);
       setFormData(function updatePreviousState(previousState) {
         return updateLocationFormData(previousState, {
-          continent: matchedCountry.continent,
+          continent: (matchedCountry.continentCode as ContinentCode) ?? '',
           country: matchedCountry.name,
         });
       });
     },
-    [countries, formData.country, selectedCountryCode],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [countries, formData.country, selectedCountryId],
   );
 
   useEffect(
-    function syncProvinceFromSelectedCountry() {
-      if (provinceOptions.length === 0) {
-        return;
-      }
-
-      if (resolvedProvince === selectedProvince) {
-        return;
-      }
-
-      setSelectedProvince(resolvedProvince);
-      setFormData(function updatePreviousState(previousState) {
-        return updateLocationFormData(previousState, {
-          province: resolvedProvince,
-        });
-      });
-    },
-    [provinceOptions.length, resolvedProvince, selectedProvince],
-  );
-
-  useEffect(
-    function loadCitiesForSelection() {
+    function loadCitiesForSelectedCountry() {
       let cancelled = false;
 
       async function loadCities(): Promise<void> {
-        if (!selectedCountryCode) {
-          setCityOptions([]);
-          setCitiesError('');
-          setIsCitiesPending(false);
-          return;
-        }
-
-        if (provinceOptions.length > 0 && !resolvedProvince) {
-          setCityOptions([]);
+        if (!selectedCountryId) {
+          setAllCitiesForCountry([]);
           setCitiesError('');
           setIsCitiesPending(false);
           return;
@@ -437,77 +335,42 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
         setCitiesError('');
 
         try {
-          const response = await getCities({
-            countryCode: selectedCountryCode,
-            province: resolvedProvince || undefined,
-          });
-
-          if (cancelled) {
-            return;
-          }
-
-          setCityOptions(response.data.map(toCityOption));
+          const response = await getCities({ countryId: selectedCountryId });
+          if (cancelled) return;
+          setAllCitiesForCountry(response.data.map(toCityOption));
         } catch (error: unknown) {
-          if (cancelled) {
-            return;
-          }
-
+          if (cancelled) return;
           console.error('Failed to load cities for user profile form', error);
-          setCityOptions([]);
-          setCitiesError('We could not load cities for the selected province.');
+          setAllCitiesForCountry([]);
+          setCitiesError('We could not load cities for the selected country.');
         } finally {
-          if (!cancelled) {
-            setIsCitiesPending(false);
-          }
+          if (!cancelled) setIsCitiesPending(false);
         }
       }
 
       void loadCities();
-
       return function cleanup() {
         cancelled = true;
       };
     },
-    [provinceOptions.length, resolvedProvince, selectedCountryCode],
+    [selectedCountryId],
   );
 
   useEffect(
     function syncInitialCitySelection() {
-      if (cityOptions.length === 0) {
-        return;
-      }
+      if (cityOptions.length === 0) return;
 
-      const matchedCity = findMatchingCity(cityOptions, formData);
+      const matchedCity = findMatchingCity(cityOptions, formData.city);
       const nextCity = matchedCity ?? cityOptions[0];
 
-      if (!nextCity) {
-        return;
-      }
+      if (!nextCity) return;
 
       setFormData(function updatePreviousState(previousState) {
-        // Find the selected country object
-        const selectedCountry = filteredCountries.find(
-          function findCountry(country) {
-            return (
-              country.countryCode === nextCity.country ||
-              country.name === nextCity.country ||
-              country.localizedName === nextCity.country
-            );
-          },
-        );
-
-        const nextLocalizedName =
-          selectedCountry?.localizedName || selectedCountry?.name || '';
         const nextLatitude = nextCity.latitude?.toString() ?? '';
         const nextLongitude = nextCity.longitude?.toString() ?? '';
 
         if (
-          previousState.continent === nextCity.continent &&
-          previousState.country === nextCity.country &&
-          previousState.province ===
-            (nextCity.province ?? previousState.province) &&
           previousState.city === nextCity.name &&
-          previousState.localizedName === nextLocalizedName &&
           previousState.latitude === nextLatitude &&
           previousState.longitude === nextLongitude
         ) {
@@ -515,16 +378,14 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
         }
 
         return updateLocationFormData(previousState, {
-          continent: nextCity.continent,
-          country: nextCity.country,
-          province: nextCity.province ?? previousState.province,
+          province: nextCity.provinceName ?? previousState.province,
           city: nextCity.name,
-          localizedName: nextLocalizedName,
           latitude: nextLatitude,
           longitude: nextLongitude,
         });
       });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [cityOptions, formData.city],
   );
 
@@ -533,22 +394,17 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
   ): void {
     const fieldName = e.target.name as keyof ProfileDetailFormState;
     const value = e.target.value;
-
     setFormData(function updatePreviousState(previousState) {
-      return {
-        ...previousState,
-        [fieldName]: value,
-      } satisfies ProfileDetailFormState;
+      return { ...previousState, [fieldName]: value } satisfies ProfileDetailFormState;
     });
   }
 
   function handleContinentChange(e: ChangeEvent<HTMLSelectElement>): void {
-    const nextContinent = e.target.value as Continent | '';
-
+    const nextContinent = e.target.value as ContinentCode | '';
     setSelectedContinent(nextContinent);
-    setSelectedCountryCode('');
+    setSelectedCountryId('');
     setSelectedProvince('');
-    setCityOptions([]);
+    setAllCitiesForCountry([]);
     setFormData(function updatePreviousState(previousState) {
       return updateLocationFormData(previousState, {
         continent: nextContinent,
@@ -563,17 +419,18 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
   }
 
   function handleCountryChange(e: ChangeEvent<HTMLSelectElement>): void {
-    const nextCountryCode = e.target.value;
+    const nextCountryId = e.target.value;
     const nextCountry = filteredCountries.find(function findCountry(country) {
-      return country.countryCode === nextCountryCode;
+      return country.id === nextCountryId;
     });
-
-    setSelectedCountryCode(nextCountryCode);
+    setSelectedCountryId(nextCountryId);
     setSelectedProvince('');
-    setCityOptions([]);
+    setAllCitiesForCountry([]);
     setFormData(function updatePreviousState(previousState) {
       return updateLocationFormData(previousState, {
-        continent: nextCountry?.continent ?? previousState.continent,
+        continent:
+          (nextCountry?.continentCode as ContinentCode) ??
+          previousState.continent,
         country: nextCountry?.name ?? '',
         province: '',
         city: '',
@@ -586,14 +443,11 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
 
   function handleProvinceChange(e: ChangeEvent<HTMLSelectElement>): void {
     const nextProvince = e.target.value;
-
     setSelectedProvince(nextProvince);
-    setCityOptions([]);
     setFormData(function updatePreviousState(previousState) {
       return updateLocationFormData(previousState, {
         province: nextProvince,
         city: '',
-        localizedName: '',
         latitude: '',
         longitude: '',
       });
@@ -605,30 +459,12 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
     const nextCity = cityOptions.find(function findCity(city) {
       return city.id === nextCityId;
     });
-
-    if (!nextCity) {
-      return;
-    }
+    if (!nextCity) return;
 
     setFormData(function updatePreviousState(previousState) {
-      // Find the selected country object
-      const selectedCountry = filteredCountries.find(
-        function findCountry(country) {
-          return (
-            country.countryCode === nextCity.country ||
-            country.name === nextCity.country ||
-            country.localizedName === nextCity.country
-          );
-        },
-      );
-
       return updateLocationFormData(previousState, {
-        continent: nextCity.continent,
-        country: nextCity.country,
-        province: nextCity.province ?? previousState.province,
+        province: nextCity.provinceName ?? previousState.province,
         city: nextCity.name,
-        localizedName:
-          selectedCountry?.localizedName || selectedCountry?.name || '',
         latitude: nextCity.latitude?.toString() ?? '',
         longitude: nextCity.longitude?.toString() ?? '',
       });
@@ -695,7 +531,6 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Failed to update profile';
-
       toast.error(message, {
         description: 'Unexpected error while updating profile.',
       });
@@ -836,14 +671,14 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
               <Select
                 label='Country'
                 name='country'
-                value={selectedCountryCode}
+                value={selectedCountryId}
                 onChange={handleCountryChange}
                 disabled={isCountriesPending || filteredCountries.length === 0}
               >
                 <option value=''>Select country</option>
                 {filteredCountries.map(function renderCountry(country) {
                   return (
-                    <option key={country.id} value={country.countryCode}>
+                    <option key={country.id} value={country.id}>
                       {country.name}
                     </option>
                   );
@@ -852,9 +687,13 @@ export default function ProfileDetailForm({ user }: Readonly<{ user: User }>) {
               <Select
                 label='Province'
                 name='province'
-                value={resolvedProvince}
+                value={selectedProvince}
                 onChange={handleProvinceChange}
-                disabled={isCountriesPending || provinceOptions.length === 0}
+                disabled={
+                  isCountriesPending ||
+                  isCitiesPending ||
+                  provinceOptions.length === 0
+                }
               >
                 <option value=''>Select province</option>
                 {provinceOptions.map(function renderProvince(province) {

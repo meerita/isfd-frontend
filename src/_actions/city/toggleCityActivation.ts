@@ -2,8 +2,8 @@
 
 'use server';
 
-// File: src/_actions/city/createCity.ts
-// Purpose: Create a city via the admin API
+// File: src/_actions/city/toggleCityActivation.ts
+// Purpose: Toggle activation status of a city via the admin API
 // Author: Diego M. Lafuente
 
 import { revalidatePath } from 'next/cache';
@@ -14,26 +14,34 @@ import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
 import api from '@/_lib/axiosInstance';
 import type { CityActionState } from '@/_types/city';
 
-function str(formData: FormData, key: string): string {
-  const v = formData.get(key);
-  return typeof v === 'string' ? v.trim() : '';
-}
+const MISSING_ID_RESPONSE: CityActionState = {
+  status: 'error',
+  error: {
+    reason: 'FORM_VALIDATION_ERROR',
+    message: 'Missing city identifier.',
+    error: 'City identifier is required to toggle activation.',
+  },
+};
 
-
-export async function createCity(
+export async function toggleCityActivation(
   _prevState: CityActionState,
   formData: FormData,
 ): Promise<CityActionState> {
-  const country_id = str(formData, 'countryId');
-  const name = str(formData, 'name');
+  const cityId = (formData.get('cityId') as string | null)?.trim() ?? '';
+  if (!cityId) return MISSING_ID_RESPONSE;
 
-  const body = { country_id, name };
+  const rawIsActive = formData.get('isActive');
+  const is_active =
+    typeof rawIsActive === 'string'
+      ? rawIsActive.toLowerCase() === 'true'
+      : false;
 
   const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
 
   try {
-    await api.post(API_ROUTES.CITIES_ADMIN, body, { headers });
+    await api.patch(API_ROUTES.CITY_ADMIN_ACTIVATION(cityId), { is_active }, { headers });
     revalidatePath(NAVIGATION.CITIES);
+    revalidatePath(NAVIGATION.CITY_BY_ID(cityId));
     return { status: 'success' } satisfies CityActionState;
   } catch (error) {
     const normalized = normalizeApiError(error);

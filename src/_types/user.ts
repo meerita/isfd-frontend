@@ -6,7 +6,7 @@
 // Email: dlafuente@gmail.com
 
 import type { ApiErrorResponse } from '@/_types/api';
-import type { Continent } from '@/_constants/continents';
+import type { ContinentCode } from '@/_constants/continents';
 import type { Gender } from '@/_types/genders';
 import type MetricSystem from '@/_types/MetricSystem';
 
@@ -29,7 +29,7 @@ export type UserCoordinates = Readonly<{
 }>;
 
 export type UserLocation = Readonly<{
-  continent?: Continent | '';
+  continent?: ContinentCode | '';
   country?: string;
   localizedName?: string;
   province?: string;

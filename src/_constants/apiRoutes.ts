@@ -9,8 +9,18 @@ const API_ROUTES = {
   COUNTRIES: '/countries',
   COUNTRIES_ALL: '/countries/all',
   COUNTRY_BY_ID: (id: string) => `/countries/${id}`,
+  COUNTRIES_ADMIN: '/admin/countries',
+  COUNTRY_ADMIN_BY_ID: (id: string) => `/admin/countries/${id}`,
+  COUNTRY_ADMIN_ACTIVATION: (id: string) => `/admin/countries/${id}/activation`,
   CITIES: '/cities',
   CITY_BY_ID: (id: string) => `/cities/${id}`,
+  CITIES_ADMIN: '/admin/cities',
+  CITY_ADMIN_BY_ID: (id: string) => `/admin/cities/${id}`,
+  CITY_ADMIN_ACTIVATION: (id: string) => `/admin/cities/${id}/activation`,
+  CITIES_ADMIN_BY_COUNTRY: (countryId: string) =>
+    `/admin/countries/${countryId}/cities`,
+  CITIES_PUBLIC_BY_COUNTRY: (countryId: string) =>
+    `/countries/${countryId}/cities`,
   EVENTS: '/events',
   EVENT_BY_ID: (id: string) => `/events/${id}`,
   EVENT_PARTICIPANTS: (id: string) => `/events/${id}/participants`,

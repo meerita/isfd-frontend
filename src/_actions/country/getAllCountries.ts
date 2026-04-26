@@ -3,30 +3,36 @@
 'use server';
 
 // File: src/_actions/country/getAllCountries.ts
-// Purpose: Fetch full countries catalog (including inactive) for dependent forms
+// Purpose: Fetch full countries catalog (all pages) from admin endpoint for dependent forms
 // Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
-
-import { cookies } from 'next/headers';
 
 import API_ROUTES from '@/_constants/apiRoutes';
-import { extractCountries } from '@/_helpers/extractCountries';
-import { ACCESS_TOKEN_COOKIE } from '@/_lib/authTokens';
+import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
 import api from '@/_lib/axiosInstance';
 import type { Country } from '@/_types/country';
+import { mapCountry } from '@/_actions/country/mappers';
+
+const CATALOG_PAGE_SIZE = 500;
 
 export async function getAllCountries(): Promise<ReadonlyArray<Country>> {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
+  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
 
   try {
-    const { data } = await api.get<unknown>(API_ROUTES.COUNTRIES_ALL, {
-      headers: accessToken
-        ? { Authorization: `Bearer ${accessToken}` }
-        : undefined,
+    const { data } = await api.get<unknown>(API_ROUTES.COUNTRIES_ADMIN, {
+      params: { page: 1, page_size: CATALOG_PAGE_SIZE, status: 'all' },
+      headers,
     });
 
-    return extractCountries(data);
+    if (
+      typeof data !== 'object' ||
+      data === null ||
+      !Array.isArray((data as Record<string, unknown>).data)
+    ) {
+      return [];
+    }
+
+    const raw = data as { data: Record<string, unknown>[] };
+    return raw.data.map(mapCountry);
   } catch (error) {
     console.error('Failed to fetch countries catalog', error);
     return [];

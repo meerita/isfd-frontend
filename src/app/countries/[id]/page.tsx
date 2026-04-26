@@ -15,19 +15,14 @@ import Thead from '@/_components/tables/Thead';
 import Row from '@/_components/tables/Row';
 import Cell from '@/_components/tables/Cell';
 import Tbody from '@/_components/tables/Tbody';
-import type { City } from '@/_types/city';
 import NAVIGATION from '@/_constants/navigation';
-import Link from 'next/link';
 import Icon from '@/_components/Icon';
 import Dot from '@/_components/Dot';
 import { getCities } from '@/_actions/city/getCities';
-import { extractCities } from '@/_helpers/extractCities';
-import LastUpdated from '@/_components/forms/LastUpdated';
 import Box from '@/_components/layout/Box';
+import CountryActivationToggle from '../_components/CountryActivationToggle';
 
 const PLACEHOLDER_VALUE = '--';
-const CITY_DEFAULT_PAGE = 1;
-const CITY_DEFAULT_LIMIT = 100;
 
 type CountryDetailsPageParams = Readonly<{
   id?: string;
@@ -35,63 +30,19 @@ type CountryDetailsPageParams = Readonly<{
 
 type CountryDetailsPageProps = Readonly<{
   params?: Promise<CountryDetailsPageParams> | CountryDetailsPageParams;
-  searchParams?: Promise<CitySearchParams> | CitySearchParams;
 }>;
 
-type CitySearchParams = Readonly<{
-  page?: string | string[];
-  limit?: string | string[];
-}>;
-
-function parsePositiveInteger(
-  value: string | string[] | undefined,
-  fallback: number,
-): number {
-  const normalized = Array.isArray(value) ? value[0] : value;
-  const parsed = Number(normalized);
-
-  if (Number.isFinite(parsed) && parsed > 0) {
-    return Math.floor(parsed);
-  }
-
-  return fallback;
-}
-
-function formatCoordinate(value?: number): string {
-  if (typeof value === 'number') {
+function formatCoordinate(value: number | null): string {
+  if (value !== null) {
     return value.toFixed(4);
   }
-
   return PLACEHOLDER_VALUE;
 }
 
-function formatTextValue(value?: string): string {
-  if (!value) {
-    return PLACEHOLDER_VALUE;
-  }
-
+function formatTextValue(value: string | null): string {
+  if (!value) return PLACEHOLDER_VALUE;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : PLACEHOLDER_VALUE;
-}
-
-function getCityLatitude(city: City): number | undefined {
-  return city.coordinates?.lat ?? city.latitude;
-}
-
-function getCityLongitude(city: City): number | undefined {
-  return city.coordinates?.lng ?? city.longitude;
-}
-
-function buildCitiesPageHref(
-  countryId: string,
-  page: number,
-  limit: number,
-): string {
-  const params = new URLSearchParams();
-  params.set('page', page.toString());
-  params.set('limit', limit.toString());
-
-  return `${NAVIGATION.COUNTRY_BY_ID(countryId)}?${params.toString()}`;
 }
 
 function renderNotFound(message: string) {
@@ -109,18 +60,8 @@ function renderNotFound(message: string) {
 
 export default async function CountryDetailsPage({
   params,
-  searchParams,
 }: CountryDetailsPageProps = {}) {
   const resolvedParams = await Promise.resolve(params);
-  const resolvedSearchParams = await Promise.resolve(searchParams);
-  const requestedCityPage = parsePositiveInteger(
-    resolvedSearchParams?.page,
-    CITY_DEFAULT_PAGE,
-  );
-  const requestedCityLimit = parsePositiveInteger(
-    resolvedSearchParams?.limit,
-    CITY_DEFAULT_LIMIT,
-  );
   const countryId = resolvedParams?.id;
 
   if (!countryId) {
@@ -133,27 +74,8 @@ export default async function CountryDetailsPage({
     return renderNotFound('We could not find this country.');
   }
 
-  const citiesResponse = await getCities({
-    countryCode: country.countryCode,
-    page: requestedCityPage,
-    limit: requestedCityLimit,
-  });
-  const cityPagination = citiesResponse.pagination;
-  const cityCurrentPage = Math.max(1, cityPagination.page ?? requestedCityPage);
-  const cityTotalPages = Math.max(1, cityPagination.totalPages ?? 1);
-  const cityCurrentLimit = Math.max(
-    1,
-    cityPagination.limit ?? requestedCityLimit,
-  );
-  const hasCityPreviousPage = cityCurrentPage > 1;
-  const hasCityNextPage = cityCurrentPage < cityTotalPages;
-  const previousCitiesHref = hasCityPreviousPage
-    ? buildCitiesPageHref(countryId, cityCurrentPage - 1, cityCurrentLimit)
-    : null;
-  const nextCitiesHref = hasCityNextPage
-    ? buildCitiesPageHref(countryId, cityCurrentPage + 1, cityCurrentLimit)
-    : null;
-  const cities = extractCities(citiesResponse.data);
+  const citiesResponse = await getCities({ countryId: country.id });
+  const cities = citiesResponse.data;
 
   return (
     <Grid gap={32}>
@@ -162,13 +84,16 @@ export default async function CountryDetailsPage({
         icon='countries'
       >
         <Box display='flex' gap={4} alignItems='center'>
-          <LastUpdated date={new Date(country.updatedAt)} />
+          <CountryActivationToggle
+            countryId={country.id}
+            isActive={country.isActive}
+          />
           <Button icon='countryAdd' href={NAVIGATION.COUNTRIES}>
             All countries
           </Button>
           <Button
             icon='locationAdd'
-            href={NAVIGATION.CREATE_A_CITY(country.countryCode)}
+            href={NAVIGATION.CREATE_A_CITY(country.id)}
           >
             Create a City
           </Button>
@@ -178,7 +103,6 @@ export default async function CountryDetailsPage({
       <CountryForm
         key={country.id}
         country={country}
-        provinces={country.provinces}
         edit
       />
 
@@ -188,17 +112,26 @@ export default async function CountryDetailsPage({
           <Thead>
             <Row>
               <Cell header>Name</Cell>
-              <Cell header className='padding-left--16' align='center'>
-                Capital
+              <Cell header className='padding-left--16'>
+                Slug
+              </Cell>
+              <Cell header className='padding-left--16'>
+                Translation key
+              </Cell>
+              <Cell header className='padding-left--16'>
+                Region
               </Cell>
               <Cell header className='padding-left--16'>
                 Province
               </Cell>
               <Cell header className='padding-left--16' align='right'>
-                Latitude
+                Lat
               </Cell>
               <Cell header className='padding-left--16' align='right'>
-                Longitude
+                Lng
+              </Cell>
+              <Cell header className='padding-left--16' align='center'>
+                Active
               </Cell>
             </Row>
           </Thead>
@@ -206,55 +139,42 @@ export default async function CountryDetailsPage({
             {cities.length === 0 ? (
               <Row>
                 <Cell>No cities available yet.</Cell>
-                <Cell align='center' className='padding-left--16'>
-                  {PLACEHOLDER_VALUE}
-                </Cell>
-                <Cell className='padding-left--16'>{PLACEHOLDER_VALUE}</Cell>
-                <Cell align='right' className='padding-left--16'>
-                  {PLACEHOLDER_VALUE}
-                </Cell>
-                <Cell align='right' className='padding-left--16'>
-                  {PLACEHOLDER_VALUE}
-                </Cell>
+                <Cell className='padding-left--16' />
+                <Cell className='padding-left--16' />
+                <Cell className='padding-left--16' />
+                <Cell className='padding-left--16' />
+                <Cell className='padding-left--16' />
+                <Cell className='padding-left--16' />
+                <Cell className='padding-left--16' />
               </Row>
             ) : (
               cities.map(city => (
                 <Row href={NAVIGATION.CITY_BY_ID(city.id)} key={city.id}>
                   <Cell>{city.name}</Cell>
-                  <Cell align='center' className='padding-left--16'>
-                    {city.capital ? <Dot active inline /> : <Dot inline />}
+                  <Cell className='padding-left--16'>{city.slug}</Cell>
+                  <Cell className='padding-left--16'>
+                    {city.translationKey}
                   </Cell>
                   <Cell className='padding-left--16'>
-                    {formatTextValue(city.province)}
+                    {formatTextValue(city.regionName)}
+                  </Cell>
+                  <Cell className='padding-left--16'>
+                    {formatTextValue(city.provinceName)}
                   </Cell>
                   <Cell align='right' className='padding-left--16'>
-                    {formatCoordinate(getCityLatitude(city))}
+                    {formatCoordinate(city.latitude)}
                   </Cell>
                   <Cell align='right' className='padding-left--16'>
-                    {formatCoordinate(getCityLongitude(city))}
+                    {formatCoordinate(city.longitude)}
+                  </Cell>
+                  <Cell align='center' className='padding-left--16'>
+                    {city.isActive ? <Dot active inline /> : <Dot inline />}
                   </Cell>
                 </Row>
               ))
             )}
           </Tbody>
         </Table>
-        <Grid justifyItems='center' className='margin-block--16'>
-          <Grid gap={16} display='flex' alignItems='center'>
-            {hasCityPreviousPage ? (
-              <Link href={previousCitiesHref!} aria-label='Go to previous page'>
-                <Icon name='arrowLeft' size={24} fill='gray' />
-              </Link>
-            ) : null}
-            <Text color='gray' size='small' weight='semibold'>
-              Page {cityCurrentPage} of {cityTotalPages}
-            </Text>
-            {hasCityNextPage ? (
-              <Link href={nextCitiesHref!} aria-label='Go to next page'>
-                <Icon name='arrowRight' size={24} fill='gray' />
-              </Link>
-            ) : null}
-          </Grid>
-        </Grid>
       </Section>
     </Grid>
   );

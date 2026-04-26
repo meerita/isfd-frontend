@@ -3,61 +3,39 @@
 'use server';
 
 // File: src/_actions/country/createCountry.ts
-// Purpose: Stub server action for creating countries via CountryForm
+// Purpose: Create a country via the admin API
 // Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
 
-import type { Country } from '@/_types/country';
+import { revalidatePath } from 'next/cache';
+import API_ROUTES from '@/_constants/apiRoutes';
+import NAVIGATION from '@/_constants/navigation';
+import { logApiError, normalizeApiError } from '@/_lib/apiError';
+import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
+import api from '@/_lib/axiosInstance';
+import type { CountryActionState } from '@/_types/country';
 
-type CountryFormPayload = Readonly<
-  Pick<Country, 'name' | 'continent' | 'countryCode' | 'active'> & {
-    coordinates: Readonly<{ lat: number | null; lng: number | null }>;
-    provinces: ReadonlyArray<string>;
+function str(formData: FormData, key: string): string {
+  const v = formData.get(key);
+  return typeof v === 'string' ? v.trim() : '';
+}
+
+export async function createCountry(
+  _prevState: CountryActionState,
+  formData: FormData,
+): Promise<CountryActionState> {
+  const name = str(formData, 'name');
+
+  const body = { name };
+
+  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
+
+  try {
+    await api.post(API_ROUTES.COUNTRIES_ADMIN, body, { headers });
+    revalidatePath(NAVIGATION.COUNTRIES);
+    return { status: 'success' } satisfies CountryActionState;
+  } catch (error) {
+    const normalized = normalizeApiError(error);
+    logApiError(normalized);
+    return { status: 'error', error: normalized.data } satisfies CountryActionState;
   }
->;
-
-const getStringValue = (formData: FormData, key: string): string => {
-  const value = formData.get(key);
-  return typeof value === 'string' ? value : '';
-};
-
-const getBooleanValue = (formData: FormData, key: string): boolean => {
-  const value = formData.get(key);
-  if (typeof value !== 'string') {
-    return false;
-  }
-
-  const normalized = value.toLowerCase();
-  return normalized === 'true' || normalized === 'on' || normalized === '1';
-};
-
-const getNumberValue = (formData: FormData, key: string): number | null => {
-  const value = formData.get(key);
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    return null;
-  }
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
-const buildPayload = (formData: FormData): CountryFormPayload => ({
-  name: getStringValue(formData, 'name'),
-  continent: getStringValue(formData, 'continent') as Country['continent'],
-  countryCode: getStringValue(formData, 'countryCode'),
-  active: getBooleanValue(formData, 'active'),
-  coordinates: {
-    lat: getNumberValue(formData, 'latitude'),
-    lng: getNumberValue(formData, 'longitude'),
-  },
-  provinces: formData
-    .getAll('provinces')
-    .filter((value): value is string => typeof value === 'string')
-    .map(value => value.trim())
-    .filter(value => value.length > 0),
-});
-
-export async function createCountry(formData: FormData): Promise<void> {
-  const payload = buildPayload(formData);
-  console.info('[createCountry] Stub payload', payload);
 }

@@ -5,6 +5,7 @@ const SECTIONS = {
   ACTIVITIES: 'Activities',
   ADD_GROUP: 'Create Group',
   ADD_PLACE: 'Create Place',
+  ADD_CITY: 'Create City',
   ADD_COUNTRY: 'Add Country',
   ADD_EVENT: 'Create Event',
   ADD_SPORT: 'Add Sport',

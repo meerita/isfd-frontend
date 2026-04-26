@@ -12,6 +12,7 @@ export const ICON_NAME = {
   arrowLeft: 'arrowLeft',
   arrowRight: 'arrowRight',
   arrowUp: 'arrowUp',
+  stadiums: 'stadiums',
   audits: 'audits',
   autoDismissal: 'autoDismissal',
   autoRejection: 'autoRejection',

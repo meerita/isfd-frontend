@@ -44,16 +44,11 @@ export default function TopBar({ username }: Readonly<TopBarProps>) {
     },
     { href: NAVIGATION.USERS, label: SECTIONS.USERS, icon: 'users' },
     { href: NAVIGATION.GROUPS, label: SECTIONS.GROUPS, icon: 'users' },
-    { href: NAVIGATION.EVENTS, label: SECTIONS.EVENTS, icon: 'eventList' },
     {
       href: NAVIGATION.COUNTRIES,
       label: SECTIONS.COUNTRIES,
       icon: 'countries',
     },
-    { href: NAVIGATION.PLACES, label: SECTIONS.PLACES, icon: 'business' },
-    { href: NAVIGATION.SPORTS, label: SECTIONS.SPORTS, icon: 'sports' },
-    { href: NAVIGATION.LEGAL, label: SECTIONS.LEGAL, icon: 'description' },
-    { href: NAVIGATION.FLAGS, label: SECTIONS.FLAGS, icon: 'flag' },
   ];
 
   const accountNavigation: ReadonlyArray<NavBarItem> = [

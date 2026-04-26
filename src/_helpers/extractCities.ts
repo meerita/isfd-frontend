@@ -3,33 +3,22 @@
 // File: src/_helpers/extractCities.ts
 // Purpose: Normalize API payloads into a predictable cities array
 // Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
 
 import type { City } from '@/_types/city';
 
-type CityPayload =
-  | ReadonlyArray<City>
-  | Readonly<{ results?: unknown; data?: unknown }>
-  | Record<string, unknown>;
+type AnyPayload = ReadonlyArray<City> | Readonly<{ data?: unknown }> | unknown;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null;
 
-export function extractCities(payload: CityPayload): City[] {
+export function extractCities(payload: AnyPayload): City[] {
   if (Array.isArray(payload)) {
     return payload as City[];
   }
 
   if (isRecord(payload)) {
-    const { results, data } = payload as { results?: unknown; data?: unknown };
-
-    if (Array.isArray(results)) {
-      return results as City[];
-    }
-
-    if (Array.isArray(data)) {
-      return data as City[];
-    }
+    if (Array.isArray(payload.data)) return payload.data as City[];
+    if (Array.isArray(payload.results)) return payload.results as City[];
   }
 
   return [];

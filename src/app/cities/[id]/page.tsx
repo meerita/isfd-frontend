@@ -3,6 +3,7 @@
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
+import Box from '@/_components/layout/Box';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Text from '@/_components/typography/Text';
 import Title from '@/_components/typography/Title';
@@ -12,6 +13,7 @@ import NAVIGATION from '@/_constants/navigation';
 import SECTIONS from '@/_constants/sections';
 
 import CityForm from '../_components/CityForm';
+import CityActivationToggle from '../_components/CityActivationToggle';
 import DeleteCityButton from '../_components/DeleteCityButton';
 
 type CityPageParams = Readonly<{
@@ -58,7 +60,10 @@ export default async function CityDetailsPage({
   return (
     <Grid gap={24}>
       <SectionHeader title={`${SECTIONS.CITIES} / ${city.name}`} icon='cities'>
-        <DeleteCityButton cityId={city.id} cityName={city.name} />
+        <Box display='flex' gap={4} alignItems='center'>
+          <DeleteCityButton cityId={city.id} cityName={city.name} />
+          <CityActivationToggle cityId={city.id} isActive={city.isActive} />
+        </Box>
       </SectionHeader>
       <CityForm key={city.id} city={city} countries={countries} edit />
     </Grid>

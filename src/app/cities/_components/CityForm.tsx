@@ -3,203 +3,63 @@
 'use client';
 // File: src/app/cities/_components/CityForm.tsx
 // Purpose: Form component to create or edit cities
-// Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
 
-import {
-  useActionState,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import type { ChangeEvent } from 'react';
+import { useActionState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 import Button from '@/_components/forms/Button';
+import CheckBoxInput from '@/_components/forms/CheckBoxInput';
 import Form from '@/_components/forms/Form';
 import Select from '@/_components/forms/Select';
 import TextInput from '@/_components/forms/TextInput';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import Grid from '@/_components/layout/Grid';
 import Section from '@/_components/layout/Section';
-import Text from '@/_components/typography/Text';
-import CONTINENTS from '@/_constants/continents';
 import NAVIGATION from '@/_constants/navigation';
 import { createCity } from '@/_actions/city/createCity';
 import { updateCity } from '@/_actions/city/updateCity';
 import type { City, CityActionState } from '@/_types/city';
 import type { Country } from '@/_types/country';
-import CheckBoxInput from '@/_components/forms/CheckBoxInput';
-import LastUpdated from '@/_components/forms/LastUpdated';
 
 const INITIAL_ACTION_STATE: CityActionState = { status: 'idle' };
 
-function toStringValue(value?: number): string {
+function toStringValue(value: number | null | undefined): string {
   return typeof value === 'number' ? value.toString() : '';
 }
 
-function sortProvinces(values?: ReadonlyArray<string>): string[] {
-  return (values ?? [])
-    .map(value => value.trim())
-    .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
-}
-
-type CityFormValues = Readonly<{
-  name: string;
-  countryCode: string;
-  countryName: string;
-  continent: City['continent'] | '';
-  province: string;
-  latitude: string;
-  longitude: string;
-  capital: boolean;
-}>;
-
-type CityCountryOption = Readonly<
-  Pick<Country, 'id' | 'name' | 'countryCode' | 'continent' | 'provinces'>
->;
+type CountryOption = Readonly<Pick<Country, 'id' | 'name'>>;
 
 type CityFormProps = Readonly<{
   city?: City | null;
-  countries: ReadonlyArray<CityCountryOption>;
+  countries: ReadonlyArray<CountryOption>;
   edit?: boolean;
-  initialCountryCode?: string | null;
+  initialCountryId?: string | null;
 }>;
-
-function buildInitialValues(city?: City | null): CityFormValues {
-  return {
-    name: city?.name ?? '',
-    countryCode: city?.countryCode ?? '',
-    countryName: city?.country ?? '',
-    continent: city?.continent ?? '',
-    province: city?.province ?? '',
-    latitude: toStringValue(city?.coordinates?.lat ?? city?.latitude),
-    longitude: toStringValue(city?.coordinates?.lng ?? city?.longitude),
-    capital: Boolean(city?.capital),
-  } satisfies CityFormValues;
-}
 
 export default function CityForm({
   city,
   countries,
   edit = false,
-  initialCountryCode = null,
+  initialCountryId = null,
 }: CityFormProps) {
   const router = useRouter();
-  const initialValues = buildInitialValues(city);
-  const normalizedInitialCountryCode =
-    initialValues.countryCode || initialCountryCode || '';
 
-  const initialCountryFromProps =
-    countries.find(
-      country => country.countryCode === normalizedInitialCountryCode,
-    ) ?? countries[0];
-  const defaultCountryCode =
-    normalizedInitialCountryCode || initialCountryFromProps?.countryCode || '';
-  const defaultProvinceValue =
-    initialValues.province ||
-    sortProvinces(initialCountryFromProps?.provinces)[0] ||
-    '';
-  const defaultContinentValue =
-    initialValues.continent ||
-    initialCountryFromProps?.continent ||
-    CONTINENTS[0].value;
-  const lastUpdatedTimestamp = city?.updatedAt ?? city?.createdAt ?? null;
-  const [selectedCountryCode, setSelectedCountryCode] =
-    useState(defaultCountryCode);
-  const [provinceValue, setProvinceValue] = useState(defaultProvinceValue);
-  const [continentValue, setContinentValue] = useState(defaultContinentValue);
-  const actionHandler = edit ? updateCity : createCity;
-  const [actionState, formAction, pending] = useActionState<
-    CityActionState,
-    FormData
-  >(actionHandler, INITIAL_ACTION_STATE);
-  const submitLabel = edit ? 'Update city' : 'Create city';
-  const isPending = pending;
-  let fallbackCountryOption: CityCountryOption | null = null;
-  if (edit && initialValues.countryCode) {
-    const existsInCatalog = countries.some(
-      country => country.countryCode === initialValues.countryCode,
-    );
-
-    if (!existsInCatalog) {
-      const fallbackContinent =
-        city?.continent ||
-        (initialValues.continent ? initialValues.continent : undefined) ||
-        countries[0]?.continent ||
-        CONTINENTS[0].value;
-
-      fallbackCountryOption = {
-        id: `city-${initialValues.countryCode}`,
-        name:
-          initialValues.countryName ||
-          city?.country ||
-          city?.name ||
-          initialValues.countryCode,
-        countryCode: initialValues.countryCode,
-        continent: fallbackContinent,
-        provinces: city?.province ? [city.province] : [],
-      } satisfies CityCountryOption;
-    }
-  }
-  const countryOptions = useMemo(() => {
-    const base = [...countries].sort((a, b) => a.name.localeCompare(b.name));
-    if (fallbackCountryOption) {
-      base.unshift(fallbackCountryOption);
-    }
-    return base;
-  }, [countries, fallbackCountryOption]);
-  const hasCountryOptions = countryOptions.length > 0;
-
-  const getCountryByCode = useCallback(
-    function getCountryByCode(code: string | undefined) {
-      return countryOptions.find(country => country.countryCode === code);
-    },
-    [countryOptions],
+  const [editState, editAction, editPending] = useActionState<CityActionState, FormData>(
+    updateCity,
+    INITIAL_ACTION_STATE,
+  );
+  const [createState, createAction, createPending] = useActionState<CityActionState, FormData>(
+    createCity,
+    INITIAL_ACTION_STATE,
   );
 
-  const selectedCountry = useMemo(
-    () => getCountryByCode(selectedCountryCode),
-    [getCountryByCode, selectedCountryCode],
-  );
-  const derivedCountryName = selectedCountry?.name ?? initialValues.countryName;
+  const actionState = edit ? editState : createState;
+  const formAction = edit ? editAction : createAction;
+  const pending = edit ? editPending : createPending;
 
-  const provinceOptions = useMemo(
-    () => sortProvinces(selectedCountry?.provinces),
-    [selectedCountry?.provinces],
-  );
-  const hasProvinceOptions = provinceOptions.length > 0;
-
-  const handleCountryChange = useCallback(
-    function handleCountryChange(event: ChangeEvent<HTMLSelectElement>) {
-      const nextCode = event.target.value;
-      setSelectedCountryCode(nextCode);
-
-      const country = getCountryByCode(nextCode);
-      const nextProvinces = sortProvinces(country?.provinces);
-      setProvinceValue(nextProvinces[0] ?? '');
-
-      if (country?.continent) {
-        setContinentValue(country.continent);
-      }
-    },
-    [getCountryByCode],
-  );
-
-  const handleProvinceChange = useCallback(function handleProvinceChange(
-    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) {
-    setProvinceValue(event.target.value);
-  }, []);
-
-  const handleContinentChange = useCallback(function handleContinentChange(
-    event: ChangeEvent<HTMLSelectElement>,
-  ) {
-    setContinentValue(event.target.value as City['continent']);
-  }, []);
+  const defaultCountryId = city?.countryId ?? initialCountryId ?? '';
+  const hasCountryOptions = countries.length > 0;
 
   const handleCancel = useCallback(
     function handleCancel() {
@@ -207,16 +67,13 @@ export default function CityForm({
         router.back();
         return;
       }
-
       router.push(NAVIGATION.CITIES);
     },
     [router],
   );
 
   useEffect(() => {
-    if (actionState.status === 'idle') {
-      return;
-    }
+    if (actionState.status === 'idle') return;
 
     if (actionState.status === 'error' && actionState.error) {
       const errorMessage =
@@ -232,152 +89,142 @@ export default function CityForm({
         toast.success('City updated successfully.');
         return;
       }
-
       toast.success('City created successfully.');
       handleCancel();
     }
   }, [actionState.error, actionState.status, edit, handleCancel]);
 
-  const isSubmitDisabled =
-    isPending || !hasCountryOptions || !selectedCountryCode;
+  const countryIsFixed = !edit && Boolean(initialCountryId);
+  const isSubmitDisabled = pending || (!countryIsFixed && !hasCountryOptions);
 
   return (
     <Form action={formAction}>
       {edit && city ? (
         <input type='hidden' name='cityId' value={city.id} />
       ) : null}
-      <input type='hidden' name='countryName' value={derivedCountryName} />
 
-      <Grid columns={2} gap={32}>
-        <Section>
-          <Grid gap={8}>
-            <TextInput
-              label='City name'
-              name='name'
-              placeholder='Enter city name'
-              defaultValue={initialValues.name}
-              required
-              disabled={isPending}
-              className='grid-column--2'
-            />
-          </Grid>
-          <Grid gap={8} columns={3}>
+      <Section>
+        <Grid gap={8} columns={edit ? 2 : 1}>
+          {!edit && initialCountryId ? (
+            <input type='hidden' name='countryId' value={initialCountryId} />
+          ) : (
             <Select
               label='Country'
-              name='countryCode'
-              value={selectedCountryCode}
-              onChange={handleCountryChange}
+              name='countryId'
+              defaultValue={defaultCountryId}
               placeholder='Select a country'
               required
-              disabled={isPending || !hasCountryOptions}
+              disabled={pending || !hasCountryOptions}
             >
-              {countryOptions.map(country => (
-                <option key={country.id} value={country.countryCode}>
+              {countries.map(country => (
+                <option key={country.id} value={country.id}>
                   {country.name}
                 </option>
               ))}
             </Select>
-            {hasCountryOptions ? null : (
-              <Text size='small' color='gray' className='grid-column--2'>
-                You need at least one country before creating cities.
-              </Text>
-            )}
-            <Select
-              label='Continent'
-              name='continent'
-              value={continentValue}
-              onChange={handleContinentChange}
-              placeholder='Select continent'
-              required
-              disabled={isPending}
-            >
-              {CONTINENTS.map(continent => (
-                <option key={continent.value} value={continent.value}>
-                  {continent.label}
-                </option>
-              ))}
-            </Select>
-            {hasProvinceOptions ? (
-              <Select
-                label='Province'
-                name='province'
-                value={provinceValue}
-                onChange={handleProvinceChange}
-                placeholder='Select province'
-                disabled={isPending}
-              >
-                {provinceOptions.map(province => (
-                  <option key={province} value={province}>
-                    {province}
-                  </option>
-                ))}
-              </Select>
-            ) : (
+          )}
+          <TextInput
+            label='City name'
+            name='name'
+            placeholder='Enter city name'
+            defaultValue={city?.name ?? ''}
+            required
+            disabled={pending}
+          />
+          {edit ? (
+            <>
+              <TextInput
+                label='Region'
+                name='regionName'
+                placeholder='Enter region (optional)'
+                defaultValue={city?.regionName ?? ''}
+                disabled={pending}
+              />
               <TextInput
                 label='Province'
-                name='province'
+                name='provinceName'
                 placeholder='Enter province (optional)'
-                value={provinceValue}
-                onChange={handleProvinceChange}
-                disabled={isPending}
+                defaultValue={city?.provinceName ?? ''}
+                disabled={pending}
               />
-            )}
+              <TextInput
+                label='Latitude'
+                name='latitude'
+                placeholder='-34.6118'
+                defaultValue={toStringValue(city?.latitude)}
+                inputMode='decimal'
+                pattern='-?[0-9]*[.,]?[0-9]*'
+                disabled={pending}
+              />
+              <TextInput
+                label='Longitude'
+                name='longitude'
+                placeholder='-58.3886'
+                defaultValue={toStringValue(city?.longitude)}
+                inputMode='decimal'
+                pattern='-?[0-9]*[.,]?[0-9]*'
+                disabled={pending}
+              />
+              <CheckBoxInput
+                label='Active'
+                name='isActive'
+                value='true'
+                defaultChecked={city?.isActive ?? false}
+                disabled={pending}
+              />
+            </>
+          ) : null}
+        </Grid>
+
+        {edit && city ? (
+          <Grid gap={8} columns={2} className='margin-top--16'>
             <TextInput
-              label='Latitude'
-              name='latitude'
-              placeholder='-58.3886'
-              defaultValue={initialValues.latitude}
-              inputMode='decimal'
-              pattern='-?[0-9]*[.,]?[0-9]*'
-              disabled={isPending}
+              label='ID'
+              defaultValue={city.id}
+              readOnly
+              disabled
             />
             <TextInput
-              label='Longitude'
-              name='longitude'
-              placeholder='-34.6118'
-              defaultValue={initialValues.longitude}
-              inputMode='decimal'
-              pattern='-?[0-9]*[.,]?[0-9]*'
-              disabled={isPending}
+              label='Slug'
+              defaultValue={city.slug}
+              readOnly
+              disabled
+            />
+            <TextInput
+              label='Translation key'
+              defaultValue={city.translationKey}
+              readOnly
+              disabled
+              className='grid-column--2'
             />
           </Grid>
-          <CheckBoxInput
-            name='capital'
-            label='Capital city'
-            defaultChecked={initialValues.capital}
-            value='true'
-            disabled={isPending}
-          />
-          <ButtonGroup gap={4} className='margin-top--24'>
-            <Button
-              type='submit'
-              disabled={isSubmitDisabled}
-              aria-busy={isPending}
-            >
-              {isPending
-                ? edit
-                  ? 'Updating city...'
-                  : 'Creating city...'
-                : submitLabel}
-            </Button>
-            <Button
-              type='button'
-              onClick={handleCancel}
-              variant='borderless'
-              kind='primary'
-              disabled={isPending}
-            >
-              Cancel
-            </Button>
-          </ButtonGroup>
-          {lastUpdatedTimestamp ? (
-            <LastUpdated
-              date={new Date(lastUpdatedTimestamp)}
-              className='margin-top--16'
-            />
-          ) : null}
-        </Section>
-      </Grid>
+        ) : null}
+
+        <ButtonGroup gap={4} className='margin-top--24'>
+          <Button
+            type='submit'
+            disabled={isSubmitDisabled}
+            aria-busy={pending}
+          >
+            {pending
+              ? edit
+                ? 'Updating city...'
+                : 'Creating city...'
+              : edit
+                ? 'Update city'
+                : 'Create city'}
+          </Button>
+          <Button
+            type='button'
+            onClick={handleCancel}
+            variant='borderless'
+            kind='primary'
+            disabled={pending}
+          >
+            Cancel
+          </Button>
+        </ButtonGroup>
+      </Section>
     </Form>
   );
 }

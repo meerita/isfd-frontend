@@ -18,14 +18,14 @@ const DEFAULT_ERROR: ApiErrorResponse = {
 export function normalizeApiError(error: unknown): NormalizedApiError {
   if (error instanceof AxiosError) {
     const statusCode = error.response?.status ?? 500;
-    const payload = (error.response?.data ?? {}) as Partial<ApiErrorResponse>;
+    const payload = (error.response?.data ?? {}) as Partial<ApiErrorResponse> & { code?: string; details?: string };
 
     return {
       statusCode,
       data: {
-        reason: payload.reason ?? 'API_ERROR',
+        reason: payload.reason ?? payload.code ?? 'API_ERROR',
         message: payload.message ?? payload.error ?? DEFAULT_ERROR.message,
-        error: payload.error ?? DEFAULT_ERROR.error,
+        error: payload.error ?? payload.details ?? payload.message ?? DEFAULT_ERROR.error,
         statusCode: payload.statusCode ?? statusCode,
       },
     } satisfies NormalizedApiError;

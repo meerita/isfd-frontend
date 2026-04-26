@@ -3,34 +3,22 @@
 // File: src/_helpers/extractCountries.ts
 // Purpose: Normalize API payloads into a predictable countries array
 // Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
 
 import type { Country } from '@/_types/country';
 
-type CountryPayload =
-  | ReadonlyArray<Country>
-  | Readonly<{ results?: unknown; data?: unknown }>
-  | Record<string, unknown>
-  | unknown;
+type AnyPayload = ReadonlyArray<Country> | Readonly<{ data?: unknown }> | unknown;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null;
 
-export function extractCountries(payload: CountryPayload): Country[] {
+export function extractCountries(payload: AnyPayload): Country[] {
   if (Array.isArray(payload)) {
     return payload as Country[];
   }
 
   if (isRecord(payload)) {
-    const { results, data } = payload as { results?: unknown; data?: unknown };
-
-    if (Array.isArray(results)) {
-      return results as Country[];
-    }
-
-    if (Array.isArray(data)) {
-      return data as Country[];
-    }
+    if (Array.isArray(payload.data)) return payload.data as Country[];
+    if (Array.isArray(payload.results)) return payload.results as Country[];
   }
 
   return [];
