@@ -7,9 +7,10 @@
 
 const GLOBALS = {
   metadata: {
-    title: 'Sport App',
+    title: 'Internet Super Football Database',
+    short: 'isfd',
     description:
-      'Sport App is the best platform to create assessments online and manage campaigns for hiring or internal assessments using AI.',
+      'ISFD is the best platform to create assessments online and manage campaigns for hiring or internal assessments using AI.',
   },
   html: {
     lang: 'en',

@@ -221,7 +221,7 @@ export default function Dashboard() {
           Operations Control Center
         </Title>
         <Text color='gray'>
-          Daily mock pulse of SportApp activity. No live data is requested.
+          Daily mock pulse of ISFD activity. No live data is requested.
         </Text>
         <Text size='small' color='lighterGray'>
           {LAST_REFRESH}

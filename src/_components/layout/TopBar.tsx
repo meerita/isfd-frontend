@@ -9,10 +9,10 @@ import Nav from '../navigation/Nav';
 import NAVIGATION from '@/_constants/navigation';
 import SECTIONS from '@/_constants/sections';
 import Grid from './Grid';
-import ListItemIconOnly from '../navigation/ListItemIconOnly';
 import Icon from '../Icon';
 import Title from '../typography/Title';
 import Box from './Box';
+import GLOBALS from '@/_constants/globals';
 
 interface TopBarProps {
   username: string;
@@ -42,14 +42,16 @@ export default function TopBar({ username }: Readonly<TopBarProps>) {
       label: SECTIONS.DASHBOARD,
       icon: 'dashboard',
     },
-    { href: NAVIGATION.USERS, label: SECTIONS.USERS, icon: 'users' },
-    { href: NAVIGATION.GROUPS, label: SECTIONS.GROUPS, icon: 'users' },
-    { href: NAVIGATION.STADIUMS, label: SECTIONS.STADIUMS, icon: 'stadiums' },
     {
       href: NAVIGATION.COUNTRIES,
       label: SECTIONS.COUNTRIES,
       icon: 'countries',
     },
+    { href: NAVIGATION.USERS, label: SECTIONS.USERS, icon: 'users' },
+    { href: NAVIGATION.PERSONS, label: SECTIONS.PERSONS, icon: 'person' },
+    { href: NAVIGATION.CLUBS, label: SECTIONS.CLUBS, icon: 'club' },
+    { href: NAVIGATION.STADIUMS, label: SECTIONS.STADIUMS, icon: 'stadiums' },
+    { href: NAVIGATION.BRANDS, label: SECTIONS.BRANDS, icon: 'brand' },
   ];
 
   const accountNavigation: ReadonlyArray<NavBarItem> = [
@@ -63,8 +65,10 @@ export default function TopBar({ username }: Readonly<TopBarProps>) {
     <header className='align-items--center display--grid padding-block--8 padding-inline--16 border-bottom-width--1 border-bottom-style--solid border-bottom-color--lightest-gray'>
       <Grid columns={3} alignItems='center'>
         <Box display='flex' gap={4} alignItems='center'>
-          <Icon name='send' size={24} />
-          <Title size={'small'}>sport app</Title>
+          <Icon name='soccer' size={24} />
+          <Title size={'small'} weight='ultraHeavy'>
+            {GLOBALS.metadata.short}
+          </Title>
         </Box>
         <Nav>
           <List horizontal ordered gap={2}>
@@ -85,11 +89,11 @@ export default function TopBar({ username }: Readonly<TopBarProps>) {
           <List horizontal ordered gap={4}>
             {accountNavigation.map((item: Readonly<NavBarItem>) =>
               item.label === 'Logout' ? (
-                <ListItemIconOnly
+                <ListItem
                   icon={item.icon}
                   key={item.href}
                   href={item.href}
-                />
+                ></ListItem>
               ) : (
                 <ListItem
                   icon={item.icon}
