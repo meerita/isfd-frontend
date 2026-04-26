@@ -6,6 +6,7 @@ const SECTIONS = {
   ADD_GROUP: 'Create Group',
   ADD_PLACE: 'Create Place',
   ADD_CITY: 'Create City',
+  ADD_STADIUM: 'Create Stadium',
   ADD_COUNTRY: 'Add Country',
   ADD_EVENT: 'Create Event',
   ADD_SPORT: 'Add Sport',
@@ -31,6 +32,7 @@ const SECTIONS = {
   SKILLS: 'Skills',
   SESSIONS: 'Sessions',
   SPORTS: 'Sports',
+  STADIUMS: 'Stadiums',
   USERNAME: 'Username',
   USERS: 'Users',
 } as const;

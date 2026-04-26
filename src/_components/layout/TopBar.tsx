@@ -44,6 +44,7 @@ export default function TopBar({ username }: Readonly<TopBarProps>) {
     },
     { href: NAVIGATION.USERS, label: SECTIONS.USERS, icon: 'users' },
     { href: NAVIGATION.GROUPS, label: SECTIONS.GROUPS, icon: 'users' },
+    { href: NAVIGATION.STADIUMS, label: SECTIONS.STADIUMS, icon: 'stadiums' },
     {
       href: NAVIGATION.COUNTRIES,
       label: SECTIONS.COUNTRIES,

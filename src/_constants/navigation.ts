@@ -8,6 +8,7 @@ const NAVIGATION = {
   SPORTS: '/sports',
   FLAGS: '/flags',
   LEGAL: '/legal',
+  STADIUMS: '/stadiums',
   LEGAL_CREATE: '/create/legal',
   DASHBOARD: '/dashboard',
   COUNTRIES: '/countries',
@@ -18,6 +19,7 @@ const NAVIGATION = {
   CREATE_A_SPORT: '/create/sport',
   CREATE_AN_EVENT: '/create/event',
   CREATE_A_PLACE: '/create/place',
+  CREATE_A_STADIUM: '/create/stadium',
   GROUP_BY_ID: (id: string) => `/groups/${id}`,
   GROUP_BY_NAME: (slug: string) => `/groups/slug?value=${slug}`,
   CREATE_A_CITY: (countryId: string) => `/create/city?countryId=${countryId}`,
@@ -28,6 +30,7 @@ const NAVIGATION = {
   LEGAL_TRANSLATION_BY_ID: (id: string, translationId: string) =>
     `/legal/${id}/translations/${translationId}`,
   EVENT_BY_ID: (id: string) => `/events/${id}`,
+  STADIUM_BY_ID: (id: string) => `/stadiums/${id}`,
   PLACE_BY_ID: (id: string) => `/places/${id}`,
   HOME: '/',
   LOGIN: '/auth/login',
