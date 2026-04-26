@@ -89,11 +89,9 @@ export default function TopBar({ username }: Readonly<TopBarProps>) {
           <List horizontal ordered gap={4}>
             {accountNavigation.map((item: Readonly<NavBarItem>) =>
               item.label === 'Logout' ? (
-                <ListItem
-                  icon={item.icon}
-                  key={item.href}
-                  href={item.href}
-                ></ListItem>
+                <ListItem icon={item.icon} key={item.href} href={item.href}>
+                  {''}
+                </ListItem>
               ) : (
                 <ListItem
                   icon={item.icon}
