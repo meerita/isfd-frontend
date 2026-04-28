@@ -51,6 +51,11 @@ export default function TopBar({ username }: Readonly<TopBarProps>) {
     { href: NAVIGATION.PERSONS, label: SECTIONS.PERSONS, icon: 'person' },
     { href: NAVIGATION.CLUBS, label: SECTIONS.CLUBS, icon: 'club' },
     { href: NAVIGATION.STADIUMS, label: SECTIONS.STADIUMS, icon: 'stadiums' },
+    {
+      href: NAVIGATION.FEDERATIONS,
+      label: SECTIONS.FEDERATIONS,
+      icon: 'admin',
+    },
     { href: NAVIGATION.BRANDS, label: SECTIONS.BRANDS, icon: 'brand' },
   ];
 
