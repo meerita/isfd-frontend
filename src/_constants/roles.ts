@@ -6,6 +6,7 @@
 // Email: diego.lafuente@cognativinc.com
 
 enum Roles {
+  SUPER_ADMIN = 'SUPER_ADMIN',
   OWNER = 'OWNER',
   ADMIN = 'ADMIN',
   MANAGER = 'MANAGER',

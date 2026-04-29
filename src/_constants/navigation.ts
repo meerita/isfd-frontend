@@ -29,6 +29,7 @@ const NAVIGATION = {
   CREATE_A_STADIUM: '/create/stadium',
   GROUP_BY_ID: (id: string) => `/groups/${id}`,
   CLUB_BY_ID: (id: string) => `/clubs/${id}`,
+  CLUB_BY_SLUG: (slug: string) => `/clubs/slug?value=${encodeURIComponent(slug)}`,
   PERSONS_BY_ID: (id: string) => `/persons/${id}`,
   FEDERATION_BY_ID: (id: string) => `/federations/${id}`,
   GROUP_BY_NAME: (slug: string) => `/groups/slug?value=${slug}`,

@@ -21,7 +21,12 @@ import {
 } from '@/_lib/authTokens';
 import type { AccessTokenPayload, NormalizedSession } from '@/_types/auth';
 
-const PUBLIC_PATHS: ReadonlySet<string> = new Set(['/', '/register', '/forbidden']);
+const PUBLIC_PATHS: ReadonlySet<string> = new Set([
+  '/',
+  '/register',
+  '/forbidden',
+  '/clubs/slug',
+]);
 const IGNORED_PREFIXES: ReadonlyArray<string> = [
   '/_next',
   '/favicon',
