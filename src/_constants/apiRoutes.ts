@@ -9,6 +9,10 @@ const API_ROUTES = {
   CLUB_BY_SLUG: (slug: string) => `/clubs/${slug}`,
   CLUBS_ADMIN: '/admin/clubs',
   CLUB_ADMIN_BY_ID: (id: string) => `/admin/clubs/${id}`,
+  STADIUMS_ADMIN: '/admin/stadiums',
+  STADIUM_ADMIN_BY_ID: (id: string) => `/admin/stadiums/${id}`,
+  ADMIN_COUNTRY_STADIUMS_CATALOG: (countryId: string) =>
+    `/admin/countries/${countryId}/stadiums/catalog`,
   FEDERATIONS: '/federations',
   FEDERATION_BY_SLUG: (slug: string) => `/federations/${slug}`,
   FEDERATIONS_ADMIN: '/admin/federations',
