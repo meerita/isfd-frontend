@@ -22,6 +22,14 @@ export type Country = Readonly<{
   cityCount?: number;
 }>;
 
+export type CountrySelectOption = Readonly<Pick<Country, 'id' | 'name'>>;
+
+export type ProvinceAdmin = Readonly<{
+  name: string;
+  activeCityCount: number;
+  inactiveCityCount: number;
+}>;
+
 export type GeoMetadata = Readonly<{
   page: number;
   pageSize: number;
@@ -34,6 +42,10 @@ export type GeoMetadata = Readonly<{
 export type CountriesResponse = Readonly<{
   data: ReadonlyArray<Country>;
   metadata: GeoMetadata;
+}>;
+
+export type ProvincesAdminResponse = Readonly<{
+  data: ReadonlyArray<ProvinceAdmin>;
 }>;
 
 export interface CountryActionState {

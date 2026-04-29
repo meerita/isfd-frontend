@@ -1,6 +1,6 @@
 /** @format */
 
-import { getGeoCountries } from '@/_actions/geo/getGeoCountries';
+import { getAllCountries } from '@/_actions/country/getAllCountries';
 import Grid from '@/_components/layout/Grid';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Title from '@/_components/typography/Title';
@@ -11,7 +11,7 @@ import ClubForm from '../../clubs/_components/ClubForm';
 export default async function CreateClubPage() {
   await requireAdminAccess();
 
-  const countriesResponse = await getGeoCountries();
+  const countries = await getAllCountries();
 
   return (
     <Grid gap={24}>
@@ -20,8 +20,7 @@ export default async function CreateClubPage() {
         <Title size='medium'>Create a new club</Title>
       </Grid>
       <ClubForm
-        countries={countriesResponse.data}
-        countriesError={countriesResponse.error?.error}
+        countries={countries}
       />
     </Grid>
   );

@@ -17,14 +17,19 @@ const API_ROUTES = {
   COUNTRIES_ALL: '/countries/all',
   COUNTRY_BY_ID: (id: string) => `/countries/${id}`,
   COUNTRIES_ADMIN: '/admin/countries',
+  ADMIN_COUNTRIES_ALL: '/admin/countries/all',
   COUNTRIES_ADMIN_ALL: '/admin/countries/all',
   COUNTRY_ADMIN_BY_ID: (id: string) => `/admin/countries/${id}`,
   COUNTRY_ADMIN_ACTIVATION: (id: string) => `/admin/countries/${id}/activation`,
+  ADMIN_COUNTRY_PROVINCES: (countryId: string) =>
+    `/admin/countries/${countryId}/provinces`,
   CITIES: '/cities',
   CITY_BY_ID: (id: string) => `/cities/${id}`,
   CITIES_ADMIN: '/admin/cities',
   CITY_ADMIN_BY_ID: (id: string) => `/admin/cities/${id}`,
   CITY_ADMIN_ACTIVATION: (id: string) => `/admin/cities/${id}/activation`,
+  ADMIN_COUNTRY_CITIES: (countryId: string) =>
+    `/admin/countries/${countryId}/cities`,
   CITIES_ADMIN_BY_COUNTRY: (countryId: string) =>
     `/admin/countries/${countryId}/cities`,
   CITIES_PUBLIC_BY_COUNTRY: (countryId: string) =>

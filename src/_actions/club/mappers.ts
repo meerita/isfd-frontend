@@ -22,6 +22,17 @@ function toNullableString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function toNullableReferenceId(value: unknown): string | null {
+  const direct = toNullableString(value);
+  if (direct) return direct;
+
+  if (typeof value !== 'object' || value === null) {
+    return null;
+  }
+
+  return toNullableString((value as Record<string, unknown>).id);
+}
+
 function mapClubReference(raw: unknown): ClubReference | null {
   if (typeof raw !== 'object' || raw === null) {
     return null;
@@ -42,10 +53,12 @@ export function mapClubListItem(raw: RawClub): ClubListItem {
     name: String(raw.name ?? ''),
     slug: String(raw.slug ?? ''),
     shortName: toNullableString(raw.short_name ?? raw.shortName),
-    countryId: toNullableString(raw.country_id ?? raw.countryId),
-    cityId: toNullableString(raw.city_id ?? raw.cityId),
-    primaryStadiumId: toNullableString(
-      raw.primary_stadium_id ?? raw.primaryStadiumId,
+    countryId: toNullableReferenceId(
+      raw.country_id ?? raw.countryId ?? raw.country,
+    ),
+    cityId: toNullableReferenceId(raw.city_id ?? raw.cityId ?? raw.city),
+    primaryStadiumId: toNullableReferenceId(
+      raw.primary_stadium_id ?? raw.primaryStadiumId ?? raw.primary_stadium ?? raw.primaryStadium,
     ),
     logoUrl: toNullableString(raw.logo_url ?? raw.logoUrl),
     isActive: Boolean(raw.is_active ?? raw.isActive ?? false),

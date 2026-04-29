@@ -13,9 +13,18 @@ import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
 import api from '@/_lib/axiosInstance';
 import type { CityActionState } from '@/_types/city';
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function str(formData: FormData, key: string): string {
   const v = formData.get(key);
   return typeof v === 'string' ? v.trim() : '';
+}
+
+function raw(formData: FormData, key: string): string | null {
+  const v = formData.get(key);
+  if (typeof v !== 'string') return null;
+  return v === '' ? null : v;
 }
 
 function normalizeNumericInput(raw: string): string {
@@ -29,6 +38,10 @@ function num(formData: FormData, key: string): number | null {
   if (!normalized) return null;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isValidUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
 }
 
 const MISSING_ID_RESPONSE: CityActionState = {
@@ -58,6 +71,15 @@ const MISSING_NAME_RESPONSE: CityActionState = {
   },
 };
 
+const INVALID_COUNTRY_RESPONSE: CityActionState = {
+  status: 'error',
+  error: {
+    reason: 'CITY_COUNTRY_ID_INVALID',
+    message: 'Country identifier is invalid.',
+    error: 'field "country_id" must be a valid UUID',
+  },
+};
+
 export async function updateCity(
   _prevState: CityActionState,
   formData: FormData,
@@ -67,12 +89,13 @@ export async function updateCity(
 
   const country_id = str(formData, 'countryId');
   if (!country_id) return MISSING_COUNTRY_RESPONSE;
+  if (!isValidUuid(country_id)) return INVALID_COUNTRY_RESPONSE;
 
   const name = str(formData, 'name');
   if (!name) return MISSING_NAME_RESPONSE;
 
   const region_name = str(formData, 'regionName') || null;
-  const province_name = str(formData, 'provinceName') || null;
+  const province_name = raw(formData, 'provinceName');
   const latitude = num(formData, 'latitude');
   const longitude = num(formData, 'longitude');
   const is_active = formData.get('isActive') === 'true';

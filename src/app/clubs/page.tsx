@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 
+import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getMe } from '@/_actions/auth/getMe';
 import { getAdminClubs } from '@/_actions/club/getAdminClubs';
 import { getGeoCitiesByCountry } from '@/_actions/geo/getGeoCitiesByCountry';
-import { getGeoCountries } from '@/_actions/geo/getGeoCountries';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
@@ -24,11 +24,14 @@ import requireAdminAccess from '@/_lib/requireAdminAccess';
 import type { ClubSort, ClubStatusFilter } from '@/_types/club';
 import ClubAdminShell from './_components/ClubAdminShell';
 import ClubFilters from './_components/ClubFilters';
+import Dot from '@/_components/Dot';
 
 const PLACEHOLDER = '--';
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_SORT: ClubSort = 'updated_at_desc';
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type SearchParams = Readonly<{
   page?: string | string[];
@@ -38,8 +41,10 @@ type SearchParams = Readonly<{
   country_id?: string | string[];
 }>;
 
+type QueryParam = string | string[] | undefined;
+
 function parsePositiveInt(
-  value: string | string[] | undefined,
+  value: QueryParam,
   fallback: number,
   max?: number,
 ): number {
@@ -51,18 +56,24 @@ function parsePositiveInt(
   return max ? Math.min(integer, max) : integer;
 }
 
-function parseString(value: string | string[] | undefined): string | undefined {
+function parseString(value: QueryParam): string | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
   return raw && raw.length > 0 ? raw : undefined;
 }
 
-function formatDateTime(value: string): string {
+function parseUuid(value: QueryParam): string | undefined {
+  const parsed = parseString(value);
+  return parsed && UUID_PATTERN.test(parsed) ? parsed : undefined;
+}
+
+function formatDateOnly(value: string): string {
   if (!value) return PLACEHOLDER;
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return PLACEHOLDER;
 
-  return parsed.toLocaleString();
+  // Format as M/D/YYYY (no time)
+  return `${parsed.getMonth() + 1}/${parsed.getDate()}/${parsed.getFullYear()}`;
 }
 
 function buildHref(
@@ -118,22 +129,23 @@ function renderLogoPreview(name: string, logoUrl: string | null) {
 
 export default async function ClubsPage({
   searchParams,
-}: {
+}: Readonly<{
   searchParams?: Promise<SearchParams>;
-}) {
+}>) {
   await requireAdminAccess();
 
   const params = await searchParams;
   const page = parsePositiveInt(params?.page, DEFAULT_PAGE);
   const pageSize = parsePositiveInt(params?.page_size, DEFAULT_PAGE_SIZE, 100);
-  const sort = (parseString(params?.sort) as ClubSort | undefined) ?? DEFAULT_SORT;
+  const sort =
+    (parseString(params?.sort) as ClubSort | undefined) ?? DEFAULT_SORT;
   const status = parseString(params?.status) as ClubStatusFilter | undefined;
-  const countryId = parseString(params?.country_id);
+  const countryId = parseUuid(params?.country_id);
 
   const [user, clubsResponse, countriesResponse] = await Promise.all([
     getMe(),
     getAdminClubs({ page, pageSize, sort, status, countryId }),
-    getGeoCountries(),
+    getAllCountries(),
   ]);
 
   const uniqueCountryIds = Array.from(
@@ -152,7 +164,7 @@ export default async function ClubsPage({
   );
 
   const countryLabels = new Map(
-    countriesResponse.data.map(country => [country.id, country.name]),
+    countriesResponse.map(country => [country.id, country.name]),
   );
   const cityLabels = new Map<string, string>();
 
@@ -182,8 +194,7 @@ export default async function ClubsPage({
           sort={sort}
           status={status}
           countryId={countryId}
-          countries={countriesResponse.data}
-          countriesError={countriesResponse.error?.error}
+          countries={countriesResponse}
         />
 
         {clubsResponse.error ? (
@@ -202,15 +213,33 @@ export default async function ClubsPage({
                 <Thead>
                   <Row>
                     <Cell header>Logo</Cell>
-                    <Cell header className='padding-left--16'>Name</Cell>
-                    <Cell header className='padding-left--16'>Slug</Cell>
-                    <Cell header className='padding-left--16'>Short name</Cell>
-                    <Cell header align='center'>Active</Cell>
-                    <Cell header className='padding-left--16'>Country</Cell>
-                    <Cell header className='padding-left--16'>City</Cell>
-                    <Cell header className='padding-left--16'>Primary stadium</Cell>
-                    <Cell header className='padding-left--16'>Created</Cell>
-                    <Cell header className='padding-left--16'>Updated</Cell>
+                    <Cell header className='padding-left--16'>
+                      Name
+                    </Cell>
+                    <Cell header className='padding-left--16'>
+                      Slug
+                    </Cell>
+                    <Cell header className='padding-left--16'>
+                      Short name
+                    </Cell>
+                    <Cell header align='center'>
+                      Active
+                    </Cell>
+                    <Cell header className='padding-left--16'>
+                      Country
+                    </Cell>
+                    <Cell header className='padding-left--16'>
+                      City
+                    </Cell>
+                    <Cell header className='padding-left--16'>
+                      Primary stadium
+                    </Cell>
+                    <Cell align='right' header className='padding-left--16'>
+                      Created
+                    </Cell>
+                    <Cell align='right' header className='padding-left--16'>
+                      Updated
+                    </Cell>
                   </Row>
                 </Thead>
                 <Tbody>
@@ -218,7 +247,10 @@ export default async function ClubsPage({
                     <Row>
                       <Cell>No clubs found for the current filters.</Cell>
                       {Array.from({ length: 9 }).map((_, index) => (
-                        <Cell key={index} className='padding-left--16'>
+                        <Cell
+                          key={`none-${index}`}
+                          className='padding-left--16'
+                        >
                           {PLACEHOLDER}
                         </Cell>
                       ))}
@@ -226,31 +258,40 @@ export default async function ClubsPage({
                   ) : (
                     clubsResponse.data.map(club => (
                       <Row key={club.id} href={NAVIGATION.CLUB_BY_ID(club.id)}>
-                        <Cell>{renderLogoPreview(club.name, club.logoUrl)}</Cell>
+                        <Cell>
+                          {renderLogoPreview(club.name, club.logoUrl)}
+                        </Cell>
                         <Cell className='padding-left--16'>{club.name}</Cell>
                         <Cell className='padding-left--16'>{club.slug}</Cell>
                         <Cell className='padding-left--16'>
                           {club.shortName ?? PLACEHOLDER}
                         </Cell>
-                        <Cell align='center'>{club.isActive ? 'Yes' : 'No'}</Cell>
+                        <Cell align='center'>
+                          {club.isActive ? (
+                            <Dot active inline />
+                          ) : (
+                            <Dot inline />
+                          )}
+                        </Cell>
                         <Cell className='padding-left--16'>
                           {club.countryId
-                            ? countryLabels.get(club.countryId) ?? club.countryId
+                            ? (countryLabels.get(club.countryId) ??
+                              club.countryId)
                             : PLACEHOLDER}
                         </Cell>
                         <Cell className='padding-left--16'>
                           {club.cityId
-                            ? cityLabels.get(club.cityId) ?? club.cityId
+                            ? (cityLabels.get(club.cityId) ?? club.cityId)
                             : PLACEHOLDER}
                         </Cell>
                         <Cell className='padding-left--16'>
                           {club.primaryStadiumId ?? PLACEHOLDER}
                         </Cell>
-                        <Cell className='padding-left--16'>
-                          {formatDateTime(club.createdAt)}
+                        <Cell align='right' className='padding-left--16'>
+                          {formatDateOnly(club.createdAt)}
                         </Cell>
-                        <Cell className='padding-left--16'>
-                          {formatDateTime(club.updatedAt)}
+                        <Cell align='right' className='padding-left--16'>
+                          {formatDateOnly(club.updatedAt)}
                         </Cell>
                       </Row>
                     ))
@@ -263,7 +304,13 @@ export default async function ClubsPage({
               <Grid gap={16} display='flex' alignItems='center'>
                 {hasPrev ? (
                   <Link
-                    href={buildHref(currentPage - 1, pageSize, sort, status, countryId)}
+                    href={buildHref(
+                      currentPage - 1,
+                      pageSize,
+                      sort,
+                      status,
+                      countryId,
+                    )}
                     aria-label='Previous'
                   >
                     <Icon name='arrowLeft' size={24} fill='gray' />
@@ -274,7 +321,13 @@ export default async function ClubsPage({
                 </Text>
                 {hasNext ? (
                   <Link
-                    href={buildHref(currentPage + 1, pageSize, sort, status, countryId)}
+                    href={buildHref(
+                      currentPage + 1,
+                      pageSize,
+                      sort,
+                      status,
+                      countryId,
+                    )}
                     aria-label='Next'
                   >
                     <Icon name='arrowRight' size={24} fill='gray' />

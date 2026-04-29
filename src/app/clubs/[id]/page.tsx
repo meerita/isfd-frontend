@@ -1,9 +1,10 @@
 /** @format */
 
+import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getMe } from '@/_actions/auth/getMe';
+import { getAdminCitiesByCountryIdAndProvince } from '@/_actions/city/getCities';
+import { getCityById } from '@/_actions/city/getCityById';
 import { getAdminClubById } from '@/_actions/club/getAdminClubById';
-import { getGeoCitiesByCountry } from '@/_actions/geo/getGeoCitiesByCountry';
-import { getGeoCountries } from '@/_actions/geo/getGeoCountries';
 import Button from '@/_components/forms/Button';
 import Box from '@/_components/layout/Box';
 import Grid from '@/_components/layout/Grid';
@@ -63,7 +64,7 @@ export default async function ClubDetailsPage({
 
   const [clubResponse, countriesResponse] = await Promise.all([
     getAdminClubById(clubId),
-    getGeoCountries(),
+    getAllCountries(),
   ]);
 
   if (!clubResponse.data) {
@@ -75,13 +76,18 @@ export default async function ClubDetailsPage({
   }
 
   const club = clubResponse.data;
-  const selectedCountry = countriesResponse.data.find(
+  const selectedCountry = countriesResponse.find(
     country => country.id === club.countryId,
   );
-  const citiesResponse = club.countryId
-    ? await getGeoCitiesByCountry(club.countryId)
-    : { data: [], error: undefined };
-  const selectedCity = citiesResponse.data.find(city => city.id === club.cityId);
+  const selectedCity = club.cityId ? await getCityById(club.cityId) : null;
+  const initialProvinceName = selectedCity?.provinceName ?? null;
+  const initialCities =
+    club.countryId && initialProvinceName
+      ? await getAdminCitiesByCountryIdAndProvince(
+          club.countryId,
+          initialProvinceName,
+        )
+      : [];
 
   return (
     <ClubAdminShell username={username}>
@@ -99,9 +105,9 @@ export default async function ClubDetailsPage({
 
         <ClubForm
           club={club}
-          countries={countriesResponse.data}
-          countriesError={countriesResponse.error?.error}
-          initialCities={citiesResponse.data}
+          countries={countriesResponse}
+          initialProvinceName={initialProvinceName}
+          initialCities={initialCities}
           selectedCountryLabel={selectedCountry?.name ?? club.countryId}
           selectedCityLabel={selectedCity?.name ?? club.cityId}
           edit

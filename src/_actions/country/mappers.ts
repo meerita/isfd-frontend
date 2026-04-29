@@ -3,7 +3,7 @@
 // File: src/_actions/country/mappers.ts
 // Purpose: Pure mapping functions for country API responses (no 'use server' — not server actions)
 
-import type { Country, GeoMetadata } from '@/_types/country';
+import type { Country, GeoMetadata, ProvinceAdmin } from '@/_types/country';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
@@ -53,6 +53,24 @@ export function mapCountry(raw: RawCountry): Country {
         : typeof raw.cityCount === 'number'
           ? raw.cityCount
           : undefined,
+  };
+}
+
+export function mapProvince(raw: RawCountry): ProvinceAdmin {
+  return {
+    name: String(raw.name ?? ''),
+    activeCityCount:
+      typeof raw.active_city_count === 'number'
+        ? raw.active_city_count
+        : typeof raw.activeCityCount === 'number'
+          ? raw.activeCityCount
+          : Number(raw.active_city_count ?? raw.activeCityCount ?? 0),
+    inactiveCityCount:
+      typeof raw.inactive_city_count === 'number'
+        ? raw.inactive_city_count
+        : typeof raw.inactiveCityCount === 'number'
+          ? raw.inactiveCityCount
+          : Number(raw.inactive_city_count ?? raw.inactiveCityCount ?? 0),
   };
 }
 

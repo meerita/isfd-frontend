@@ -30,7 +30,10 @@ type SearchParams = Readonly<{
   status?: string | string[];
 }>;
 
-function parseInt(value: string | string[] | undefined, fallback: number): number {
+function parseInt(
+  value: string | string[] | undefined,
+  fallback: number,
+): number {
   const v = Array.isArray(value) ? value[0] : value;
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
@@ -41,7 +44,12 @@ function parseString(value: string | string[] | undefined): string | undefined {
   return v && v.length > 0 ? v : undefined;
 }
 
-function buildHref(page: number, pageSize: number, sort?: string, status?: string): string {
+function buildHref(
+  page: number,
+  pageSize: number,
+  sort?: string,
+  status?: string,
+): string {
   const p = new URLSearchParams();
   p.set('page', String(page));
   p.set('page_size', String(pageSize));
@@ -53,13 +61,17 @@ function buildHref(page: number, pageSize: number, sort?: string, status?: strin
 export default async function CountriesPage({
   searchParams,
 }: {
-  searchParams?: Promise<SearchParams>;
+  readonly searchParams?: Promise<SearchParams>;
 }) {
   const params = await searchParams;
   const page = parseInt(params?.page, DEFAULT_PAGE);
   const pageSize = parseInt(params?.page_size, DEFAULT_PAGE_SIZE);
   const sort = parseString(params?.sort);
-  const status = parseString(params?.status) as 'all' | 'active' | 'inactive' | undefined;
+  const status = parseString(params?.status) as
+    | 'all'
+    | 'active'
+    | 'inactive'
+    | undefined;
 
   const response = await getCountries({ page, pageSize, sort, status });
   const { metadata } = response;
@@ -84,29 +96,48 @@ export default async function CountriesPage({
           <Thead>
             <Row>
               <Cell header>Name</Cell>
-              <Cell header align='center' className='padding-left--16'>ISO 2</Cell>
-              <Cell header align='center' className='padding-left--16'>ISO 3</Cell>
-              <Cell header className='padding-left--16'>Slug</Cell>
-              <Cell header className='padding-left--16'>Translation key</Cell>
-              <Cell header align='center' className='padding-left--16'>Continent</Cell>
-              <Cell header align='right' className='padding-left--16'>Provinces</Cell>
-              <Cell header align='right' className='padding-left--16'>Cities</Cell>
-              <Cell header align='center'>Active</Cell>
+              <Cell header align='center' className='padding-left--16'>
+                ISO 2
+              </Cell>
+              <Cell header align='center' className='padding-left--16'>
+                ISO 3
+              </Cell>
+              <Cell header className='padding-left--16'>
+                Slug
+              </Cell>
+              <Cell header className='padding-left--16'>
+                Translation key
+              </Cell>
+              <Cell header align='center' className='padding-left--16'>
+                Continent
+              </Cell>
+              <Cell header align='right' className='padding-left--16'>
+                Provinces
+              </Cell>
+              <Cell header align='right' className='padding-left--16'>
+                Cities
+              </Cell>
+              <Cell header align='center'>
+                Active
+              </Cell>
             </Row>
           </Thead>
           <Tbody>
             {countries.length === 0 ? (
               <Row>
                 <Cell>No countries available yet.</Cell>
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <Cell key={i} align='center' className='padding-left--16'>
+                {Array.from({ length: 8 }).map(() => (
+                  <Cell key='#' align='center' className='padding-left--16'>
                     {PLACEHOLDER}
                   </Cell>
                 ))}
               </Row>
             ) : (
               countries.map(country => (
-                <Row key={country.id} href={NAVIGATION.COUNTRY_BY_ID(country.id)}>
+                <Row
+                  key={country.id}
+                  href={NAVIGATION.COUNTRY_BY_ID(country.id)}
+                >
                   <Cell>{country.name}</Cell>
                   <Cell align='center' className='padding-left--16'>
                     {country.iso2Code ?? PLACEHOLDER}
@@ -115,7 +146,9 @@ export default async function CountriesPage({
                     {country.iso3Code ?? PLACEHOLDER}
                   </Cell>
                   <Cell className='padding-left--16'>{country.slug}</Cell>
-                  <Cell className='padding-left--16'>{country.translationKey}</Cell>
+                  <Cell className='padding-left--16'>
+                    {country.translationKey}
+                  </Cell>
                   <Cell align='center' className='padding-left--16'>
                     {country.continentCode ?? PLACEHOLDER}
                   </Cell>
@@ -138,7 +171,10 @@ export default async function CountriesPage({
       <Grid justifyItems='center' className='margin-block--16'>
         <Grid gap={16} display='flex' alignItems='center'>
           {hasPrev ? (
-            <Link href={buildHref(currentPage - 1, pageSize, sort, status)} aria-label='Previous'>
+            <Link
+              href={buildHref(currentPage - 1, pageSize, sort, status)}
+              aria-label='Previous'
+            >
               <Icon name='arrowLeft' size={24} fill='gray' />
             </Link>
           ) : null}
@@ -146,7 +182,10 @@ export default async function CountriesPage({
             Page {currentPage} of {totalPages}
           </Text>
           {hasNext ? (
-            <Link href={buildHref(currentPage + 1, pageSize, sort, status)} aria-label='Next'>
+            <Link
+              href={buildHref(currentPage + 1, pageSize, sort, status)}
+              aria-label='Next'
+            >
               <Icon name='arrowRight' size={24} fill='gray' />
             </Link>
           ) : null}

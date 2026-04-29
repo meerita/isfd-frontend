@@ -48,10 +48,10 @@ export async function getCountries(
   if (status) params.status = status;
 
   try {
-    const { data } = await api.get<unknown>(API_ROUTES.COUNTRIES_ADMIN, {
-      params,
-      headers,
-    });
+      const { data } = await api.get<unknown>(API_ROUTES.COUNTRIES_ADMIN, {
+        params,
+        headers,
+      });
 
     if (
       typeof data !== 'object' ||

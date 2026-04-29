@@ -1,7 +1,6 @@
 /** @format */
 
 'use client';
-
 import {
   useActionState,
   useCallback,
@@ -16,22 +15,26 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { createClub } from '@/_actions/club/createClub';
-import { updateClub } from '@/_actions/club/updateClub';
 import { formatDateForInput } from '@/_actions/club/payload';
-import { getGeoCitiesByCountry } from '@/_actions/geo/getGeoCitiesByCountry';
+import { getAdminCitiesByCountryIdAndProvince } from '@/_actions/city/getCities';
+import { updateClub } from '@/_actions/club/updateClub';
+import { getAdminProvincesByCountryId } from '@/_actions/country/getAdminProvincesByCountryId';
 import Button from '@/_components/forms/Button';
 import CheckBoxInput from '@/_components/forms/CheckBoxInput';
 import Form from '@/_components/forms/Form';
 import Select from '@/_components/forms/Select';
 import TextInput from '@/_components/forms/TextInput';
 import Grid from '@/_components/layout/Grid';
-import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveClubErrorMessage } from '@/_constants/clubErrorMessages';
 import type { City } from '@/_types/city';
 import type { Club, ClubActionState } from '@/_types/club';
-import type { Country } from '@/_types/country';
+import type { CountrySelectOption, ProvinceAdmin } from '@/_types/country';
+import Card from '@/_components/Card';
+import Title from '@/_components/typography/Title';
+import Section from '@/_components/layout/Section';
+import FieldSet from '@/_components/forms/Fieldset';
 
 const INITIAL_STATE: ClubActionState = { status: 'idle' };
 
@@ -42,8 +45,9 @@ type SelectorOption = Readonly<{
 
 type ClubFormProps = Readonly<{
   club?: Club | null;
-  countries: ReadonlyArray<Pick<Country, 'id' | 'name'>>;
+  countries: ReadonlyArray<CountrySelectOption>;
   countriesError?: string | null;
+  initialProvinceName?: string | null;
   initialCities?: ReadonlyArray<Pick<City, 'id' | 'name'>>;
   primaryStadiumOptions?: ReadonlyArray<SelectorOption>;
   selectedCountryLabel?: string | null;
@@ -61,11 +65,9 @@ function formatDateTime(value: string | null | undefined): string {
   return parsed.toLocaleString();
 }
 
-function resolveGeoErrorMessage(message?: string): string {
-  return message || 'We could not load cities for the selected country.';
-}
-
-function serializeFormData(formData: FormData): Record<string, FormDataEntryValue> {
+function serializeFormData(
+  formData: FormData,
+): Record<string, FormDataEntryValue> {
   return Object.fromEntries(formData.entries());
 }
 
@@ -73,6 +75,7 @@ export default function ClubForm({
   club,
   countries,
   countriesError = null,
+  initialProvinceName = null,
   initialCities = [],
   primaryStadiumOptions = [],
   selectedCountryLabel = null,
@@ -81,16 +84,27 @@ export default function ClubForm({
   edit = false,
 }: ClubFormProps) {
   const router = useRouter();
+  const latestProvincesRequest = useRef(0);
   const latestCitiesRequest = useRef(0);
 
-  const [selectedCountryId, setSelectedCountryId] = useState(club?.countryId ?? '');
+  const [selectedCountryId, setSelectedCountryId] = useState(
+    club?.countryId ?? '',
+  );
+  const [selectedProvinceName, setSelectedProvinceName] = useState(
+    initialProvinceName ?? '',
+  );
   const [selectedCityId, setSelectedCityId] = useState(club?.cityId ?? '');
   const [selectedPrimaryStadiumId] = useState(club?.primaryStadiumId ?? '');
   const [isDissolved, setIsDissolved] = useState(club?.isDissolved ?? false);
+  const [provinceOptions, setProvinceOptions] = useState<
+    ReadonlyArray<ProvinceAdmin>
+  >([]);
   const [cityOptions, setCityOptions] = useState<ReadonlyArray<SelectorOption>>(
     initialCities.map(city => ({ id: city.id, name: city.name })),
   );
+  const [isProvincesPending, setIsProvincesPending] = useState(false);
   const [isCitiesPending, setIsCitiesPending] = useState(false);
+  const [provincesError, setProvincesError] = useState('');
   const [citiesError, setCitiesError] = useState('');
 
   const [editState, editAction, editPending] = useActionState<
@@ -107,7 +121,10 @@ export default function ClubForm({
   const isPending = edit ? editPending : createPending;
 
   const countryOptions = useMemo(() => {
-    if (!selectedCountryId || countries.some(country => country.id === selectedCountryId)) {
+    if (
+      !selectedCountryId ||
+      countries.some(country => country.id === selectedCountryId)
+    ) {
       return countries;
     }
 
@@ -120,8 +137,29 @@ export default function ClubForm({
     ];
   }, [countries, selectedCountryId, selectedCountryLabel]);
 
+  const provinceSelectOptions = useMemo(() => {
+    if (
+      !selectedProvinceName ||
+      provinceOptions.some(province => province.name === selectedProvinceName)
+    ) {
+      return provinceOptions;
+    }
+
+    return [
+      {
+        name: selectedProvinceName,
+        activeCityCount: 0,
+        inactiveCityCount: 0,
+      },
+      ...provinceOptions,
+    ];
+  }, [provinceOptions, selectedProvinceName]);
+
   const mergedCityOptions = useMemo(() => {
-    if (!selectedCityId || cityOptions.some(city => city.id === selectedCityId)) {
+    if (
+      !selectedCityId ||
+      cityOptions.some(city => city.id === selectedCityId)
+    ) {
       return cityOptions;
     }
 
@@ -137,7 +175,9 @@ export default function ClubForm({
   const mergedPrimaryStadiumOptions = useMemo(() => {
     if (
       !selectedPrimaryStadiumId ||
-      primaryStadiumOptions.some(stadium => stadium.id === selectedPrimaryStadiumId)
+      primaryStadiumOptions.some(
+        stadium => stadium.id === selectedPrimaryStadiumId,
+      )
     ) {
       return primaryStadiumOptions;
     }
@@ -149,36 +189,108 @@ export default function ClubForm({
       },
       ...primaryStadiumOptions,
     ];
-  }, [primaryStadiumOptions, selectedPrimaryStadiumId, selectedPrimaryStadiumLabel]);
+  }, [
+    primaryStadiumOptions,
+    selectedPrimaryStadiumId,
+    selectedPrimaryStadiumLabel,
+  ]);
 
-  const loadCitiesForCountry = useCallback(async (countryId: string) => {
-    const requestId = latestCitiesRequest.current + 1;
-    latestCitiesRequest.current = requestId;
+  const loadProvincesForCountry = useCallback(async (countryId: string) => {
+    const requestId = latestProvincesRequest.current + 1;
+    latestProvincesRequest.current = requestId;
 
     if (!countryId) {
-      setCityOptions([]);
-      setCitiesError('');
-      setIsCitiesPending(false);
+      setProvinceOptions([]);
+      setProvincesError('');
+      setIsProvincesPending(false);
       return;
     }
 
-    setIsCitiesPending(true);
-    setCitiesError('');
+    setIsProvincesPending(true);
+    setProvincesError('');
 
-    const response = await getGeoCitiesByCountry(countryId);
-    if (latestCitiesRequest.current !== requestId) return;
+    try {
+      const provinces = await getAdminProvincesByCountryId(countryId);
+      if (latestProvincesRequest.current !== requestId) return;
 
-    if (response.error) {
-      setCityOptions([]);
-      setCitiesError(resolveGeoErrorMessage(response.error.error));
-      setIsCitiesPending(false);
-      return;
+      setProvinceOptions(provinces);
+      setProvincesError('');
+    } catch (error) {
+      if (latestProvincesRequest.current !== requestId) return;
+
+      console.error('Failed to load provinces for the selected country', error);
+      setProvinceOptions([]);
+      setProvincesError(
+        'We could not load provinces for the selected country.',
+      );
+    } finally {
+      if (latestProvincesRequest.current === requestId) {
+        setIsProvincesPending(false);
+      }
     }
-
-    setCityOptions(response.data.map(city => ({ id: city.id, name: city.name })));
-    setCitiesError('');
-    setIsCitiesPending(false);
   }, []);
+
+  const loadCitiesForCountryAndProvince = useCallback(
+    async (countryId: string, provinceName: string) => {
+      const requestId = latestCitiesRequest.current + 1;
+      latestCitiesRequest.current = requestId;
+
+      if (!countryId || !provinceName) {
+        setCityOptions([]);
+        setCitiesError('');
+        setIsCitiesPending(false);
+        return;
+      }
+
+      setIsCitiesPending(true);
+      setCitiesError('');
+
+      try {
+        const cities = await getAdminCitiesByCountryIdAndProvince(
+          countryId,
+          provinceName,
+        );
+        if (latestCitiesRequest.current !== requestId) return;
+
+        setCityOptions(cities.map(city => ({ id: city.id, name: city.name })));
+        setCitiesError('');
+      } catch (error) {
+        if (latestCitiesRequest.current !== requestId) return;
+
+        console.error('Failed to load cities for the selected province', error);
+        setCityOptions([]);
+        setCitiesError('We could not load cities for the selected province.');
+      } finally {
+        if (latestCitiesRequest.current === requestId) {
+          setIsCitiesPending(false);
+        }
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!selectedCountryId) return;
+
+    queueMicrotask(() => {
+      void loadProvincesForCountry(selectedCountryId);
+    });
+  }, [loadProvincesForCountry, selectedCountryId]);
+
+  useEffect(() => {
+    if (!selectedCountryId || !selectedProvinceName) return;
+
+    queueMicrotask(() => {
+      void loadCitiesForCountryAndProvince(
+        selectedCountryId,
+        selectedProvinceName,
+      );
+    });
+  }, [
+    loadCitiesForCountryAndProvince,
+    selectedCountryId,
+    selectedProvinceName,
+  ]);
 
   useEffect(() => {
     if (actionState.status === 'idle') return;
@@ -190,7 +302,10 @@ export default function ClubForm({
     });
 
     if (actionState.status === 'error') {
-      console.error(`[ClubForm:${edit ? 'edit' : 'create'}] action error`, actionState.error);
+      console.error(
+        `[ClubForm:${edit ? 'edit' : 'create'}] action error`,
+        actionState.error,
+      );
       toast.error(resolveClubErrorMessage(actionState.error));
       return;
     }
@@ -213,7 +328,10 @@ export default function ClubForm({
   }, [actionState.clubId, actionState.error, actionState.status, edit, router]);
 
   const handleCancel = useCallback(() => {
-    if (globalThis.window?.history.length && globalThis.window.history.length > 1) {
+    if (
+      globalThis.window?.history.length &&
+      globalThis.window.history.length > 1
+    ) {
       router.back();
       return;
     }
@@ -225,17 +343,32 @@ export default function ClubForm({
     (event: ChangeEvent<HTMLSelectElement>) => {
       const nextCountryId = event.target.value;
       setSelectedCountryId(nextCountryId);
+      setSelectedProvinceName('');
+      setSelectedCityId('');
+      setProvinceOptions([]);
+      setCityOptions([]);
+      setProvincesError('');
+      setCitiesError('');
+    },
+    [],
+  );
+
+  const handleProvinceChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      setSelectedProvinceName(event.target.value);
       setSelectedCityId('');
       setCityOptions([]);
       setCitiesError('');
-      void loadCitiesForCountry(nextCountryId);
     },
-    [loadCitiesForCountry],
+    [],
   );
 
-  const handleCityChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCityId(event.target.value);
-  }, []);
+  const handleCityChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      setSelectedCityId(event.target.value);
+    },
+    [],
+  );
 
   const handleIsDissolvedChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -255,21 +388,33 @@ export default function ClubForm({
     [edit],
   );
 
-  const cityHelperText = !selectedCountryId
-    ? 'Select a country to enable cities.'
-    : isCitiesPending
-      ? 'Loading cities...'
-      : citiesError
-        ? citiesError
-        : mergedCityOptions.length === 0
-          ? 'No cities available for the selected country.'
-          : undefined;
-
   const countryHelperText = countriesError
     ? countriesError
     : countryOptions.length === 0
       ? 'Countries are currently unavailable.'
       : undefined;
+
+  const provinceHelperText = !selectedCountryId
+    ? 'Select a country to enable provinces.'
+    : isProvincesPending
+      ? 'Loading provinces...'
+      : provincesError
+        ? provincesError
+        : provinceSelectOptions.length === 0
+          ? 'No provinces available for the selected country.'
+          : undefined;
+
+  const cityHelperText = !selectedCountryId
+    ? 'Select a country to enable cities.'
+    : !selectedProvinceName
+      ? 'Select a province to enable cities.'
+      : isCitiesPending
+        ? 'Loading cities...'
+        : citiesError
+          ? citiesError
+          : mergedCityOptions.length === 0
+            ? 'No cities available for the selected province.'
+            : undefined;
 
   const hasPrimaryStadiumSelector = mergedPrimaryStadiumOptions.length > 0;
 
@@ -279,14 +424,46 @@ export default function ClubForm({
         <>
           <input type='hidden' name='clubId' value={club.id} />
           <input type='hidden' name='original_name' value={club.name} />
-          <input type='hidden' name='original_shortName' value={club.shortName ?? ''} />
-          <input type='hidden' name='original_acronym' value={club.acronym ?? ''} />
-          <input type='hidden' name='original_nativeName' value={club.nativeName ?? ''} />
-          <input type='hidden' name='original_foundedAs' value={club.foundedAs ?? ''} />
-          <input type='hidden' name='original_foundedAt' value={club.foundedAt ?? ''} />
-          <input type='hidden' name='original_dissolvedAt' value={club.dissolvedAt ?? ''} />
-          <input type='hidden' name='original_countryId' value={club.countryId ?? ''} />
-          <input type='hidden' name='original_cityId' value={club.cityId ?? ''} />
+          <input
+            type='hidden'
+            name='original_shortName'
+            value={club.shortName ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_acronym'
+            value={club.acronym ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_nativeName'
+            value={club.nativeName ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_foundedAs'
+            value={club.foundedAs ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_foundedAt'
+            value={club.foundedAt ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_dissolvedAt'
+            value={club.dissolvedAt ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_countryId'
+            value={club.countryId ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_cityId'
+            value={club.cityId ?? ''}
+          />
           <input
             type='hidden'
             name='original_primaryStadiumId'
@@ -297,8 +474,16 @@ export default function ClubForm({
             name='original_officialWebsiteUrl'
             value={club.officialWebsiteUrl ?? ''}
           />
-          <input type='hidden' name='original_logoUrl' value={club.logoUrl ?? ''} />
-          <input type='hidden' name='original_heroImageUrl' value={club.heroImageUrl ?? ''} />
+          <input
+            type='hidden'
+            name='original_logoUrl'
+            value={club.logoUrl ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_heroImageUrl'
+            value={club.heroImageUrl ?? ''}
+          />
           <input
             type='hidden'
             name='original_isDissolved'
@@ -312,83 +497,126 @@ export default function ClubForm({
         </>
       ) : null}
 
-      <Section>
-        <Grid gap={8} columns={2}>
-          <TextInput
-            label='Club name'
-            name='name'
-            placeholder='e.g. Real Madrid Club de Fútbol'
-            defaultValue={club?.name ?? ''}
-            required
-            disabled={isPending}
-          />
-          <TextInput
-            label='Short name'
-            name='shortName'
-            placeholder='Optional short name'
-            defaultValue={club?.shortName ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Acronym'
-            name='acronym'
-            placeholder='Optional acronym'
-            defaultValue={club?.acronym ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Native name'
-            name='nativeName'
-            placeholder='Optional native name'
-            defaultValue={club?.nativeName ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Founded as'
-            name='foundedAs'
-            placeholder='Optional original name'
-            defaultValue={club?.foundedAs ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Founded at'
-            name='foundedAt'
-            type='date'
-            defaultValue={formatDateForInput(club?.foundedAt)}
-            disabled={isPending}
-          />
-          <Select
-            label='Country'
-            name='countryId'
-            value={selectedCountryId}
-            onChange={handleCountryChange}
-            disabled={isPending || Boolean(countriesError)}
-            helperText={countryHelperText}
-            error={Boolean(countriesError)}
-          >
-            <option value=''>No country</option>
-            {countryOptions.map(country => (
-              <option key={country.id} value={country.id}>
-                {country.name}
-              </option>
-            ))}
-          </Select>
-          <Select
-            label='City'
-            name='cityId'
-            value={selectedCityId}
-            onChange={handleCityChange}
-            disabled={isPending || !selectedCountryId || isCitiesPending}
-            helperText={cityHelperText}
-            error={Boolean(citiesError)}
-          >
-            <option value=''>No city</option>
-            {mergedCityOptions.map(city => (
-              <option key={city.id} value={city.id}>
-                {city.name}
-              </option>
-            ))}
-          </Select>
+      <Card>
+        <Grid gap={16} columns={2}>
+          <Section>
+            <Title size='small'>Club Information</Title>
+            <FieldSet>
+              <Grid gap={8}>
+                <Grid gap={8} columns={6}>
+                  <TextInput
+                    label='Club name'
+                    name='name'
+                    placeholder='e.g. Kashima Antlers Football Club'
+                    defaultValue={club?.name ?? ''}
+                    required
+                    disabled={isPending}
+                    className='grid-column--5'
+                  />
+                  <TextInput
+                    label='Acronym'
+                    name='acronym'
+                    placeholder='Ex. KAA (optional)'
+                    defaultValue={club?.acronym ?? ''}
+                    disabled={isPending}
+                  />
+                </Grid>
+                <Grid gap={8} columns={2}>
+                  <TextInput
+                    label='Short name'
+                    name='shortName'
+                    placeholder='Ex. Kajima Antlers (optional)'
+                    defaultValue={club?.shortName ?? ''}
+                    disabled={isPending}
+                  />
+                  <TextInput
+                    label='Native name'
+                    name='nativeName'
+                    placeholder='Ex. 鹿島アントラーズ (optional)'
+                    defaultValue={club?.nativeName ?? ''}
+                    disabled={isPending}
+                  />
+                  <TextInput
+                    label='Founded as'
+                    name='foundedAs'
+                    placeholder='Ex. Sumitomo Metal Football Club (optional)'
+                    defaultValue={club?.foundedAs ?? ''}
+                    disabled={isPending}
+                  />
+                  <TextInput
+                    label='Founded at'
+                    name='foundedAt'
+                    type='date'
+                    defaultValue={formatDateForInput(club?.foundedAt)}
+                    disabled={isPending}
+                  />
+                </Grid>
+              </Grid>
+            </FieldSet>
+          </Section>
+          <Section>
+            <Title size='small'>Location</Title>
+            <FieldSet>
+              <Grid gap={8} columns={2}>
+                <Select
+                  label='Country'
+                  name='countryId'
+                  value={selectedCountryId}
+                  onChange={handleCountryChange}
+                  disabled={isPending || Boolean(countriesError)}
+                  helperText={countryHelperText}
+                  error={Boolean(countriesError)}
+                >
+                  <option value=''>No country</option>
+                  {countryOptions.map(country => (
+                    <option key={country.id} value={country.id}>
+                      {country.name}
+                    </option>
+                  ))}
+                </Select>
+                <Select
+                  label='Province'
+                  value={selectedProvinceName}
+                  onChange={handleProvinceChange}
+                  disabled={
+                    isPending || !selectedCountryId || isProvincesPending
+                  }
+                  helperText={provinceHelperText}
+                  error={Boolean(provincesError)}
+                >
+                  <option value=''>No province</option>
+                  {provinceSelectOptions.map(province => (
+                    <option key={province.name} value={province.name}>
+                      {province.name}
+                    </option>
+                  ))}
+                </Select>
+                <Select
+                  label='City'
+                  name='cityId'
+                  value={selectedCityId}
+                  onChange={handleCityChange}
+                  disabled={
+                    isPending ||
+                    !selectedCountryId ||
+                    !selectedProvinceName ||
+                    isCitiesPending
+                  }
+                  helperText={cityHelperText}
+                  error={Boolean(citiesError)}
+                  className='grid-column--2'
+                >
+                  <option value=''>No city</option>
+                  {mergedCityOptions.map(city => (
+                    <option key={city.id} value={city.id}>
+                      {city.name}
+                    </option>
+                  ))}
+                </Select>
+              </Grid>
+            </FieldSet>
+          </Section>
+
           {hasPrimaryStadiumSelector ? (
             <Select
               label='Primary stadium'
@@ -468,7 +696,12 @@ export default function ClubForm({
         {edit && club ? (
           <Grid gap={8} columns={2} className='margin-top--16'>
             <TextInput label='ID' defaultValue={club.id} readOnly disabled />
-            <TextInput label='Slug' defaultValue={club.slug} readOnly disabled />
+            <TextInput
+              label='Slug'
+              defaultValue={club.slug}
+              readOnly
+              disabled
+            />
             <TextInput
               label='Created at'
               defaultValue={formatDateTime(club.createdAt)}
@@ -503,7 +736,7 @@ export default function ClubForm({
             Cancel
           </Button>
         </ButtonGroup>
-      </Section>
+      </Card>
     </Form>
   );
 }

@@ -9,7 +9,9 @@ import type { ApiErrorResponse } from '@/_types/api';
 import type { City } from '@/_types/city';
 import { mapCity } from '@/_actions/city/mappers';
 
-const GEO_CITIES_PAGE_SIZE = 500;
+const GEO_CITIES_PAGE_SIZE = 100;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type GeoCitiesResponse = Readonly<{
   data: ReadonlyArray<City>;
@@ -23,6 +25,10 @@ export async function getGeoCitiesByCountry(
     return { data: [] };
   }
 
+  if (!UUID_PATTERN.test(countryId)) {
+    return { data: [] };
+  }
+
   try {
     const client = await getServerAxios();
     const { data } = await client.get<unknown>(
@@ -31,7 +37,7 @@ export async function getGeoCitiesByCountry(
         params: {
           page: 1,
           page_size: GEO_CITIES_PAGE_SIZE,
-          sort: 'name_asc',
+          sort: 'slug_asc',
           status: 'all',
         },
       },

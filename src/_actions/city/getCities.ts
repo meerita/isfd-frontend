@@ -8,13 +8,17 @@
 import API_ROUTES from '@/_constants/apiRoutes';
 import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
 import api from '@/_lib/axiosInstance';
-import type { CitiesResponse } from '@/_types/city';
+import type {
+  AdminCitiesResponse,
+  AdminCityStatus,
+  City,
+} from '@/_types/city';
 import { mapCity, mapMetadata } from './mappers';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 
-const EMPTY_RESPONSE: CitiesResponse = {
+const EMPTY_RESPONSE: AdminCitiesResponse = {
   data: [],
   metadata: {
     page: DEFAULT_PAGE,
@@ -28,21 +32,24 @@ const EMPTY_RESPONSE: CitiesResponse = {
 
 export async function getCities({
   countryId,
+  province,
   page,
   pageSize,
   sort,
   status,
 }: Readonly<{
   countryId: string;
+  province?: string;
   page?: number;
   pageSize?: number;
   sort?: string;
-  status?: 'all' | 'active' | 'inactive';
-}>): Promise<CitiesResponse> {
+  status?: AdminCityStatus;
+}>): Promise<AdminCitiesResponse> {
   if (!countryId) return EMPTY_RESPONSE;
 
   const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
   const params: Record<string, string | number> = {};
+  if (province) params.province = province;
   if (page) params.page = page;
   if (pageSize) params.page_size = pageSize;
   if (sort) params.sort = sort;
@@ -50,7 +57,7 @@ export async function getCities({
 
   try {
     const { data } = await api.get<unknown>(
-      API_ROUTES.CITIES_ADMIN_BY_COUNTRY(countryId),
+      API_ROUTES.ADMIN_COUNTRY_CITIES(countryId),
       { params, headers },
     );
 
@@ -75,4 +82,22 @@ export async function getCities({
     console.error(`Failed to fetch cities for country ${countryId}`, error);
     return EMPTY_RESPONSE;
   }
+}
+
+export async function getAdminCitiesByCountryIdAndProvince(
+  countryId: string,
+  provinceName: string,
+): Promise<ReadonlyArray<City>> {
+  if (!countryId.trim() || !provinceName.trim()) return [];
+
+  const response = await getCities({
+    countryId,
+    province: provinceName,
+    page: 1,
+    pageSize: 100,
+    sort: 'slug_asc',
+    status: 'all',
+  });
+
+  return response.data;
 }

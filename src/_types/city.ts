@@ -8,6 +8,8 @@
 import type { ApiErrorResponse } from '@/_types/api';
 import type { GeoMetadata } from '@/_types/country';
 
+export type AdminCityStatus = 'all' | 'active' | 'inactive';
+
 export type City = Readonly<{
   id: string;
   countryId: string;
@@ -26,6 +28,8 @@ export type CitiesResponse = Readonly<{
   data: ReadonlyArray<City>;
   metadata: GeoMetadata;
 }>;
+
+export type AdminCitiesResponse = CitiesResponse;
 
 export interface CityActionState {
   status: 'idle' | 'success' | 'error';
