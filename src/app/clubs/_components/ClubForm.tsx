@@ -35,6 +35,7 @@ import Card from '@/_components/Card';
 import Title from '@/_components/typography/Title';
 import Section from '@/_components/layout/Section';
 import FieldSet from '@/_components/forms/Fieldset';
+import Line from '@/_components/Line';
 
 const INITIAL_STATE: ClubActionState = { status: 'idle' };
 
@@ -502,8 +503,8 @@ export default function ClubForm({
           <Section>
             <Title size='small'>Club Information</Title>
             <FieldSet>
-              <Grid gap={8}>
-                <Grid gap={8} columns={6}>
+              <Grid gap={8} columns={2}>
+                <Grid gap={8} columns={8}>
                   <TextInput
                     label='Club name'
                     name='name'
@@ -511,7 +512,7 @@ export default function ClubForm({
                     defaultValue={club?.name ?? ''}
                     required
                     disabled={isPending}
-                    className='grid-column--5'
+                    className='grid-column--7'
                   />
                   <TextInput
                     label='Acronym'
@@ -519,45 +520,94 @@ export default function ClubForm({
                     placeholder='Ex. KAA (optional)'
                     defaultValue={club?.acronym ?? ''}
                     disabled={isPending}
+                    className='width--100'
                   />
                 </Grid>
-                <Grid gap={8} columns={2}>
-                  <TextInput
-                    label='Short name'
-                    name='shortName'
-                    placeholder='Ex. Kajima Antlers (optional)'
-                    defaultValue={club?.shortName ?? ''}
-                    disabled={isPending}
-                  />
-                  <TextInput
-                    label='Native name'
-                    name='nativeName'
-                    placeholder='Ex. 鹿島アントラーズ (optional)'
-                    defaultValue={club?.nativeName ?? ''}
-                    disabled={isPending}
-                  />
-                  <TextInput
-                    label='Founded as'
-                    name='foundedAs'
-                    placeholder='Ex. Sumitomo Metal Football Club (optional)'
-                    defaultValue={club?.foundedAs ?? ''}
-                    disabled={isPending}
-                  />
-                  <TextInput
-                    label='Founded at'
-                    name='foundedAt'
-                    type='date'
-                    defaultValue={formatDateForInput(club?.foundedAt)}
-                    disabled={isPending}
-                  />
-                </Grid>
+                <TextInput
+                  label='Short name'
+                  name='shortName'
+                  placeholder='Ex. Kajima Antlers (optional)'
+                  defaultValue={club?.shortName ?? ''}
+                  disabled={isPending}
+                />
+                <TextInput
+                  label='Native name'
+                  name='nativeName'
+                  placeholder='Ex. 鹿島アントラーズ (optional)'
+                  defaultValue={club?.nativeName ?? ''}
+                  disabled={isPending}
+                />
+                <TextInput
+                  label='Founded as'
+                  name='foundedAs'
+                  placeholder='Ex. Sumitomo Metal Football Club (optional)'
+                  defaultValue={club?.foundedAs ?? ''}
+                  disabled={isPending}
+                />
               </Grid>
+            </FieldSet>
+            <FieldSet>
+              <Grid gap={8} columns={2}>
+                <TextInput
+                  label='Founded at'
+                  name='foundedAt'
+                  type='date'
+                  defaultValue={formatDateForInput(club?.foundedAt)}
+                  disabled={isPending}
+                />
+                <TextInput
+                  label='Dissolved at'
+                  name='dissolvedAt'
+                  type='date'
+                  defaultValue={formatDateForInput(club?.dissolvedAt)}
+                  disabled={isPending || !isDissolved}
+                  helperText={
+                    isDissolved
+                      ? undefined
+                      : 'Enable "Dissolved" to set a dissolved date.'
+                  }
+                />
+                <CheckBoxInput
+                  label='Dissolved'
+                  name='isDissolved'
+                  value='true'
+                  defaultChecked={club?.isDissolved ?? false}
+                  disabled={isPending}
+                  onChange={handleIsDissolvedChange}
+                />
+              </Grid>
+            </FieldSet>
+            <Line />
+            <FieldSet>
+              {hasPrimaryStadiumSelector ? (
+                <Select
+                  label='Primary stadium'
+                  name='primaryStadiumId'
+                  defaultValue={club?.primaryStadiumId ?? ''}
+                  disabled={isPending}
+                >
+                  <option value=''>No primary stadium</option>
+                  {mergedPrimaryStadiumOptions.map(stadium => (
+                    <option key={stadium.id} value={stadium.id}>
+                      {stadium.name}
+                    </option>
+                  ))}
+                </Select>
+              ) : (
+                <TextInput
+                  label='Primary stadium ID'
+                  name='primaryStadiumId'
+                  placeholder='Optional stadium UUID'
+                  defaultValue={club?.primaryStadiumId ?? ''}
+                  disabled={isPending}
+                />
+              )}
             </FieldSet>
           </Section>
           <Section>
             <Title size='small'>Location</Title>
             <FieldSet>
-              <Grid gap={8} columns={2}>
+              <Grid gap={8} columns={3}>
                 <Select
                   label='Country'
                   name='countryId'
@@ -604,7 +654,6 @@ export default function ClubForm({
                   }
                   helperText={cityHelperText}
                   error={Boolean(citiesError)}
-                  className='grid-column--2'
                 >
                   <option value=''>No city</option>
                   {mergedCityOptions.map(city => (
@@ -615,75 +664,38 @@ export default function ClubForm({
                 </Select>
               </Grid>
             </FieldSet>
+            <Title size='small' className='margin-top--16'>
+              Other Information
+            </Title>
+            <FieldSet>
+              <Grid gap={8} columns={2}>
+                <TextInput
+                  label='Official website URL'
+                  name='officialWebsiteUrl'
+                  type='url'
+                  placeholder='https://...'
+                  defaultValue={club?.officialWebsiteUrl ?? ''}
+                  disabled={isPending}
+                />
+                <TextInput
+                  label='Logo URL'
+                  name='logoUrl'
+                  type='url'
+                  placeholder='https://...'
+                  defaultValue={club?.logoUrl ?? ''}
+                  disabled={isPending}
+                />
+                <TextInput
+                  label='Hero image URL'
+                  name='heroImageUrl'
+                  type='url'
+                  placeholder='https://...'
+                  defaultValue={club?.heroImageUrl ?? ''}
+                  disabled={isPending}
+                />
+              </Grid>
+            </FieldSet>
           </Section>
-
-          {hasPrimaryStadiumSelector ? (
-            <Select
-              label='Primary stadium'
-              name='primaryStadiumId'
-              defaultValue={club?.primaryStadiumId ?? ''}
-              disabled={isPending}
-            >
-              <option value=''>No primary stadium</option>
-              {mergedPrimaryStadiumOptions.map(stadium => (
-                <option key={stadium.id} value={stadium.id}>
-                  {stadium.name}
-                </option>
-              ))}
-            </Select>
-          ) : (
-            <TextInput
-              label='Primary stadium ID'
-              name='primaryStadiumId'
-              placeholder='Optional stadium UUID'
-              defaultValue={club?.primaryStadiumId ?? ''}
-              disabled={isPending}
-            />
-          )}
-          <TextInput
-            label='Official website URL'
-            name='officialWebsiteUrl'
-            type='url'
-            placeholder='https://...'
-            defaultValue={club?.officialWebsiteUrl ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Logo URL'
-            name='logoUrl'
-            type='url'
-            placeholder='https://...'
-            defaultValue={club?.logoUrl ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Hero image URL'
-            name='heroImageUrl'
-            type='url'
-            placeholder='https://...'
-            defaultValue={club?.heroImageUrl ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Dissolved at'
-            name='dissolvedAt'
-            type='date'
-            defaultValue={formatDateForInput(club?.dissolvedAt)}
-            disabled={isPending || !isDissolved}
-            helperText={
-              isDissolved
-                ? undefined
-                : 'Enable "Dissolved" to set a dissolved date.'
-            }
-          />
-          <CheckBoxInput
-            label='Dissolved'
-            name='isDissolved'
-            value='true'
-            defaultChecked={club?.isDissolved ?? false}
-            disabled={isPending}
-            onChange={handleIsDissolvedChange}
-          />
           <CheckBoxInput
             label='Active'
             name='isActive'
