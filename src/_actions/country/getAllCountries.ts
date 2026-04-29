@@ -7,21 +7,15 @@
 // Author: Diego M. Lafuente
 
 import API_ROUTES from '@/_constants/apiRoutes';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
+import getServerAxios from '@/_lib/getServerAxios';
 import type { Country } from '@/_types/country';
 import { mapCountry } from '@/_actions/country/mappers';
 
-const CATALOG_PAGE_SIZE = 500;
-
 export async function getAllCountries(): Promise<ReadonlyArray<Country>> {
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
+  const client = await getServerAxios();
 
   try {
-    const { data } = await api.get<unknown>(API_ROUTES.COUNTRIES_ADMIN, {
-      params: { page: 1, page_size: CATALOG_PAGE_SIZE, status: 'all' },
-      headers,
-    });
+    const { data } = await client.get<unknown>(API_ROUTES.COUNTRIES_ADMIN_ALL);
 
     if (
       typeof data !== 'object' ||

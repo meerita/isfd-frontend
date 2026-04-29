@@ -1,17 +1,20 @@
 /** @format */
 
-import Grid from '@/_components/layout/Grid';
-import Main from '@/_components/layout/Main';
-import Text from '@/_components/typography/Text';
-import Title from '@/_components/typography/Title';
+'use client';
+
+import { useEffect } from 'react';
+import { toast } from 'sonner';
+
+const CLUB_DETAIL_LOADING_TOAST_ID = 'club-detail-page-loading';
 
 export default function ClubDetailLoading() {
-  return (
-    <Main className='padding--32'>
-      <Grid gap={8} className='max-width--75 margin-inline--auto'>
-        <Title size='large'>Loading club...</Title>
-        <Text color='gray'>Preparing the club detail view.</Text>
-      </Grid>
-    </Main>
-  );
+  useEffect(() => {
+    toast.loading('Loading...', { id: CLUB_DETAIL_LOADING_TOAST_ID });
+
+    return () => {
+      toast.dismiss(CLUB_DETAIL_LOADING_TOAST_ID);
+    };
+  }, []);
+
+  return null;
 }

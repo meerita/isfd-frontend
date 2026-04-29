@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type FormEvent,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -62,6 +63,10 @@ function formatDateTime(value: string | null | undefined): string {
 
 function resolveGeoErrorMessage(message?: string): string {
   return message || 'We could not load cities for the selected country.';
+}
+
+function serializeFormData(formData: FormData): Record<string, FormDataEntryValue> {
+  return Object.fromEntries(formData.entries());
 }
 
 export default function ClubForm({
@@ -178,7 +183,14 @@ export default function ClubForm({
   useEffect(() => {
     if (actionState.status === 'idle') return;
 
+    console.log(`[ClubForm:${edit ? 'edit' : 'create'}] action result`, {
+      status: actionState.status,
+      clubId: actionState.clubId,
+      error: actionState.error,
+    });
+
     if (actionState.status === 'error') {
+      console.error(`[ClubForm:${edit ? 'edit' : 'create'}] action error`, actionState.error);
       toast.error(resolveClubErrorMessage(actionState.error));
       return;
     }
@@ -232,6 +244,17 @@ export default function ClubForm({
     [],
   );
 
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      const submittedFormData = new FormData(event.currentTarget);
+      console.log(
+        `[ClubForm:${edit ? 'edit' : 'create'}] submitted values`,
+        serializeFormData(submittedFormData),
+      );
+    },
+    [edit],
+  );
+
   const cityHelperText = !selectedCountryId
     ? 'Select a country to enable cities.'
     : isCitiesPending
@@ -251,7 +274,7 @@ export default function ClubForm({
   const hasPrimaryStadiumSelector = mergedPrimaryStadiumOptions.length > 0;
 
   return (
-    <Form action={formAction}>
+    <Form action={formAction} onSubmit={handleSubmit}>
       {edit && club ? (
         <>
           <input type='hidden' name='clubId' value={club.id} />

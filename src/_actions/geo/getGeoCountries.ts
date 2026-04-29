@@ -9,8 +9,6 @@ import type { ApiErrorResponse } from '@/_types/api';
 import type { Country } from '@/_types/country';
 import { mapCountry } from '@/_actions/country/mappers';
 
-const GEO_COUNTRIES_PAGE_SIZE = 100;
-
 export type GeoCountriesResponse = Readonly<{
   data: ReadonlyArray<Country>;
   error?: ApiErrorResponse;
@@ -18,13 +16,7 @@ export type GeoCountriesResponse = Readonly<{
 
 export async function getGeoCountries(): Promise<GeoCountriesResponse> {
   try {
-    const { data } = await api.get<unknown>(API_ROUTES.COUNTRIES, {
-      params: {
-        page: 1,
-        page_size: GEO_COUNTRIES_PAGE_SIZE,
-        sort: 'name_asc',
-      },
-    });
+    const { data } = await api.get<unknown>(API_ROUTES.COUNTRIES_ALL);
 
     if (
       typeof data !== 'object' ||

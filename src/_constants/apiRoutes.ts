@@ -17,6 +17,7 @@ const API_ROUTES = {
   COUNTRIES_ALL: '/countries/all',
   COUNTRY_BY_ID: (id: string) => `/countries/${id}`,
   COUNTRIES_ADMIN: '/admin/countries',
+  COUNTRIES_ADMIN_ALL: '/admin/countries/all',
   COUNTRY_ADMIN_BY_ID: (id: string) => `/admin/countries/${id}`,
   COUNTRY_ADMIN_ACTIVATION: (id: string) => `/admin/countries/${id}/activation`,
   CITIES: '/cities',

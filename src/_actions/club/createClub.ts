@@ -33,6 +33,7 @@ export async function createClub(
   const client = await getServerAxios();
 
   try {
+    console.log('[createClub] POST /admin/clubs payload', body);
     const { data } = await client.post<unknown>(API_ROUTES.CLUBS_ADMIN, body);
     const raw = extractRaw(data);
     const club = raw ? mapClub(raw) : null;

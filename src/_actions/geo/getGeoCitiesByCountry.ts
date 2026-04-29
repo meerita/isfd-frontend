@@ -4,12 +4,12 @@
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
-import api from '@/_lib/axiosInstance';
+import getServerAxios from '@/_lib/getServerAxios';
 import type { ApiErrorResponse } from '@/_types/api';
 import type { City } from '@/_types/city';
 import { mapCity } from '@/_actions/city/mappers';
 
-const GEO_CITIES_PAGE_SIZE = 100;
+const GEO_CITIES_PAGE_SIZE = 500;
 
 export type GeoCitiesResponse = Readonly<{
   data: ReadonlyArray<City>;
@@ -24,13 +24,15 @@ export async function getGeoCitiesByCountry(
   }
 
   try {
-    const { data } = await api.get<unknown>(
-      API_ROUTES.CITIES_PUBLIC_BY_COUNTRY(countryId),
+    const client = await getServerAxios();
+    const { data } = await client.get<unknown>(
+      API_ROUTES.CITIES_ADMIN_BY_COUNTRY(countryId),
       {
         params: {
           page: 1,
           page_size: GEO_CITIES_PAGE_SIZE,
-          sort: 'slug_asc',
+          sort: 'name_asc',
+          status: 'all',
         },
       },
     );

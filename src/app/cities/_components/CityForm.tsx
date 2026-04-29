@@ -4,7 +4,14 @@
 // File: src/app/cities/_components/CityForm.tsx
 // Purpose: Form component to create or edit cities
 
-import { useActionState, useCallback, useEffect } from 'react';
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+} from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -35,6 +42,7 @@ type CityFormProps = Readonly<{
   countries: ReadonlyArray<CountryOption>;
   edit?: boolean;
   initialCountryId?: string | null;
+  initialCountryLabel?: string | null;
 }>;
 
 export default function CityForm({
@@ -42,8 +50,12 @@ export default function CityForm({
   countries,
   edit = false,
   initialCountryId = null,
+  initialCountryLabel = null,
 }: CityFormProps) {
   const router = useRouter();
+  const [selectedCountryId, setSelectedCountryId] = useState(
+    city?.countryId ?? initialCountryId ?? '',
+  );
 
   const [editState, editAction, editPending] = useActionState<CityActionState, FormData>(
     updateCity,
@@ -58,8 +70,24 @@ export default function CityForm({
   const formAction = edit ? editAction : createAction;
   const pending = edit ? editPending : createPending;
 
-  const defaultCountryId = city?.countryId ?? initialCountryId ?? '';
-  const hasCountryOptions = countries.length > 0;
+  const selectedCountryLabel = city?.countryName ?? initialCountryLabel;
+  const countryOptions = useMemo(() => {
+    if (
+      !selectedCountryId ||
+      countries.some(country => country.id === selectedCountryId)
+    ) {
+      return countries;
+    }
+
+    return [
+      {
+        id: selectedCountryId,
+        name: selectedCountryLabel ?? selectedCountryId,
+      },
+      ...countries,
+    ];
+  }, [countries, selectedCountryId, selectedCountryLabel]);
+  const hasCountryOptions = countryOptions.length > 0;
 
   const handleCancel = useCallback(
     function handleCancel() {
@@ -95,7 +123,12 @@ export default function CityForm({
   }, [actionState.error, actionState.status, edit, handleCancel]);
 
   const countryIsFixed = !edit && Boolean(initialCountryId);
-  const isSubmitDisabled = pending || (!countryIsFixed && !hasCountryOptions);
+  const isSubmitDisabled =
+    pending || (!countryIsFixed && (!hasCountryOptions || !selectedCountryId));
+
+  const handleCountryChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCountryId(event.target.value);
+  }, []);
 
   return (
     <Form action={formAction}>
@@ -111,12 +144,13 @@ export default function CityForm({
             <Select
               label='Country'
               name='countryId'
-              defaultValue={defaultCountryId}
-              placeholder='Select a country'
+              value={selectedCountryId}
+              onChange={handleCountryChange}
               required
               disabled={pending || !hasCountryOptions}
             >
-              {countries.map(country => (
+              <option value=''>Select a country</option>
+              {countryOptions.map(country => (
                 <option key={country.id} value={country.id}>
                   {country.name}
                 </option>
