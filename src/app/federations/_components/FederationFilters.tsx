@@ -48,7 +48,7 @@ export default function FederationFilters({
 
   return (
     <form ref={formRef} method='GET' action={NAVIGATION.FEDERATIONS}>
-      <Grid gap={8} columns={4} alignItems='end'>
+      <Grid gap={8} columns={6} alignItems='end'>
         <input type='hidden' name='page' value='1' />
         <input type='hidden' name='page_size' value={String(pageSize)} />
         <Select
