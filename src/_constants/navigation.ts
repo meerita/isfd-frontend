@@ -36,7 +36,10 @@ const NAVIGATION = {
   PERSONS_BY_ID: (id: string) => `/persons/${id}`,
   FEDERATION_BY_ID: (id: string) => `/federations/${id}`,
   GROUP_BY_NAME: (slug: string) => `/groups/slug?value=${slug}`,
-  CREATE_A_CITY: (countryId: string) => `/create/city?countryId=${countryId}`,
+  CREATE_A_CITY: (countryId?: string) =>
+    countryId
+      ? `/create/city?country_id=${encodeURIComponent(countryId)}`
+      : '/create/city',
   CREATE_A_COUNTRY: '/create/country',
   CREATE_A_LEGAL: '/create/legal',
   COUNTRY_BY_ID: (id: string) => `/countries/${id}`,

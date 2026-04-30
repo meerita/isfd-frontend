@@ -1,11 +1,14 @@
 /** @format */
 
-// File: src/_types/country.ts
-// Purpose: Country domain types aligned with backend v2 contracts
-// Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
-
 import type { ApiErrorResponse } from '@/_types/api';
+
+export type CountrySort =
+  | 'name_asc'
+  | 'name_desc'
+  | 'updated_at_asc'
+  | 'updated_at_desc';
+
+export type CountryStatusFilter = 'all' | 'active' | 'inactive';
 
 export type Country = Readonly<{
   id: string;
@@ -17,7 +20,6 @@ export type Country = Readonly<{
   iso3Code: string | null;
   continentCode: string | null;
   isActive: boolean;
-  // Present in admin list only
   provinceCount?: number;
   cityCount?: number;
 }>;
@@ -39,9 +41,23 @@ export type GeoMetadata = Readonly<{
   hasPreviousPage: boolean;
 }>;
 
+export type CountryListMetadata = GeoMetadata &
+  Readonly<{
+    filters?: Readonly<{
+      sort?: CountrySort;
+      status?: CountryStatusFilter;
+    }>;
+  }>;
+
 export type CountriesResponse = Readonly<{
   data: ReadonlyArray<Country>;
-  metadata: GeoMetadata;
+  metadata: CountryListMetadata;
+  error?: ApiErrorResponse;
+}>;
+
+export type CountryDetailResponse = Readonly<{
+  data: Country | null;
+  error?: ApiErrorResponse;
 }>;
 
 export type ProvincesAdminResponse = Readonly<{
@@ -51,4 +67,5 @@ export type ProvincesAdminResponse = Readonly<{
 export interface CountryActionState {
   status: 'idle' | 'success' | 'error';
   error?: ApiErrorResponse;
+  countryId?: string;
 }

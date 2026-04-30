@@ -2,35 +2,47 @@
 
 'use server';
 
-// File: src/_actions/city/deleteCity.ts
-// Purpose: Delete a city via the admin API
-
 import { revalidatePath } from 'next/cache';
+
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
+import getServerAxios from '@/_lib/getServerAxios';
 
-type DeleteCityResult = Readonly<{ success: boolean; error?: string }>;
+export type DeleteCityResult = Readonly<{
+  success: boolean;
+  error?: string;
+  reason?: string;
+}>;
 
-export async function deleteCity(cityId: string): Promise<DeleteCityResult> {
+export async function deleteCity(
+  cityId: string,
+  countryId?: string | null,
+): Promise<DeleteCityResult> {
   if (!cityId) {
-    return { success: false, error: 'Missing city identifier.' };
+    return {
+      success: false,
+      reason: 'CITY_ID_REQUIRED',
+      error: 'Missing city identifier.',
+    };
   }
 
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
+  const client = await getServerAxios();
 
   try {
-    await api.delete(API_ROUTES.CITY_ADMIN_BY_ID(cityId), { headers });
+    await client.delete(API_ROUTES.CITY_ADMIN_BY_ID(cityId));
     revalidatePath(NAVIGATION.CITIES);
     revalidatePath(NAVIGATION.CITY_BY_ID(cityId));
+    if (countryId) {
+      revalidatePath(NAVIGATION.COUNTRY_BY_ID(countryId));
+    }
     return { success: true };
-  } catch (error) {
-    const normalized = normalizeApiError(error);
+  } catch (caughtError) {
+    const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
     return {
       success: false,
+      reason: normalized.data.reason,
       error:
         normalized.data.error ??
         normalized.data.message ??

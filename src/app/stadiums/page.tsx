@@ -175,7 +175,7 @@ export default async function StadiumsPage({
         ...stadiumsResponse.data.map(stadium => stadium.countryId),
       ].filter(
         (value): value is string =>
-          Boolean(value) && availableCountryIds.has(value),
+          typeof value === 'string' && availableCountryIds.has(value),
       ),
     ),
   );

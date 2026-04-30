@@ -3,9 +3,11 @@
 'use client';
 
 import { useActionState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import Button from '@/_components/forms/Button';
 import { toggleCountryActivation } from '@/_actions/country/toggleCountryActivation';
+import { resolveCountryErrorMessage } from '@/_constants/countryErrorMessages';
 import type { CountryActionState } from '@/_types/country';
 
 const INITIAL_STATE: CountryActionState = { status: 'idle' };
@@ -19,6 +21,7 @@ export default function CountryActivationToggle({
   countryId,
   isActive,
 }: CountryActivationToggleProps) {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState<CountryActionState, FormData>(
     toggleCountryActivation,
     INITIAL_STATE,
@@ -26,9 +29,14 @@ export default function CountryActivationToggle({
 
   useEffect(() => {
     if (state.status === 'error' && state.error) {
-      toast.error(state.error.error ?? state.error.message);
+      toast.error(resolveCountryErrorMessage(state.error));
+      return;
     }
-  }, [state.error, state.status]);
+
+    if (state.status === 'success') {
+      router.refresh();
+    }
+  }, [router, state.error, state.status]);
 
   const nextActive = !isActive;
   const label = pending

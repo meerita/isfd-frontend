@@ -1,14 +1,16 @@
 /** @format */
 
-// File: src/_types/city.ts
-// Purpose: City domain types aligned with backend v2 contracts
-// Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
-
 import type { ApiErrorResponse } from '@/_types/api';
 import type { GeoMetadata } from '@/_types/country';
 
-export type AdminCityStatus = 'all' | 'active' | 'inactive';
+export type AdminCitySort =
+  | 'updated_at_asc'
+  | 'updated_at_desc'
+  | 'slug_asc'
+  | 'slug_desc';
+
+export type CityStatusFilter = 'all' | 'active' | 'inactive';
+export type AdminCityStatus = CityStatusFilter;
 
 export type City = Readonly<{
   id: string;
@@ -24,14 +26,31 @@ export type City = Readonly<{
   isActive: boolean;
 }>;
 
+export type CityListMetadata = GeoMetadata &
+  Readonly<{
+    filters?: Readonly<{
+      countryId?: string;
+      province?: string;
+      sort?: AdminCitySort;
+      status?: CityStatusFilter;
+    }>;
+  }>;
+
 export type CitiesResponse = Readonly<{
   data: ReadonlyArray<City>;
-  metadata: GeoMetadata;
+  metadata: CityListMetadata;
+  error?: ApiErrorResponse;
 }>;
 
 export type AdminCitiesResponse = CitiesResponse;
 
+export type CityDetailResponse = Readonly<{
+  data: City | null;
+  error?: ApiErrorResponse;
+}>;
+
 export interface CityActionState {
   status: 'idle' | 'success' | 'error';
   error?: ApiErrorResponse;
+  cityId?: string;
 }

@@ -11,8 +11,7 @@ import { revalidatePath } from 'next/cache';
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
+import getServerAxios from '@/_lib/getServerAxios';
 import type { CountryActionState } from '@/_types/country';
 
 const getStringValue = (formData: FormData, key: string): string => {
@@ -47,14 +46,12 @@ export async function toggleCountryActivation(
   }
 
   const is_active = getBooleanValue(formData, 'isActive');
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
+  const client = await getServerAxios();
 
   try {
-    await api.patch(
-      API_ROUTES.COUNTRY_ADMIN_ACTIVATION(countryId),
-      { is_active },
-      { headers },
-    );
+    await client.patch(API_ROUTES.COUNTRY_ADMIN_ACTIVATION(countryId), {
+      is_active,
+    });
     revalidatePath(NAVIGATION.COUNTRIES);
     revalidatePath(NAVIGATION.COUNTRY_BY_ID(countryId));
     return { status: 'success' } satisfies CountryActionState;

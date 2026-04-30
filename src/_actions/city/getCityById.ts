@@ -2,19 +2,14 @@
 
 'use server';
 
-// File: src/_actions/city/getCityById.ts
-// Purpose: Fetch a single city by id using the public endpoint
-// Author: Diego M. Lafuente
-
 import API_ROUTES from '@/_constants/apiRoutes';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
-import type { City } from '@/_types/city';
-import { mapCity } from '@/_actions/city/mappers';
+import getServerAxios from '@/_lib/getServerAxios';
+import type { City, CityDetailResponse } from '@/_types/city';
+import { mapCity } from './mappers';
 
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
 
 function extractRaw(payload: unknown): Record<string, unknown> | null {
   if (!isRecord(payload)) return null;
@@ -24,19 +19,50 @@ function extractRaw(payload: unknown): Record<string, unknown> | null {
   return null;
 }
 
-export async function getCityById(cityId: string): Promise<City | null> {
-  if (!cityId) return null;
+export async function getAdminCityById(cityId: string): Promise<CityDetailResponse> {
+  if (!cityId) {
+    return {
+      data: null,
+      error: {
+        reason: 'CITY_ID_REQUIRED',
+        message: 'Missing city identifier.',
+        error: 'City identifier is required.',
+      },
+    };
+  }
 
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
+  const client = await getServerAxios();
 
   try {
-    const { data } = await api.get<unknown>(API_ROUTES.CITY_ADMIN_BY_ID(cityId), { headers });
+    const { data } = await client.get<unknown>(API_ROUTES.CITY_ADMIN_BY_ID(cityId));
     const raw = extractRaw(data);
-    return raw ? mapCity(raw) : null;
-  } catch (error) {
-    const normalized = normalizeApiError(error);
-    if (normalized.statusCode === 404) return null;
-    logApiError(normalized);
-    return null;
+
+    if (!raw) {
+      return {
+        data: null,
+        error: {
+          reason: 'INVALID_RESPONSE',
+          message: 'Invalid city response.',
+          error: 'The city detail response was not valid.',
+        },
+      };
+    }
+
+    return { data: mapCity(raw) };
+  } catch (caughtError) {
+    const normalized = normalizeApiError(caughtError);
+    if (normalized.statusCode !== 404) {
+      logApiError(normalized);
+    }
+
+    return {
+      data: null,
+      error: normalized.data,
+    };
   }
+}
+
+export async function getCityById(cityId: string): Promise<City | null> {
+  const response = await getAdminCityById(cityId);
+  return response.data;
 }

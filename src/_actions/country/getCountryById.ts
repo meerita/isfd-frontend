@@ -2,18 +2,14 @@
 
 'use server';
 
-// File: src/_actions/country/getCountryById.ts
-// Purpose: Fetch a single country by id via the admin endpoint
-// Author: Diego M. Lafuente
-
 import API_ROUTES from '@/_constants/apiRoutes';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
-import type { Country } from '@/_types/country';
-import { mapCountry } from '@/_actions/country/mappers';
+import { logApiError, normalizeApiError } from '@/_lib/apiError';
+import getServerAxios from '@/_lib/getServerAxios';
+import type { Country, CountryDetailResponse } from '@/_types/country';
+import { mapCountry } from './mappers';
 
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
 
 function extractRaw(payload: unknown): Record<string, unknown> | null {
   if (!isRecord(payload)) return null;
@@ -23,21 +19,52 @@ function extractRaw(payload: unknown): Record<string, unknown> | null {
   return null;
 }
 
-export async function getCountryById(countryId: string): Promise<Country | null> {
-  if (!countryId) return null;
+export async function getAdminCountryById(
+  countryId: string,
+): Promise<CountryDetailResponse> {
+  if (!countryId) {
+    return {
+      data: null,
+      error: {
+        reason: 'COUNTRY_ID_REQUIRED',
+        message: 'Missing country identifier.',
+        error: 'Country identifier is required.',
+      },
+    };
+  }
 
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
+  const client = await getServerAxios();
 
   try {
-    const { data } = await api.get<unknown>(
-      API_ROUTES.COUNTRY_ADMIN_BY_ID(countryId),
-      { headers },
-    );
-
+    const { data } = await client.get<unknown>(API_ROUTES.COUNTRY_ADMIN_BY_ID(countryId));
     const raw = extractRaw(data);
-    return raw ? mapCountry(raw) : null;
-  } catch (error) {
-    console.error(`Failed to fetch country ${countryId}`, error);
-    return null;
+
+    if (!raw) {
+      return {
+        data: null,
+        error: {
+          reason: 'INVALID_RESPONSE',
+          message: 'Invalid country response.',
+          error: 'The country detail response was not valid.',
+        },
+      };
+    }
+
+    return { data: mapCountry(raw) };
+  } catch (caughtError) {
+    const normalized = normalizeApiError(caughtError);
+    if (normalized.statusCode !== 404) {
+      logApiError(normalized);
+    }
+
+    return {
+      data: null,
+      error: normalized.data,
+    };
   }
+}
+
+export async function getCountryById(countryId: string): Promise<Country | null> {
+  const response = await getAdminCountryById(countryId);
+  return response.data;
 }

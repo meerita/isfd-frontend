@@ -2,123 +2,60 @@
 
 'use server';
 
-// File: src/_actions/city/updateCity.ts
-// Purpose: Update a city via the admin API (partial PATCH)
-
 import { revalidatePath } from 'next/cache';
+
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
+import getServerAxios from '@/_lib/getServerAxios';
 import type { CityActionState } from '@/_types/city';
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function str(formData: FormData, key: string): string {
-  const v = formData.get(key);
-  return typeof v === 'string' ? v.trim() : '';
-}
-
-function raw(formData: FormData, key: string): string | null {
-  const v = formData.get(key);
-  if (typeof v !== 'string') return null;
-  return v === '' ? null : v;
-}
-
-function normalizeNumericInput(raw: string): string {
-  return raw.trim().replaceAll(/\s+/g, '').replaceAll('\u2212', '-').replaceAll(',', '.');
-}
-
-function num(formData: FormData, key: string): number | null {
-  const v = formData.get(key);
-  if (typeof v !== 'string') return null;
-  const normalized = normalizeNumericInput(v);
-  if (!normalized) return null;
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function isValidUuid(value: string): boolean {
-  return UUID_PATTERN.test(value);
-}
-
-const MISSING_ID_RESPONSE: CityActionState = {
-  status: 'error',
-  error: {
-    reason: 'FORM_VALIDATION_ERROR',
-    message: 'Missing city identifier.',
-    error: 'City identifier is required to update the record.',
-  },
-};
-
-const MISSING_COUNTRY_RESPONSE: CityActionState = {
-  status: 'error',
-  error: {
-    reason: 'CITY_COUNTRY_ID_REQUIRED',
-    message: 'Country is required.',
-    error: 'field "country_id" cannot be null',
-  },
-};
-
-const MISSING_NAME_RESPONSE: CityActionState = {
-  status: 'error',
-  error: {
-    reason: 'CITY_NAME_REQUIRED',
-    message: 'City name is required.',
-    error: 'field "name" cannot be null',
-  },
-};
-
-const INVALID_COUNTRY_RESPONSE: CityActionState = {
-  status: 'error',
-  error: {
-    reason: 'CITY_COUNTRY_ID_INVALID',
-    message: 'Country identifier is invalid.',
-    error: 'field "country_id" must be a valid UUID',
-  },
-};
+import { buildUpdateCityBody } from './payload';
 
 export async function updateCity(
   _prevState: CityActionState,
   formData: FormData,
 ): Promise<CityActionState> {
-  const cityId = str(formData, 'cityId');
-  if (!cityId) return MISSING_ID_RESPONSE;
+  const { body, error, cityId, countryId, originalCountryId } =
+    buildUpdateCityBody(formData);
+  if (error || !cityId || !body) {
+    return (
+      error ?? {
+        status: 'error',
+        error: {
+          reason: 'CITY_ID_REQUIRED',
+          message: 'Missing city identifier.',
+          error: 'City identifier is required to update the record.',
+        },
+      }
+    );
+  }
 
-  const country_id = str(formData, 'countryId');
-  if (!country_id) return MISSING_COUNTRY_RESPONSE;
-  if (!isValidUuid(country_id)) return INVALID_COUNTRY_RESPONSE;
+  if (Object.keys(body).length === 0) {
+    return {
+      status: 'success',
+      cityId,
+    } satisfies CityActionState;
+  }
 
-  const name = str(formData, 'name');
-  if (!name) return MISSING_NAME_RESPONSE;
-
-  const region_name = str(formData, 'regionName') || null;
-  const province_name = raw(formData, 'provinceName');
-  const latitude = num(formData, 'latitude');
-  const longitude = num(formData, 'longitude');
-  const is_active = formData.get('isActive') === 'true';
-
-  const body: Record<string, unknown> = {
-    country_id,
-    name,
-    region_name,
-    province_name,
-    latitude,
-    longitude,
-    is_active,
-  };
-
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
+  const client = await getServerAxios();
 
   try {
-    await api.patch(API_ROUTES.CITY_ADMIN_BY_ID(cityId), body, { headers });
+    await client.patch(API_ROUTES.CITY_ADMIN_BY_ID(cityId), body);
     revalidatePath(NAVIGATION.CITIES);
     revalidatePath(NAVIGATION.CITY_BY_ID(cityId));
-    return { status: 'success' } satisfies CityActionState;
-  } catch (error) {
-    const normalized = normalizeApiError(error);
+    if (originalCountryId) {
+      revalidatePath(NAVIGATION.COUNTRY_BY_ID(originalCountryId));
+    }
+    if (countryId && countryId !== originalCountryId) {
+      revalidatePath(NAVIGATION.COUNTRY_BY_ID(countryId));
+    }
+
+    return {
+      status: 'success',
+      cityId,
+    } satisfies CityActionState;
+  } catch (caughtError) {
+    const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
     return { status: 'error', error: normalized.data } satisfies CityActionState;
   }

@@ -154,12 +154,12 @@ export default async function ClubsPage({
 
   const uniqueCountryIds = Array.from(
     new Set(
-      clubsResponse.data
-        .map(club => club.countryId)
-        .filter(
-          (value): value is string =>
-            Boolean(value) && availableCountryIds.has(value),
-        ),
+        clubsResponse.data
+          .map(club => club.countryId)
+          .filter(
+            (value): value is string =>
+              typeof value === 'string' && availableCountryIds.has(value),
+          ),
     ),
   );
 

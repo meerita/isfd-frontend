@@ -2,111 +2,54 @@
 
 'use server';
 
-// File: src/_actions/city/createCity.ts
-// Purpose: Create a city via the admin API
-// Author: Diego M. Lafuente
-
 import { revalidatePath } from 'next/cache';
+
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
+import getServerAxios from '@/_lib/getServerAxios';
 import type { CityActionState } from '@/_types/city';
+import { mapCity } from './mappers';
+import { buildCreateCityBody } from './payload';
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
 
-function str(formData: FormData, key: string): string {
-  const v = formData.get(key);
-  return typeof v === 'string' ? v.trim() : '';
+function extractRaw(payload: unknown): Record<string, unknown> | null {
+  if (!isRecord(payload)) return null;
+  if (typeof payload.id === 'string') return payload;
+  if (isRecord(payload.data) && typeof payload.data.id === 'string') return payload.data;
+  if (isRecord(payload.city) && typeof payload.city.id === 'string') return payload.city;
+  return null;
 }
-
-function raw(formData: FormData, key: string): string | null {
-  const v = formData.get(key);
-  if (typeof v !== 'string') return null;
-  return v === '' ? null : v;
-}
-
-function normalizeNumericInput(raw: string): string {
-  return raw.trim().replaceAll(/\s+/g, '').replaceAll('\u2212', '-').replaceAll(',', '.');
-}
-
-function num(formData: FormData, key: string): number | null {
-  const v = formData.get(key);
-  if (typeof v !== 'string') return null;
-  const normalized = normalizeNumericInput(v);
-  if (!normalized) return null;
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function isValidUuid(value: string): boolean {
-  return UUID_PATTERN.test(value);
-}
-
-const MISSING_COUNTRY_RESPONSE: CityActionState = {
-  status: 'error',
-  error: {
-    reason: 'CITY_COUNTRY_ID_REQUIRED',
-    message: 'Country is required.',
-    error: 'field "country_id" cannot be null',
-  },
-};
-
-const MISSING_NAME_RESPONSE: CityActionState = {
-  status: 'error',
-  error: {
-    reason: 'CITY_NAME_REQUIRED',
-    message: 'City name is required.',
-    error: 'field "name" cannot be null',
-  },
-};
-
-const INVALID_COUNTRY_RESPONSE: CityActionState = {
-  status: 'error',
-  error: {
-    reason: 'CITY_COUNTRY_ID_INVALID',
-    message: 'Country identifier is invalid.',
-    error: 'field "country_id" must be a valid UUID',
-  },
-};
 
 export async function createCity(
   _prevState: CityActionState,
   formData: FormData,
 ): Promise<CityActionState> {
-  const country_id = str(formData, 'countryId');
-  if (!country_id) return MISSING_COUNTRY_RESPONSE;
-  if (!isValidUuid(country_id)) return INVALID_COUNTRY_RESPONSE;
+  const { body, error } = buildCreateCityBody(formData);
+  if (error || !body) return error ?? { status: 'error' };
 
-  const province_name = raw(formData, 'provinceName');
-  const name = str(formData, 'name');
-  if (!name) return MISSING_NAME_RESPONSE;
-
-  const region_name = str(formData, 'regionName') || null;
-  const latitude = num(formData, 'latitude');
-  const longitude = num(formData, 'longitude');
-  const is_active = formData.get('isActive') === 'true';
-
-  const body = {
-    country_id,
-    name,
-    province_name,
-    region_name,
-    latitude,
-    longitude,
-    is_active,
-  };
-
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
+  const client = await getServerAxios();
 
   try {
-    await api.post(API_ROUTES.CITIES_ADMIN, body, { headers });
+    const { data } = await client.post<unknown>(API_ROUTES.CITIES_ADMIN, body);
+    const raw = extractRaw(data);
+    const city = raw ? mapCity(raw) : null;
+
     revalidatePath(NAVIGATION.CITIES);
-    return { status: 'success' } satisfies CityActionState;
-  } catch (error) {
-    const normalized = normalizeApiError(error);
+    revalidatePath(NAVIGATION.CREATE_A_CITY());
+    if (city) {
+      revalidatePath(NAVIGATION.CITY_BY_ID(city.id));
+      revalidatePath(NAVIGATION.COUNTRY_BY_ID(city.countryId));
+    }
+
+    return {
+      status: 'success',
+      cityId: city?.id,
+    } satisfies CityActionState;
+  } catch (caughtError) {
+    const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
     return { status: 'error', error: normalized.data } satisfies CityActionState;
   }

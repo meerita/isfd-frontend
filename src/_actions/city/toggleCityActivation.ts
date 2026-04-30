@@ -10,8 +10,7 @@ import { revalidatePath } from 'next/cache';
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
+import getServerAxios from '@/_lib/getServerAxios';
 import type { CityActionState } from '@/_types/city';
 
 const MISSING_ID_RESPONSE: CityActionState = {
@@ -36,10 +35,10 @@ export async function toggleCityActivation(
       ? rawIsActive.toLowerCase() === 'true'
       : false;
 
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
+  const client = await getServerAxios();
 
   try {
-    await api.patch(API_ROUTES.CITY_ADMIN_ACTIVATION(cityId), { is_active }, { headers });
+    await client.patch(API_ROUTES.CITY_ADMIN_ACTIVATION(cityId), { is_active });
     revalidatePath(NAVIGATION.CITIES);
     revalidatePath(NAVIGATION.CITY_BY_ID(cityId));
     return { status: 'success' } satisfies CityActionState;

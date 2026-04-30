@@ -1,14 +1,37 @@
 /** @format */
 
-// File: src/_actions/country/mappers.ts
-// Purpose: Pure mapping functions for country API responses (no 'use server' — not server actions)
-
-import type { Country, GeoMetadata, ProvinceAdmin } from '@/_types/country';
+import type {
+  Country,
+  CountryListMetadata,
+  CountrySort,
+  CountryStatusFilter,
+  ProvinceAdmin,
+} from '@/_types/country';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 
 type RawCountry = Record<string, unknown>;
+
+function toNullableString(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function toOptionalNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
+  return undefined;
+}
 
 export function mapCountry(raw: RawCountry): Country {
   return {
@@ -16,43 +39,13 @@ export function mapCountry(raw: RawCountry): Country {
     name: String(raw.name ?? ''),
     slug: String(raw.slug ?? ''),
     translationKey: String(raw.translation_key ?? raw.translationKey ?? ''),
-    flagImageUrl:
-      raw.flag_image_url != null
-        ? String(raw.flag_image_url)
-        : raw.flagImageUrl != null
-          ? String(raw.flagImageUrl)
-          : null,
-    iso2Code:
-      raw.iso2_code != null
-        ? String(raw.iso2_code)
-        : raw.iso2Code != null
-          ? String(raw.iso2Code)
-          : null,
-    iso3Code:
-      raw.iso3_code != null
-        ? String(raw.iso3_code)
-        : raw.iso3Code != null
-          ? String(raw.iso3Code)
-          : null,
-    continentCode:
-      raw.continent_code != null
-        ? String(raw.continent_code)
-        : raw.continentCode != null
-          ? String(raw.continentCode)
-          : null,
+    flagImageUrl: toNullableString(raw.flag_image_url ?? raw.flagImageUrl),
+    iso2Code: toNullableString(raw.iso2_code ?? raw.iso2Code),
+    iso3Code: toNullableString(raw.iso3_code ?? raw.iso3Code),
+    continentCode: toNullableString(raw.continent_code ?? raw.continentCode),
     isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
-    provinceCount:
-      typeof raw.province_count === 'number'
-        ? raw.province_count
-        : typeof raw.provinceCount === 'number'
-          ? raw.provinceCount
-          : undefined,
-    cityCount:
-      typeof raw.city_count === 'number'
-        ? raw.city_count
-        : typeof raw.cityCount === 'number'
-          ? raw.cityCount
-          : undefined,
+    provinceCount: toOptionalNumber(raw.province_count ?? raw.provinceCount),
+    cityCount: toOptionalNumber(raw.city_count ?? raw.cityCount),
   };
 }
 
@@ -74,7 +67,12 @@ export function mapProvince(raw: RawCountry): ProvinceAdmin {
   };
 }
 
-export function mapMetadata(raw: Record<string, unknown>): GeoMetadata {
+export function mapMetadata(raw: Record<string, unknown>): CountryListMetadata {
+  const filters =
+    typeof raw.filters === 'object' && raw.filters !== null
+      ? (raw.filters as Record<string, unknown>)
+      : null;
+
   return {
     page: Number(raw.page ?? DEFAULT_PAGE),
     pageSize: Number(raw.page_size ?? raw.pageSize ?? DEFAULT_PAGE_SIZE),
@@ -84,5 +82,17 @@ export function mapMetadata(raw: Record<string, unknown>): GeoMetadata {
     hasPreviousPage: Boolean(
       raw.has_previous_page ?? raw.hasPreviousPage ?? false,
     ),
+    filters: filters
+      ? {
+          sort:
+            typeof filters.sort === 'string'
+              ? (filters.sort as CountrySort)
+              : undefined,
+          status:
+            typeof filters.status === 'string'
+              ? (filters.status as CountryStatusFilter)
+              : undefined,
+        }
+      : undefined,
   };
 }

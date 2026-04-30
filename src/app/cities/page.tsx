@@ -2,6 +2,9 @@
 
 import Link from 'next/link';
 
+import { getAllCountries } from '@/_actions/country/getAllCountries';
+import { getAdminCities } from '@/_actions/city/getCities';
+import { getAdminProvincesByCountryId } from '@/_actions/country/getAdminProvincesByCountryId';
 import Dot from '@/_components/Dot';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
@@ -12,50 +15,73 @@ import Row from '@/_components/tables/Row';
 import Table from '@/_components/tables/Table';
 import Tbody from '@/_components/tables/Tbody';
 import Thead from '@/_components/tables/Thead';
-import Text from '@/_components/typography/Text';
 import Icon from '@/_components/Icon';
+import Text from '@/_components/typography/Text';
+import { resolveCityErrorMessage } from '@/_constants/cityErrorMessages';
 import NAVIGATION from '@/_constants/navigation';
 import SECTIONS from '@/_constants/sections';
-import { getCities } from '@/_actions/city/getCities';
-import { getAllCountries } from '@/_actions/country/getAllCountries';
+import requireAdminAccess from '@/_lib/requireAdminAccess';
+import type { AdminCitySort, CityStatusFilter } from '@/_types/city';
+import CityFilters from './_components/CityFilters';
 
 const PLACEHOLDER = '--';
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_SORT: AdminCitySort = 'updated_at_desc';
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type SearchParams = Readonly<{
-  countryId?: string | string[];
+  country_id?: string | string[];
   page?: string | string[];
   page_size?: string | string[];
+  province?: string | string[];
   sort?: string | string[];
   status?: string | string[];
 }>;
 
-function parseIntParam(value: string | string[] | undefined, fallback: number): number {
-  const v = Array.isArray(value) ? value[0] : value;
-  const n = Number(v);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+type QueryParam = string | string[] | undefined;
+
+function parsePositiveInt(
+  value: QueryParam,
+  fallback: number,
+  max?: number,
+): number {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+
+  const integer = Math.floor(parsed);
+  return max ? Math.min(integer, max) : integer;
 }
 
-function parseStringParam(value: string | string[] | undefined): string | undefined {
-  const v = Array.isArray(value) ? value[0] : value;
-  return v && v.length > 0 ? v : undefined;
+function parseString(value: QueryParam): string | undefined {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return raw && raw.length > 0 ? raw : undefined;
+}
+
+function parseUuid(value: QueryParam): string | undefined {
+  const parsed = parseString(value);
+  return parsed && UUID_PATTERN.test(parsed) ? parsed : undefined;
 }
 
 function buildHref(
-  countryId: string,
   page: number,
   pageSize: number,
-  sort?: string,
-  status?: string,
+  sort: AdminCitySort,
+  status?: CityStatusFilter,
+  countryId?: string,
+  province?: string,
 ): string {
-  const p = new URLSearchParams();
-  p.set('countryId', countryId);
-  p.set('page', String(page));
-  p.set('page_size', String(pageSize));
-  if (sort) p.set('sort', sort);
-  if (status) p.set('status', status);
-  return `${NAVIGATION.CITIES}?${p.toString()}`;
+  const params = new URLSearchParams();
+  params.set('page', String(page));
+  params.set('page_size', String(pageSize));
+  params.set('sort', sort);
+  if (status) params.set('status', status);
+  if (countryId) params.set('country_id', countryId);
+  if (province) params.set('province', province);
+
+  return `${NAVIGATION.CITIES}?${params.toString()}`;
 }
 
 function formatCoordinate(value: number | null): string {
@@ -70,57 +96,70 @@ function formatText(value: string | null): string {
 
 export default async function CitiesPage({
   searchParams,
-}: {
+}: Readonly<{
   searchParams?: Promise<SearchParams>;
-}) {
-  const params = await searchParams;
-  const countryId = parseStringParam(params?.countryId);
-  const page = parseIntParam(params?.page, DEFAULT_PAGE);
-  const pageSize = parseIntParam(params?.page_size, DEFAULT_PAGE_SIZE);
-  const sort = parseStringParam(params?.sort);
-  const status = parseStringParam(params?.status) as 'all' | 'active' | 'inactive' | undefined;
+}>) {
+  await requireAdminAccess();
 
-  const [countries, citiesResponse] = await Promise.all([
+  const params = await searchParams;
+  const countryId = parseUuid(params?.country_id);
+  const province = parseString(params?.province);
+  const page = parsePositiveInt(params?.page, DEFAULT_PAGE);
+  const pageSize = parsePositiveInt(params?.page_size, DEFAULT_PAGE_SIZE, 100);
+  const sort =
+    (parseString(params?.sort) as AdminCitySort | undefined) ?? DEFAULT_SORT;
+  const status = parseString(params?.status) as CityStatusFilter | undefined;
+
+  const [citiesResponse, countries, provinces] = await Promise.all([
+    getAdminCities({
+      countryId,
+      province,
+      page,
+      pageSize,
+      sort,
+      status,
+    }),
     getAllCountries(),
     countryId
-      ? getCities({ countryId, page, pageSize, sort, status })
-      : Promise.resolve(null),
+      ? getAdminProvincesByCountryId(countryId)
+      : Promise.resolve([]),
   ]);
 
-  const cities = citiesResponse?.data ?? [];
-  const metadata = citiesResponse?.metadata;
-  const currentPage = metadata?.page ?? DEFAULT_PAGE;
-  const totalPages = Math.max(1, metadata?.totalPages ?? 1);
-  const hasPrev = metadata?.hasPreviousPage ?? false;
-  const hasNext = metadata?.hasNextPage ?? false;
+  const countryLabels = new Map(countries.map(country => [country.id, country.name]));
+  const { metadata } = citiesResponse;
+  const currentPage = metadata.page;
+  const totalPages = Math.max(1, metadata.totalPages);
+  const hasPrev = metadata.hasPreviousPage;
+  const hasNext = metadata.hasNextPage;
 
   return (
     <Grid gap={16}>
       <SectionHeader title={SECTIONS.CITIES} icon='cities'>
-        {countryId ? (
-          <Button icon='locationAdd' href={NAVIGATION.CREATE_A_CITY(countryId)}>
-            {SECTIONS.ADD_CITY}
-          </Button>
-        ) : null}
+        <Button icon='locationAdd' href={NAVIGATION.CREATE_A_CITY(countryId)}>
+          {SECTIONS.ADD_CITY}
+        </Button>
       </SectionHeader>
 
-      <form method='GET' action={NAVIGATION.CITIES}>
-        <Grid display='flex' gap={8} alignItems='center'>
-          <select name='countryId' defaultValue={countryId ?? ''} className='c-smallbutton c-input'>
-            <option value=''>Select a country…</option>
-            {countries.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <button type='submit' className='c-smallbutton'>
-            Show cities
-          </button>
-        </Grid>
-      </form>
+      <CityFilters
+        pageSize={pageSize}
+        sort={sort}
+        status={status}
+        countryId={countryId}
+        province={province}
+        countries={countries}
+        provinces={provinces}
+      />
 
-      {countryId ? (
+      {citiesResponse.error ? (
+        <Main>
+          <Grid gap={8}>
+            <Text weight='bold'>We could not load cities.</Text>
+            <Text size='small' color='gray'>
+              {resolveCityErrorMessage(citiesResponse.error)}
+            </Text>
+          </Grid>
+        </Main>
+      ) : (
         <>
           <Main>
             <Table>
@@ -128,30 +167,50 @@ export default async function CitiesPage({
                 <Row>
                   <Cell header>Name</Cell>
                   <Cell header className='padding-left--16'>Slug</Cell>
-                  <Cell header className='padding-left--16'>Translation key</Cell>
+                  <Cell header className='padding-left--16'>
+                    Translation key
+                  </Cell>
+                  <Cell header className='padding-left--16'>Country</Cell>
                   <Cell header className='padding-left--16'>Region</Cell>
                   <Cell header className='padding-left--16'>Province</Cell>
-                  <Cell header align='right' className='padding-left--16'>Lat</Cell>
-                  <Cell header align='right' className='padding-left--16'>Lng</Cell>
+                  <Cell header align='right' className='padding-left--16'>
+                    Lat
+                  </Cell>
+                  <Cell header align='right' className='padding-left--16'>
+                    Lng
+                  </Cell>
                   <Cell header align='center'>Active</Cell>
                 </Row>
               </Thead>
               <Tbody>
-                {cities.length === 0 ? (
+                {citiesResponse.data.length === 0 ? (
                   <Row>
-                    <Cell>No cities found for this country.</Cell>
-                    {Array.from({ length: 7 }).map((_, i) => (
-                      <Cell key={i} className='padding-left--16' />
+                    <Cell>No cities found for the current filters.</Cell>
+                    {Array.from({ length: 8 }).map((_, index) => (
+                      <Cell key={`none-${index}`} className='padding-left--16'>
+                        {PLACEHOLDER}
+                      </Cell>
                     ))}
                   </Row>
                 ) : (
-                  cities.map(city => (
+                  citiesResponse.data.map(city => (
                     <Row key={city.id} href={NAVIGATION.CITY_BY_ID(city.id)}>
                       <Cell>{city.name}</Cell>
                       <Cell className='padding-left--16'>{city.slug}</Cell>
-                      <Cell className='padding-left--16'>{city.translationKey}</Cell>
-                      <Cell className='padding-left--16'>{formatText(city.regionName)}</Cell>
-                      <Cell className='padding-left--16'>{formatText(city.provinceName)}</Cell>
+                      <Cell className='padding-left--16'>
+                        {city.translationKey}
+                      </Cell>
+                      <Cell className='padding-left--16'>
+                        {city.countryName ??
+                          countryLabels.get(city.countryId) ??
+                          city.countryId}
+                      </Cell>
+                      <Cell className='padding-left--16'>
+                        {formatText(city.regionName)}
+                      </Cell>
+                      <Cell className='padding-left--16'>
+                        {formatText(city.provinceName)}
+                      </Cell>
                       <Cell align='right' className='padding-left--16'>
                         {formatCoordinate(city.latitude)}
                       </Cell>
@@ -172,7 +231,14 @@ export default async function CitiesPage({
             <Grid gap={16} display='flex' alignItems='center'>
               {hasPrev ? (
                 <Link
-                  href={buildHref(countryId, currentPage - 1, pageSize, sort, status)}
+                  href={buildHref(
+                    currentPage - 1,
+                    pageSize,
+                    sort,
+                    status,
+                    countryId,
+                    province,
+                  )}
                   aria-label='Previous'
                 >
                   <Icon name='arrowLeft' size={24} fill='gray' />
@@ -183,7 +249,14 @@ export default async function CitiesPage({
               </Text>
               {hasNext ? (
                 <Link
-                  href={buildHref(countryId, currentPage + 1, pageSize, sort, status)}
+                  href={buildHref(
+                    currentPage + 1,
+                    pageSize,
+                    sort,
+                    status,
+                    countryId,
+                    province,
+                  )}
                   aria-label='Next'
                 >
                   <Icon name='arrowRight' size={24} fill='gray' />
@@ -192,10 +265,6 @@ export default async function CitiesPage({
             </Grid>
           </Grid>
         </>
-      ) : (
-        <Text size='small' color='gray'>
-          Select a country to browse its cities.
-        </Text>
       )}
     </Grid>
   );

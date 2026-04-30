@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import Button from '@/_components/forms/Button';
 import { toggleCityActivation } from '@/_actions/city/toggleCityActivation';
+import { resolveCityErrorMessage } from '@/_constants/cityErrorMessages';
 import type { CityActionState } from '@/_types/city';
 
 const INITIAL_STATE: CityActionState = { status: 'idle' };
@@ -28,7 +29,7 @@ export default function CityActivationToggle({
 
   useEffect(() => {
     if (state.status === 'error' && state.error) {
-      toast.error(state.error.error ?? state.error.message);
+      toast.error(resolveCityErrorMessage(state.error));
       return;
     }
     if (state.status === 'success') {

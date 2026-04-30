@@ -2,63 +2,73 @@
 
 'use server';
 
-// File: src/_actions/city/getCities.ts
-// Purpose: Fetch cities for a country from the admin endpoint
-
 import API_ROUTES from '@/_constants/apiRoutes';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
+import { logApiError, normalizeApiError } from '@/_lib/apiError';
+import getServerAxios from '@/_lib/getServerAxios';
 import type {
   AdminCitiesResponse,
-  AdminCityStatus,
+  AdminCitySort,
   City,
+  CityStatusFilter,
 } from '@/_types/city';
 import { mapCity, mapMetadata } from './mappers';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 
-const EMPTY_RESPONSE: AdminCitiesResponse = {
-  data: [],
-  metadata: {
-    page: DEFAULT_PAGE,
-    pageSize: DEFAULT_PAGE_SIZE,
-    totalItems: 0,
-    totalPages: 0,
-    hasNextPage: false,
-    hasPreviousPage: false,
-  },
-};
+function buildEmptyResponse(filters?: {
+  countryId?: string;
+  province?: string;
+  sort?: AdminCitySort;
+  status?: CityStatusFilter;
+}): AdminCitiesResponse {
+  return {
+    data: [],
+    metadata: {
+      page: DEFAULT_PAGE,
+      pageSize: DEFAULT_PAGE_SIZE,
+      totalItems: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+      filters,
+    },
+  };
+}
 
-export async function getCities({
+export async function getAdminCities({
   countryId,
   province,
-  page,
-  pageSize,
+  page = DEFAULT_PAGE,
+  pageSize = DEFAULT_PAGE_SIZE,
   sort,
   status,
 }: Readonly<{
-  countryId: string;
+  countryId?: string;
   province?: string;
   page?: number;
   pageSize?: number;
-  sort?: string;
-  status?: AdminCityStatus;
-}>): Promise<AdminCitiesResponse> {
-  if (!countryId) return EMPTY_RESPONSE;
+  sort?: AdminCitySort;
+  status?: CityStatusFilter;
+}> = {}): Promise<AdminCitiesResponse> {
+  const filters = { countryId, province, sort, status };
+  const params: Record<string, string | number> = {
+    page,
+    page_size: pageSize,
+  };
 
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
-  const params: Record<string, string | number> = {};
   if (province) params.province = province;
-  if (page) params.page = page;
-  if (pageSize) params.page_size = pageSize;
   if (sort) params.sort = sort;
   if (status) params.status = status;
 
+  const client = await getServerAxios();
+
   try {
-    const { data } = await api.get<unknown>(
-      API_ROUTES.ADMIN_COUNTRY_CITIES(countryId),
-      { params, headers },
+    const { data } = await client.get<unknown>(
+      countryId ? API_ROUTES.ADMIN_COUNTRY_CITIES(countryId) : API_ROUTES.CITIES_ADMIN,
+      {
+        params: countryId ? params : { ...params },
+      },
     );
 
     if (
@@ -66,7 +76,14 @@ export async function getCities({
       data === null ||
       !Array.isArray((data as Record<string, unknown>).data)
     ) {
-      return EMPTY_RESPONSE;
+      return {
+        ...buildEmptyResponse(filters),
+        error: {
+          reason: 'INVALID_RESPONSE',
+          message: 'Invalid cities response.',
+          error: 'The cities list response was not valid.',
+        },
+      };
     }
 
     const raw = data as {
@@ -76,11 +93,17 @@ export async function getCities({
 
     return {
       data: raw.data.map(mapCity),
-      metadata: raw.metadata ? mapMetadata(raw.metadata) : EMPTY_RESPONSE.metadata,
+      metadata: raw.metadata
+        ? mapMetadata(raw.metadata)
+        : buildEmptyResponse(filters).metadata,
     };
-  } catch (error) {
-    console.error(`Failed to fetch cities for country ${countryId}`, error);
-    return EMPTY_RESPONSE;
+  } catch (caughtError) {
+    const normalized = normalizeApiError(caughtError);
+    logApiError(normalized);
+    return {
+      ...buildEmptyResponse(filters),
+      error: normalized.data,
+    };
   }
 }
 
@@ -90,7 +113,7 @@ export async function getAdminCitiesByCountryIdAndProvince(
 ): Promise<ReadonlyArray<City>> {
   if (!countryId.trim() || !provinceName.trim()) return [];
 
-  const response = await getCities({
+  const response = await getAdminCities({
     countryId,
     province: provinceName,
     page: 1,
@@ -101,3 +124,5 @@ export async function getAdminCitiesByCountryIdAndProvince(
 
   return response.data;
 }
+
+export const getCities = getAdminCities;

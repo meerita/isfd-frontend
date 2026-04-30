@@ -6,18 +6,21 @@ import { useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-import Button from '@/_components/forms/Button';
-import NAVIGATION from '@/_constants/navigation';
 import { deleteCity } from '@/_actions/city/deleteCity';
+import Button from '@/_components/forms/Button';
+import { resolveCityErrorMessage } from '@/_constants/cityErrorMessages';
+import NAVIGATION from '@/_constants/navigation';
 
 type DeleteCityButtonProps = Readonly<{
   cityId: string;
   cityName: string;
+  countryId?: string | null;
 }>;
 
 export default function DeleteCityButton({
   cityId,
   cityName,
+  countryId = null,
 }: DeleteCityButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -26,26 +29,35 @@ export default function DeleteCityButton({
     if (isPending) return;
 
     const confirmed =
-      globalThis?.window?.confirm(
+      globalThis.window?.confirm(
         `Delete "${cityName}"?\n\nThis action cannot be undone.`,
       ) ?? false;
 
     if (!confirmed) return;
 
     startTransition(async () => {
-      const result = await deleteCity(cityId);
+      const result = await deleteCity(cityId, countryId);
+
       if (result.success) {
         toast.success(`"${cityName}" deleted.`);
-        if (globalThis?.window?.history.length > 1) {
-          router.back();
-        } else {
-          router.push(NAVIGATION.CITIES);
-        }
-      } else {
-        toast.error(result.error ?? 'We could not delete this city.');
+        router.push(NAVIGATION.CITIES);
+        router.refresh();
+        return;
       }
+
+      toast.error(
+        resolveCityErrorMessage(
+          result.reason
+            ? {
+                reason: result.reason,
+                message: result.error ?? 'We could not delete this city.',
+                error: result.error ?? 'We could not delete this city.',
+              }
+            : undefined,
+        ),
+      );
     });
-  }, [cityId, cityName, isPending, router]);
+  }, [cityId, cityName, countryId, isPending, router]);
 
   return (
     <Button
@@ -55,7 +67,7 @@ export default function DeleteCityButton({
       aria-busy={isPending}
       variant='borderless'
     >
-      {isPending ? 'Deleting...' : 'Delete City'}
+      {isPending ? 'Deleting...' : 'Delete city'}
     </Button>
   );
 }
