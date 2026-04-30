@@ -26,6 +26,7 @@ const NAVIGATION = {
   CREATE_A_BRAND: '/create/brand',
   CREATE_A_PERSON: '/create/person',
   CREATE_A_CLUB: '/create/club',
+  PERSON_BY_ID: (id: string) => `/persons/${id}`,
   CREATE_A_PLACE: '/create/place',
   CREATE_A_STADIUM: '/create/stadium',
   GROUP_BY_ID: (id: string) => `/groups/${id}`,
