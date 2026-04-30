@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { getGeoCountries } from '@/_actions/geo/getGeoCountries';
+import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getAdminFederations } from '@/_actions/federation/getAdminFederations';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
@@ -113,25 +113,28 @@ function renderIconPreview(name: string, iconUrl: string | null) {
 
 export default async function FederationsPage({
   searchParams,
-}: {
+}: Readonly<{
   searchParams?: Promise<SearchParams>;
-}) {
+}>) {
   const params = await searchParams;
   const page = parsePositiveInt(params?.page, DEFAULT_PAGE);
   const pageSize = parsePositiveInt(params?.page_size, DEFAULT_PAGE_SIZE);
-  const sort = (parseString(params?.sort) as FederationSort | undefined) ?? DEFAULT_SORT;
-  const status = parseString(params?.status) as FederationStatusFilter | undefined;
-  const federationLevel = parseString(
-    params?.federation_level,
-  ) as FederationLevel | undefined;
+  const sort =
+    (parseString(params?.sort) as FederationSort | undefined) ?? DEFAULT_SORT;
+  const status = parseString(params?.status) as
+    | FederationStatusFilter
+    | undefined;
+  const federationLevel = parseString(params?.federation_level) as
+    | FederationLevel
+    | undefined;
 
   const [federationsResponse, countriesResponse] = await Promise.all([
     getAdminFederations({ page, pageSize, sort, status, federationLevel }),
-    getGeoCountries(),
+    getAllCountries(),
   ]);
 
   const countryLabels = new Map(
-    countriesResponse.data.map(country => [country.id, country.name]),
+    countriesResponse.map(country => [country.id, country.name]),
   );
   const { metadata } = federationsResponse;
   const currentPage = metadata.page;
@@ -159,7 +162,8 @@ export default async function FederationsPage({
           <Grid gap={8}>
             <Text weight='bold'>We could not load federations.</Text>
             <Text size='small' color='gray'>
-              {federationsResponse.error.error || federationsResponse.error.message}
+              {federationsResponse.error.error ||
+                federationsResponse.error.message}
             </Text>
           </Grid>
         </Main>
@@ -170,13 +174,27 @@ export default async function FederationsPage({
               <Thead>
                 <Row>
                   <Cell header>Icon</Cell>
-                  <Cell header className='padding-left--16'>Name</Cell>
-                  <Cell header className='padding-left--16'>Slug</Cell>
-                  <Cell header className='padding-left--16'>Level</Cell>
-                  <Cell header className='padding-left--16'>Country</Cell>
-                  <Cell header align='center'>Active</Cell>
-                  <Cell header className='padding-left--16'>Created</Cell>
-                  <Cell header className='padding-left--16'>Updated</Cell>
+                  <Cell header className='padding-left--16'>
+                    Name
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    Slug
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    Level
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    Country
+                  </Cell>
+                  <Cell header align='center'>
+                    Active
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    Created
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    Updated
+                  </Cell>
                 </Row>
               </Thead>
               <Tbody>
@@ -195,16 +213,22 @@ export default async function FederationsPage({
                       key={federation.id}
                       href={NAVIGATION.FEDERATION_BY_ID(federation.id)}
                     >
-                      <Cell>{renderIconPreview(federation.name, federation.iconUrl)}</Cell>
-                      <Cell className='padding-left--16'>{federation.name}</Cell>
-                      <Cell className='padding-left--16'>{federation.slug}</Cell>
+                      <Cell>
+                        {renderIconPreview(federation.name, federation.iconUrl)}
+                      </Cell>
+                      <Cell className='padding-left--16'>
+                        {federation.name}
+                      </Cell>
+                      <Cell className='padding-left--16'>
+                        {federation.slug}
+                      </Cell>
                       <Cell className='padding-left--16'>
                         {federation.federationLevel}
                       </Cell>
                       <Cell className='padding-left--16'>
                         {federation.countryId
-                          ? countryLabels.get(federation.countryId) ??
-                            federation.countryId
+                          ? (countryLabels.get(federation.countryId) ??
+                            federation.countryId)
                           : PLACEHOLDER}
                       </Cell>
                       <Cell align='center'>

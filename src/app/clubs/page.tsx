@@ -148,11 +148,18 @@ export default async function ClubsPage({
     getAllCountries(),
   ]);
 
+  const availableCountryIds = new Set(
+    countriesResponse.map(country => country.id),
+  );
+
   const uniqueCountryIds = Array.from(
     new Set(
       clubsResponse.data
         .map(club => club.countryId)
-        .filter((value): value is string => Boolean(value)),
+        .filter(
+          (value): value is string =>
+            Boolean(value) && availableCountryIds.has(value),
+        ),
     ),
   );
 

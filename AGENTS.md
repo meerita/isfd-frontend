@@ -1,85 +1,34 @@
-# ISFD Frontend Agent Guide
+# Claude Code Setup For Inquizy
 
-This file is the shared operational guide for coding agents working in this repository.
-Use it together with `PROMPT.md`.
+Use `AGENTS.md` as the operational source of truth.
 
-## Source of Truth
+## Absolute rules:
 
-- Follow explicit user instructions first.
-- Use this file for repository workflow and operational rules.
-- Use `PROMPT.md` for project-specific coding conventions and quality constraints.
-- Prefer existing code patterns over inventing new abstractions.
+* Don't tell me what you are doing, just do it.
+* Don't ask questions, just make the best change you can based on the task and the project context.
+* Don't explain your reasoning, just make the change.
+* When reasoning, be an spartan: don't be verbose, be concise. Use as few words as possible to reason about the change you are making.
+* Don't tell me what you did, no summary, just tell me "I am done" when you are done.
 
-## Stack
+## First Read
 
-- Next.js 16 App Router
-- React 19
-- TypeScript strict
-- Bun available for local scripts
-- Axios for HTTP
-- Global CSS files under `src/_styles`
+1. Read `AGENTS.md`.
+2. Inspect the relevant domain files before proposing changes.
 
-## Commands
+## Repo-Specific Rules
 
-Run these from the repository root:
+- This is a Next.js 16 App Router frontend with React 19 and TypeScript strict.
+- Keep the architecture pragmatic and domain-driven.
+- Use `@/lib/axiosInstance` for shared HTTP access.
+- Use `@/_lib/getServerAxios` for authenticated server-side requests.
+- Prefer existing CSS in `src/_styles` and existing reusable components.
+- Avoid new dependencies unless there is a strong reason.
 
-```bash
-bun dev
-bun run build
-bun run lint
-bun run check:types
-bun run skills:list
-bun run skills:install
-```
+## Local Skills
 
-Known issue:
-
-- `bun run check:types` may currently fail because generated `.next/types/validator.ts` contains route typing mismatches unrelated to most feature work.
-
-## Repository Map
-
-- `app/`: App Router routes, layouts, pages, route handlers
-- `src/_actions/`: server actions grouped by domain
-- `src/_components/`: reusable UI components
-- `src/_constants/`: catalogs and shared labels/config values
-- `src/_helpers/`: utility helpers and AI prompt helpers
-- `src/_lib/`: shared auth and server-side helpers
-- `src/lib/axiosInstance.ts`: shared Axios client base
-- `src/_styles/`: project CSS layers
-- `src/_types/`: domain types and DTO-like frontend models
-
-## Working Rules
-
-- Keep changes pragmatic and domain-oriented. Do not introduce Clean Architecture layers.
-- Keep TypeScript strict. Do not use `any` or `@ts-ignore`.
-- Use internal imports with `@/*` aliases.
-- Use `'use client'` only when browser APIs, stateful interactivity, or effects require it.
-- Reuse values from `src/_constants` instead of introducing magic strings.
-- Reuse styles from `src/_styles` and existing components before creating new patterns.
-- Keep comments in English and only when they explain intent or a non-obvious constraint.
-
-## Data And Auth Rules
-
-- Client and shared HTTP access must go through `@/lib/axiosInstance`.
-- Server-authenticated requests should use `@/_lib/getServerAxios` when request-scoped auth headers are needed.
-- Do not mutate the shared Axios instance with per-request auth headers.
-- Keep JWT/session handling inside existing auth helpers rather than duplicating token parsing logic.
-
-## Change Workflow
-
-1. Inspect existing domain files before editing.
-2. Make the smallest coherent change that solves the request.
-3. Validate with the narrowest useful command first.
-4. Mention any known unrelated failures instead of trying to fix the whole repo.
-
-## Skills
-
-Project skills live in `skills/`.
-
-Install them into local agent-specific folders with:
+Canonical project skills live in `skills/`.
+If local Claude skills are not installed yet, run:
 
 ```bash
-npx skills add ./skills -a claude-code -a codex -a github-copilot -y
+npx skills add ./skills -a claude-code -y
 ```
-
-Use `--copy` if symlinks are undesirable in the local environment.

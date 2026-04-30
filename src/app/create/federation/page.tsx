@@ -1,6 +1,6 @@
 /** @format */
 
-import { getGeoCountries } from '@/_actions/geo/getGeoCountries';
+import { getAllCountries } from '@/_actions/country/getAllCountries';
 import Grid from '@/_components/layout/Grid';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Title from '@/_components/typography/Title';
@@ -9,7 +9,7 @@ import SECTIONS from '@/_constants/sections';
 import FederationForm from '../../federations/_components/FederationForm';
 
 export default async function CreateFederationPage() {
-  const countriesResponse = await getGeoCountries();
+  const countries = await getAllCountries();
 
   return (
     <Grid gap={24}>
@@ -17,10 +17,7 @@ export default async function CreateFederationPage() {
       <Grid gap={8}>
         <Title size='medium'>Create a new federation</Title>
       </Grid>
-      <FederationForm
-        countries={countriesResponse.data}
-        countriesError={countriesResponse.error?.error}
-      />
+      <FederationForm countries={countries} />
     </Grid>
   );
 }

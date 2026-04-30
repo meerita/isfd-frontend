@@ -5,8 +5,7 @@ Use `AGENTS.md` as the operational source of truth and `PROMPT.md` as the detail
 ## First Read
 
 1. Read `AGENTS.md`.
-2. Read `PROMPT.md`.
-3. Inspect the relevant domain files before proposing changes.
+2. Inspect the relevant domain files before proposing changes.
 
 ## Repo-Specific Rules
 

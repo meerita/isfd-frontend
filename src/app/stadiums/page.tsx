@@ -143,31 +143,39 @@ export default async function StadiumsPage({
   const pageSize = parsePositiveInt(params?.page_size, DEFAULT_PAGE_SIZE, 100);
   const sort =
     (parseString(params?.sort) as StadiumSort | undefined) ?? DEFAULT_SORT;
-  const status = parseString(params?.status) as
-    | StadiumStatusFilter
-    | undefined;
+  const status = parseString(params?.status) as StadiumStatusFilter | undefined;
   const countryId = parseUuid(params?.country_id);
   const cityId = parseUuid(params?.city_id);
   const primaryClubId = parseUuid(params?.primary_club_id);
 
-  const [stadiumsResponse, countriesResponse, selectedCity] = await Promise.all([
-    getAdminStadiums({
-      page,
-      pageSize,
-      sort,
-      status,
-      countryId,
-      cityId,
-      primaryClubId,
-    }),
-    getAllCountries(),
-    cityId ? getCityById(cityId) : Promise.resolve(null),
-  ]);
+  const [stadiumsResponse, countriesResponse, selectedCity] = await Promise.all(
+    [
+      getAdminStadiums({
+        page,
+        pageSize,
+        sort,
+        status,
+        countryId,
+        cityId,
+        primaryClubId,
+      }),
+      getAllCountries(),
+      cityId ? getCityById(cityId) : Promise.resolve(null),
+    ],
+  );
+
+  const availableCountryIds = new Set(
+    countriesResponse.map(country => country.id),
+  );
 
   const uniqueCountryIds = Array.from(
     new Set(
-      [countryId, ...stadiumsResponse.data.map(stadium => stadium.countryId)].filter(
-        (value): value is string => Boolean(value),
+      [
+        countryId,
+        ...stadiumsResponse.data.map(stadium => stadium.countryId),
+      ].filter(
+        (value): value is string =>
+          Boolean(value) && availableCountryIds.has(value),
       ),
     ),
   );
@@ -185,10 +193,11 @@ export default async function StadiumsPage({
       )?.response
     : undefined;
 
-  const initialCities = selectedCountryCitiesResponse?.data.map(city => ({
-    id: city.id,
-    name: city.name,
-  })) ?? [];
+  const initialCities =
+    selectedCountryCitiesResponse?.data.map(city => ({
+      id: city.id,
+      name: city.name,
+    })) ?? [];
 
   const countryLabels = new Map(
     countriesResponse.map(country => [country.id, country.name]),
@@ -282,10 +291,7 @@ export default async function StadiumsPage({
                   <Row>
                     <Cell>No stadiums found for the current filters.</Cell>
                     {Array.from({ length: 10 }).map((_, index) => (
-                      <Cell
-                        key={`none-${index}`}
-                        className='padding-left--16'
-                      >
+                      <Cell key={`none-${index}`} className='padding-left--16'>
                         {PLACEHOLDER}
                       </Cell>
                     ))}
@@ -296,12 +302,15 @@ export default async function StadiumsPage({
                       key={stadium.id}
                       href={NAVIGATION.STADIUM_BY_ID(stadium.id)}
                     >
-                      <Cell>{renderImagePreview(stadium.name, stadium.imageUrl)}</Cell>
+                      <Cell>
+                        {renderImagePreview(stadium.name, stadium.imageUrl)}
+                      </Cell>
                       <Cell className='padding-left--16'>{stadium.name}</Cell>
                       <Cell className='padding-left--16'>{stadium.slug}</Cell>
                       <Cell className='padding-left--16'>
                         {stadium.countryId
-                          ? (countryLabels.get(stadium.countryId) ?? stadium.countryId)
+                          ? (countryLabels.get(stadium.countryId) ??
+                            stadium.countryId)
                           : PLACEHOLDER}
                       </Cell>
                       <Cell className='padding-left--16'>
@@ -319,7 +328,11 @@ export default async function StadiumsPage({
                         {stadium.primaryClubId ?? PLACEHOLDER}
                       </Cell>
                       <Cell align='center'>
-                        {stadium.isActive ? <Dot active inline /> : <Dot inline />}
+                        {stadium.isActive ? (
+                          <Dot active inline />
+                        ) : (
+                          <Dot inline />
+                        )}
                       </Cell>
                       <Cell align='right' className='padding-left--16'>
                         {formatDateOnly(stadium.createdAt)}

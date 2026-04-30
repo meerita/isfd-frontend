@@ -63,6 +63,15 @@ export async function getGeoCitiesByCountry(
     };
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
+
+    if (
+      normalized.statusCode === 400 &&
+      normalized.data.reason === 'INVALID_REQUEST' &&
+      normalized.data.error?.includes('field "country_id" must be a valid UUID')
+    ) {
+      return { data: [] };
+    }
+
     logApiError(normalized);
     return {
       data: [],

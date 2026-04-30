@@ -1,7 +1,7 @@
 /** @format */
 
 import { getGeoCitiesByCountry } from '@/_actions/geo/getGeoCitiesByCountry';
-import { getGeoCountries } from '@/_actions/geo/getGeoCountries';
+import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getAdminFederationById } from '@/_actions/federation/getAdminFederationById';
 import Button from '@/_components/forms/Button';
 import Box from '@/_components/layout/Box';
@@ -69,18 +69,23 @@ export default async function FederationDetailsPage({
   }
 
   const federation = federationResponse.data;
-  const countriesResponse = await getGeoCountries();
-  const selectedCountry = countriesResponse.data.find(
+  const countries = await getAllCountries();
+  const selectedCountry = countries.find(
     country => country.id === federation.countryId,
   );
   const citiesResponse = federation.countryId
     ? await getGeoCitiesByCountry(federation.countryId)
     : { data: [], error: undefined };
-  const selectedCity = citiesResponse.data.find(city => city.id === federation.cityId);
+  const selectedCity = citiesResponse.data.find(
+    city => city.id === federation.cityId,
+  );
 
   return (
     <Grid gap={24}>
-      <SectionHeader title={`${SECTIONS.FEDERATIONS} / ${federation.name}`} icon='admin'>
+      <SectionHeader
+        title={`${SECTIONS.FEDERATIONS} / ${federation.name}`}
+        icon='admin'
+      >
         <Box display='flex' gap={4} alignItems='center'>
           <DeleteFederationButton
             federationId={federation.id}
@@ -92,8 +97,7 @@ export default async function FederationDetailsPage({
 
       <FederationForm
         federation={federation}
-        countries={countriesResponse.data}
-        countriesError={countriesResponse.error?.error}
+        countries={countries}
         initialCities={citiesResponse.data}
         selectedCountryLabel={selectedCountry?.name ?? federation.countryId}
         selectedCityLabel={selectedCity?.name ?? federation.cityId}
