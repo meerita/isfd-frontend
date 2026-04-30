@@ -201,8 +201,11 @@ export default async function FederationsPage({
                 {federationsResponse.data.length === 0 ? (
                   <Row>
                     <Cell>No federations found for the current filters.</Cell>
-                    {Array.from({ length: 7 }).map((_, index) => (
-                      <Cell key={index} className='padding-left--16'>
+                    {Array.from({ length: 7 }).map((_, placeholderIndex) => (
+                      <Cell
+                        key={`federation-placeholder-${placeholderIndex + 1}`}
+                        className='padding-left--16'
+                      >
                         {PLACEHOLDER}
                       </Cell>
                     ))}
