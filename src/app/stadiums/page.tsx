@@ -30,6 +30,18 @@ const PLACEHOLDER = '--';
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_SORT: StadiumSort = 'updated_at_desc';
+const EMPTY_STADIUM_ROW_KEYS = [
+  'name',
+  'slug',
+  'country',
+  'city',
+  'seats',
+  'surface',
+  'primary-club',
+  'active',
+  'created',
+  'updated',
+] as const;
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -291,8 +303,8 @@ export default async function StadiumsPage({
                 {stadiumsResponse.data.length === 0 ? (
                   <Row>
                     <Cell>No stadiums found for the current filters.</Cell>
-                    {Array.from({ length: 10 }).map((_, index) => (
-                      <Cell key={`none-${index}`} className='padding-left--16'>
+                    {EMPTY_STADIUM_ROW_KEYS.map(key => (
+                      <Cell key={key} className='padding-left--16'>
                         {PLACEHOLDER}
                       </Cell>
                     ))}

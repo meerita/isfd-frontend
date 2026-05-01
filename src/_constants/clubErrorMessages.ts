@@ -2,7 +2,9 @@
 
 import type { ApiErrorResponse } from '@/_types/api';
 
-export const CLUB_ERROR_MESSAGES: Readonly<Record<string, string>> = {
+export type ClubErrorMessageMap = Readonly<Record<string, string>>;
+
+export const CLUB_ERROR_MESSAGES: ClubErrorMessageMap = {
   INVALID_REQUEST: 'The club request was invalid.',
   INTERNAL_SERVER_ERROR: 'The club request failed on the server.',
   CLUB_NOT_FOUND: 'This club could not be found.',
@@ -35,12 +37,15 @@ export const CLUB_ERROR_MESSAGES: Readonly<Record<string, string>> = {
 };
 
 export function resolveClubErrorMessage(error?: ApiErrorResponse): string {
-  if (!error) return 'Unexpected error.';
+  return resolveLocalizedClubErrorMessage(error);
+}
 
-  return (
-    CLUB_ERROR_MESSAGES[error.reason] ??
-    error.error ??
-    error.message ??
-    'Unexpected error.'
-  );
+export function resolveLocalizedClubErrorMessage(
+  error?: ApiErrorResponse,
+  messages: ClubErrorMessageMap = CLUB_ERROR_MESSAGES,
+  fallback = 'Unexpected error.',
+): string {
+  if (!error) return fallback;
+
+  return messages[error.reason] ?? error.error ?? error.message ?? fallback;
 }

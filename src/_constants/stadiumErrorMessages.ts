@@ -2,7 +2,9 @@
 
 import type { ApiErrorResponse } from '@/_types/api';
 
-export const STADIUM_ERROR_MESSAGES: Readonly<Record<string, string>> = {
+export type StadiumErrorMessageMap = Readonly<Record<string, string>>;
+
+export const STADIUM_ERROR_MESSAGES: StadiumErrorMessageMap = {
   INVALID_REQUEST: 'The stadium request was invalid.',
   INTERNAL_SERVER_ERROR: 'The stadium request failed on the server.',
   STADIUM_NOT_FOUND: 'This stadium could not be found.',
@@ -27,12 +29,15 @@ export const STADIUM_ERROR_MESSAGES: Readonly<Record<string, string>> = {
 };
 
 export function resolveStadiumErrorMessage(error?: ApiErrorResponse): string {
-  if (!error) return 'Unexpected error.';
+  return resolveLocalizedStadiumErrorMessage(error);
+}
 
-  return (
-    STADIUM_ERROR_MESSAGES[error.reason] ??
-    error.error ??
-    error.message ??
-    'Unexpected error.'
-  );
+export function resolveLocalizedStadiumErrorMessage(
+  error?: ApiErrorResponse,
+  messages: StadiumErrorMessageMap = STADIUM_ERROR_MESSAGES,
+  fallback = 'Unexpected error.',
+): string {
+  if (!error) return fallback;
+
+  return messages[error.reason] ?? error.error ?? error.message ?? fallback;
 }

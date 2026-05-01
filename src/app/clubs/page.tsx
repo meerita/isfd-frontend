@@ -3,7 +3,6 @@
 import Link from 'next/link';
 
 import { getAllCountries } from '@/_actions/country/getAllCountries';
-import { getMe } from '@/_actions/auth/getMe';
 import { getAdminClubs } from '@/_actions/club/getAdminClubs';
 import { getGeoCitiesByCountry } from '@/_actions/geo/getGeoCitiesByCountry';
 import Button from '@/_components/forms/Button';
@@ -29,6 +28,17 @@ const PLACEHOLDER = '--';
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_SORT: ClubSort = 'updated_at_desc';
+const EMPTY_CLUB_ROW_KEYS = [
+  'name',
+  'slug',
+  'short-name',
+  'active',
+  'country',
+  'city',
+  'primary-stadium',
+  'created',
+  'updated',
+] as const;
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -141,8 +151,7 @@ export default async function ClubsPage({
   const status = parseString(params?.status) as ClubStatusFilter | undefined;
   const countryId = parseUuid(params?.country_id);
 
-  const [user, clubsResponse, countriesResponse] = await Promise.all([
-    getMe(),
+  const [clubsResponse, countriesResponse] = await Promise.all([
     getAdminClubs({ page, pageSize, sort, status, countryId }),
     getAllCountries(),
   ]);
@@ -251,8 +260,8 @@ export default async function ClubsPage({
                 {clubsResponse.data.length === 0 ? (
                   <Row>
                     <Cell>No clubs found for the current filters.</Cell>
-                    {Array.from({ length: 9 }).map((_, index) => (
-                      <Cell key={`none-${index}`} className='padding-left--16'>
+                    {EMPTY_CLUB_ROW_KEYS.map(key => (
+                      <Cell key={key} className='padding-left--16'>
                         {PLACEHOLDER}
                       </Cell>
                     ))}

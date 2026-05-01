@@ -58,6 +58,8 @@ type StadiumFormProps = Readonly<{
   selectedCountryLabel?: string | null;
   selectedCityLabel?: string | null;
   edit?: boolean;
+  cancelHref?: string;
+  successHref?: string;
 }>;
 
 function formatDateTime(value: string | null | undefined): string {
@@ -78,6 +80,8 @@ export default function StadiumForm({
   selectedCountryLabel = null,
   selectedCityLabel = null,
   edit = false,
+  cancelHref,
+  successHref,
 }: StadiumFormProps) {
   const router = useRouter();
   const latestProvincesRequest = useRef(0);
@@ -268,6 +272,7 @@ export default function StadiumForm({
 
     if (edit) {
       toast.success('Stadium updated successfully.');
+      router.push(successHref ?? NAVIGATION.STADIUM_BY_ID(stadium?.id ?? ''));
       router.refresh();
       return;
     }
@@ -287,9 +292,16 @@ export default function StadiumForm({
     actionState.status,
     edit,
     router,
+    stadium?.id,
+    successHref,
   ]);
 
   const handleCancel = useCallback(() => {
+    if (cancelHref) {
+      router.push(cancelHref);
+      return;
+    }
+
     if (
       globalThis.window?.history.length &&
       globalThis.window.history.length > 1
@@ -299,7 +311,7 @@ export default function StadiumForm({
     }
 
     router.push(NAVIGATION.STADIUMS);
-  }, [router]);
+  }, [cancelHref, router]);
 
   const handleCountryChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {

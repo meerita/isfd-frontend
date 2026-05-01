@@ -55,6 +55,8 @@ type ClubFormProps = Readonly<{
   selectedCityLabel?: string | null;
   selectedPrimaryStadiumLabel?: string | null;
   edit?: boolean;
+  cancelHref?: string;
+  successHref?: string;
 }>;
 
 function formatDateTime(value: string | null | undefined): string {
@@ -83,6 +85,8 @@ export default function ClubForm({
   selectedCityLabel = null,
   selectedPrimaryStadiumLabel = null,
   edit = false,
+  cancelHref,
+  successHref,
 }: ClubFormProps) {
   const router = useRouter();
   const latestProvincesRequest = useRef(0);
@@ -313,6 +317,7 @@ export default function ClubForm({
 
     if (edit) {
       toast.success('Club updated successfully.');
+      router.push(successHref ?? NAVIGATION.CLUB_BY_ID(club?.id ?? ''));
       router.refresh();
       return;
     }
@@ -326,9 +331,14 @@ export default function ClubForm({
 
     router.push(NAVIGATION.CLUBS);
     router.refresh();
-  }, [actionState.clubId, actionState.error, actionState.status, edit, router]);
+  }, [actionState.clubId, actionState.error, actionState.status, club?.id, edit, router, successHref]);
 
   const handleCancel = useCallback(() => {
+    if (cancelHref) {
+      router.push(cancelHref);
+      return;
+    }
+
     if (
       globalThis.window?.history.length &&
       globalThis.window.history.length > 1
@@ -338,7 +348,7 @@ export default function ClubForm({
     }
 
     router.push(NAVIGATION.CLUBS);
-  }, [router]);
+  }, [cancelHref, router]);
 
   const handleCountryChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {

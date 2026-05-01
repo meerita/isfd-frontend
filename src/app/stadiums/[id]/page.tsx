@@ -1,77 +1,135 @@
 /** @format */
 
-import { getAllCountries } from '@/_actions/country/getAllCountries';
+import { getAdminClubById } from '@/_actions/club/getAdminClubById';
 import { getAdminCitiesByCountryIdAndProvince } from '@/_actions/city/getCities';
 import { getCityById } from '@/_actions/city/getCityById';
+import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getAdminStadiumById } from '@/_actions/stadium/getAdminStadiumById';
 import Button from '@/_components/forms/Button';
-import Box from '@/_components/layout/Box';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
 import SectionHeader from '@/_components/layout/SectionHeader';
-import Text from '@/_components/typography/Text';
-import Title from '@/_components/typography/Title';
+import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import NAVIGATION from '@/_constants/navigation';
-import SECTIONS from '@/_constants/sections';
-import { resolveStadiumErrorMessage } from '@/_constants/stadiumErrorMessages';
+import { resolveLocalizedStadiumErrorMessage } from '@/_constants/stadiumErrorMessages';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
+import { getDictionary } from '../../../_i18n/getDictionary';
+import { resolveRequestLocale } from '../../../_i18n/resolveRequestLocale';
 import DeleteStadiumButton from '../_components/DeleteStadiumButton';
-import StadiumForm from '../_components/StadiumForm';
+import StadiumInformationTab, {
+  type StadiumSection,
+} from '../_components/StadiumInformationTab';
+import StadiumSidebarNavigation from '../_components/StadiumSideBar';
+import StadiumUnavailable from '../_components/StadiumUnavailable';
 
 type StadiumPageParams = Readonly<{
-  id?: string;
+  id: string;
+}>;
+
+type StadiumPageSearchParams = Readonly<{
+  section?: string | string[];
+  edit?: string | string[];
 }>;
 
 type StadiumDetailsPageProps = Readonly<{
-  params?: Promise<StadiumPageParams> | StadiumPageParams;
+  params: Promise<StadiumPageParams> | StadiumPageParams;
+  searchParams?: Promise<StadiumPageSearchParams> | StadiumPageSearchParams;
 }>;
 
-function renderUnavailable(title: string, message: string) {
-  return (
-    <Main>
-      <Grid gap={16}>
-        <Title size='large'>{title}</Title>
-        <Text size='small' color='gray'>
-          {message}
-        </Text>
-        <Button href={NAVIGATION.STADIUMS}>Back to stadiums</Button>
-      </Grid>
-    </Main>
-  );
+function extractSingleValue(
+  value: string | string[] | undefined,
+): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function parseSection(value: string | undefined): StadiumSection {
+  switch (value) {
+    case 'media':
+      return value;
+    case 'profile':
+    default:
+      return 'profile';
+  }
+}
+
+function buildStadiumHref(
+  stadiumId: string,
+  section: StadiumSection,
+  edit?: boolean,
+): string {
+  const params = new URLSearchParams();
+  params.set('section', section);
+
+  if (edit) {
+    params.set('edit', 'true');
+  }
+
+  return `${NAVIGATION.STADIUM_BY_ID(stadiumId)}?${params.toString()}`;
 }
 
 export default async function StadiumDetailsPage({
   params,
-}: StadiumDetailsPageProps = {}) {
+  searchParams,
+}: StadiumDetailsPageProps): Promise<React.JSX.Element> {
   await requireAdminAccess();
 
-  const resolvedParams = await Promise.resolve(params);
-  const stadiumId = resolvedParams?.id;
+  const locale = await resolveRequestLocale();
+  const dictionary = getDictionary(locale);
+
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+
+  const stadiumId = resolvedParams?.id?.trim() ?? '';
+  const section = parseSection(extractSingleValue(resolvedSearchParams?.section));
+  const edit = extractSingleValue(resolvedSearchParams?.edit) === 'true';
 
   if (!stadiumId) {
-    return renderUnavailable(
-      'Stadium unavailable',
-      'Missing stadium identifier in the URL.',
+    return (
+      <Grid gap={16}>
+        <SectionHeader
+          navigation={[{ label: dictionary.navigation.stadiums }]}
+          icon='stadiums'
+        />
+        <StadiumUnavailable message={dictionary.stadiums.errors.STADIUM_ID_REQUIRED} />
+      </Grid>
     );
   }
 
-  const [stadiumResponse, countriesResponse] = await Promise.all([
+  const [stadiumResponse, countries] = await Promise.all([
     getAdminStadiumById(stadiumId),
     getAllCountries(),
   ]);
 
   if (!stadiumResponse.data) {
-    return renderUnavailable(
-      'Stadium unavailable',
-      resolveStadiumErrorMessage(stadiumResponse.error),
+    return (
+      <Grid gap={16}>
+        <SectionHeader
+          navigation={[
+            { label: dictionary.navigation.stadiums, href: NAVIGATION.STADIUMS },
+          ]}
+          icon='stadiums'
+        />
+        <StadiumUnavailable
+          message={resolveLocalizedStadiumErrorMessage(
+            stadiumResponse.error,
+            dictionary.stadiums.errors,
+            dictionary.common.unexpectedError,
+          )}
+        />
+      </Grid>
     );
   }
 
   const stadium = stadiumResponse.data;
-  const selectedCountry = countriesResponse.find(
-    country => country.id === stadium.countryId,
-  );
-  const selectedCity = stadium.cityId ? await getCityById(stadium.cityId) : null;
+  const selectedCountry = countries.find(country => country.id === stadium.countryId);
+  const [selectedCity, selectedPrimaryClub] = await Promise.all([
+    stadium.cityId ? getCityById(stadium.cityId) : Promise.resolve(null),
+    stadium.primaryClubId
+      ? getAdminClubById(stadium.primaryClubId)
+      : Promise.resolve({ data: null }),
+  ]);
   const initialProvinceName = selectedCity?.provinceName ?? null;
   const initialCities =
     stadium.countryId && initialProvinceName
@@ -80,29 +138,50 @@ export default async function StadiumDetailsPage({
           initialProvinceName,
         )
       : [];
+  const detailHref = buildStadiumHref(stadium.id, section);
+  const editHref = buildStadiumHref(stadium.id, section, true);
 
   return (
-    <Grid gap={24}>
+    <Grid gap={16}>
       <SectionHeader
-        title={`${SECTIONS.STADIUMS} / ${stadium.name}`}
+        navigation={[
+          { label: dictionary.navigation.stadiums, href: NAVIGATION.STADIUMS },
+          { label: stadium.name },
+        ]}
         icon='stadiums'
       >
-        <Box display='flex' gap={4} alignItems='center'>
+        <ButtonGroup gap={4}>
           <DeleteStadiumButton stadiumId={stadium.id} stadiumName={stadium.name} />
-          <Button href={NAVIGATION.STADIUMS}>All stadiums</Button>
-        </Box>
+          <Button
+            icon='edit'
+            type='button'
+            href={edit ? detailHref : editHref}
+            variant={edit ? 'borderless' : 'solid'}
+          >
+            {edit ? dictionary.common.cancel : dictionary.common.edit}
+          </Button>
+        </ButtonGroup>
       </SectionHeader>
-
-      <StadiumForm
-        stadium={stadium}
-        countries={countriesResponse}
-        initialProvinceName={initialProvinceName}
-        initialCities={initialCities}
-        countriesError={null}
-        selectedCountryLabel={selectedCountry?.name ?? stadium.countryId}
-        selectedCityLabel={selectedCity?.name ?? stadium.cityId}
-        edit
-      />
+      <Main>
+        <Grid className='c-aside-grid' gap={16}>
+          <StadiumSidebarNavigation stadiumId={stadium.id} activeSection={section} />
+          <StadiumInformationTab
+            stadium={stadium}
+            section={section}
+            edit={edit}
+            countries={countries}
+            initialProvinceName={initialProvinceName}
+            initialCities={initialCities}
+            selectedCountryLabel={selectedCountry?.name ?? stadium.countryId}
+            selectedCityLabel={selectedCity?.name ?? stadium.cityId}
+            selectedPrimaryClubLabel={
+              selectedPrimaryClub.data?.name ?? stadium.primaryClubId
+            }
+            cancelHref={detailHref}
+            successHref={detailHref}
+          />
+        </Grid>
+      </Main>
     </Grid>
   );
 }

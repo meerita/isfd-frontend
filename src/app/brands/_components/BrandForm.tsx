@@ -16,7 +16,8 @@ import Grid from '@/_components/layout/Grid';
 import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import NAVIGATION from '@/_constants/navigation';
-import { resolveBrandErrorMessage } from '@/_constants/brandErrorMessages';
+import { resolveLocalizedBrandErrorMessage } from '@/_constants/brandErrorMessages';
+import { useI18n } from '@/_i18n/I18nProvider';
 import type { Brand, BrandActionState } from '@/_types/brand';
 
 const INITIAL_STATE: BrandActionState = { status: 'idle' };
@@ -24,6 +25,8 @@ const INITIAL_STATE: BrandActionState = { status: 'idle' };
 type BrandFormProps = Readonly<{
   brand?: Brand | null;
   edit?: boolean;
+  cancelHref?: string;
+  successHref?: string;
 }>;
 
 function formatDateTime(value: string | null | undefined): string {
@@ -35,8 +38,14 @@ function formatDateTime(value: string | null | undefined): string {
   return parsed.toLocaleString();
 }
 
-export default function BrandForm({ brand, edit = false }: BrandFormProps) {
+export default function BrandForm({
+  brand,
+  edit = false,
+  cancelHref,
+  successHref,
+}: BrandFormProps) {
   const router = useRouter();
+  const { dictionary } = useI18n();
 
   const [editState, editAction, editPending] = useActionState<
     BrandActionState,
@@ -55,12 +64,19 @@ export default function BrandForm({ brand, edit = false }: BrandFormProps) {
     if (actionState.status === 'idle') return;
 
     if (actionState.status === 'error') {
-      toast.error(resolveBrandErrorMessage(actionState.error));
+      toast.error(
+        resolveLocalizedBrandErrorMessage(
+          actionState.error,
+          dictionary.brands.errors,
+          dictionary.common.unexpectedError,
+        ),
+      );
       return;
     }
 
     if (edit) {
       toast.success('Brand updated successfully.');
+      router.push(successHref ?? NAVIGATION.BRAND_BY_ID(brand?.id ?? ''));
       router.refresh();
       return;
     }
@@ -74,16 +90,31 @@ export default function BrandForm({ brand, edit = false }: BrandFormProps) {
 
     router.push(NAVIGATION.BRANDS);
     router.refresh();
-  }, [actionState.brandId, actionState.error, actionState.status, edit, router]);
+  }, [
+    actionState.brandId,
+    actionState.error,
+    actionState.status,
+    brand?.id,
+    dictionary.brands.errors,
+    dictionary.common.unexpectedError,
+    edit,
+    router,
+    successHref,
+  ]);
 
   const handleCancel = useCallback(() => {
+    if (cancelHref) {
+      router.push(cancelHref);
+      return;
+    }
+
     if (globalThis.window?.history.length && globalThis.window.history.length > 1) {
       router.back();
       return;
     }
 
     router.push(NAVIGATION.BRANDS);
-  }, [router]);
+  }, [cancelHref, router]);
 
   return (
     <Form action={formAction}>

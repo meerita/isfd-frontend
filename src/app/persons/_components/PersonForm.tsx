@@ -214,11 +214,12 @@ export default function PersonForm({
     [],
   );
 
-  const countryHelperText = countriesError
-    ? countriesError
-    : countryOptions.length === 0
-      ? dictionary.persons.form.countriesUnavailable
-      : undefined;
+  let countryHelperText: string | undefined;
+  if (countriesError) {
+    countryHelperText = countriesError;
+  } else if (countryOptions.length === 0) {
+    countryHelperText = dictionary.persons.form.countriesUnavailable;
+  }
 
   return (
     <Form action={formAction}>

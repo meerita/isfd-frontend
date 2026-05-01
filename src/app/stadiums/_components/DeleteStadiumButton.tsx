@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 import { deleteStadium } from '@/_actions/stadium/deleteStadium';
 import Button from '@/_components/forms/Button';
 import NAVIGATION from '@/_constants/navigation';
-import { resolveStadiumErrorMessage } from '@/_constants/stadiumErrorMessages';
+import { resolveLocalizedStadiumErrorMessage } from '@/_constants/stadiumErrorMessages';
+import { useI18n } from '@/_i18n/I18nProvider';
 
 type DeleteStadiumButtonProps = Readonly<{
   stadiumId: string;
@@ -22,13 +23,16 @@ export default function DeleteStadiumButton({
 }: DeleteStadiumButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const { dictionary } = useI18n();
 
   const handleDelete = useCallback(() => {
     if (isPending) return;
 
     const confirmed =
       globalThis.window?.confirm(
-        `Delete "${stadiumName}"?\n\nThis action cannot be undone.`,
+        `${dictionary.stadiums.delete.confirmTitle.replace('{name}', stadiumName)}\n\n${
+          dictionary.stadiums.delete.confirmBody
+        }`,
       ) ?? false;
 
     if (!confirmed) return;
@@ -37,25 +41,29 @@ export default function DeleteStadiumButton({
       const result = await deleteStadium(stadiumId);
 
       if (result.success) {
-        toast.success(`"${stadiumName}" deleted.`);
+        toast.success(
+          dictionary.stadiums.delete.success.replace('{name}', stadiumName),
+        );
         router.push(NAVIGATION.STADIUMS);
         router.refresh();
         return;
       }
 
       toast.error(
-        resolveStadiumErrorMessage(
+        resolveLocalizedStadiumErrorMessage(
           result.reason
             ? {
                 reason: result.reason,
-                message: result.error ?? 'We could not delete this stadium.',
-                error: result.error ?? 'We could not delete this stadium.',
+                message: result.error ?? dictionary.stadiums.delete.defaultError,
+                error: result.error ?? dictionary.stadiums.delete.defaultError,
               }
             : undefined,
+          dictionary.stadiums.errors,
+          dictionary.common.unexpectedError,
         ),
       );
     });
-  }, [isPending, router, stadiumId, stadiumName]);
+  }, [dictionary, isPending, router, stadiumId, stadiumName]);
 
   return (
     <Button
@@ -65,7 +73,9 @@ export default function DeleteStadiumButton({
       aria-busy={isPending}
       variant='borderless'
     >
-      {isPending ? 'Deleting...' : 'Delete stadium'}
+      {isPending
+        ? dictionary.stadiums.delete.pending
+        : dictionary.stadiums.delete.action}
     </Button>
   );
 }

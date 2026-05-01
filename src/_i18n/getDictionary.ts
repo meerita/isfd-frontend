@@ -61,6 +61,39 @@ export interface AppDictionary {
     readonly stadiums: string;
     readonly users: string;
   };
+  readonly brands: {
+    readonly detail: {
+      readonly profile: string;
+      readonly media: string;
+      readonly identity: string;
+      readonly links: string;
+      readonly metadata: string;
+      readonly noIconAvailable: string;
+      readonly noDetailImageAvailable: string;
+      readonly notAvailableTitle: string;
+      readonly backToBrands: string;
+    };
+    readonly form: {
+      readonly name: string;
+      readonly websiteUrl: string;
+      readonly iconImageUrl: string;
+      readonly detailImageUrl: string;
+      readonly activeLabel: string;
+      readonly id: string;
+      readonly slug: string;
+      readonly createdAt: string;
+      readonly updatedAt: string;
+    };
+    readonly delete: {
+      readonly confirmTitle: string;
+      readonly confirmBody: string;
+      readonly success: string;
+      readonly pending: string;
+      readonly action: string;
+      readonly defaultError: string;
+    };
+    readonly errors: Readonly<Record<string, string>>;
+  };
   readonly persons: {
     readonly sectionTitle: string;
     readonly addPerson: string;
@@ -195,6 +228,137 @@ export interface AppDictionary {
       readonly titles: {
         readonly nativeFullName: string;
       };
+    };
+    readonly delete: {
+      readonly confirmTitle: string;
+      readonly confirmBody: string;
+      readonly success: string;
+      readonly pending: string;
+      readonly action: string;
+      readonly defaultError: string;
+    };
+    readonly errors: Readonly<Record<string, string>>;
+  };
+  readonly clubs: {
+    readonly detail: {
+      readonly profile: string;
+      readonly media: string;
+      readonly persons: string;
+      readonly championships: string;
+      readonly games: string;
+      readonly achievements: string;
+      readonly identity: string;
+      readonly foundation: string;
+      readonly location: string;
+      readonly metadata: string;
+      readonly representativeImage: string;
+      readonly sectionsPending: string;
+      readonly noRepresentativeImage: string;
+      readonly notAvailableTitle: string;
+      readonly backToClubs: string;
+    };
+    readonly form: {
+      readonly name: string;
+      readonly shortName: string;
+      readonly acronym: string;
+      readonly nativeName: string;
+      readonly foundedAs: string;
+      readonly foundedAt: string;
+      readonly dissolvedAt: string;
+      readonly dissolved: string;
+      readonly activeLabel: string;
+      readonly countryId: string;
+      readonly cityId: string;
+      readonly primaryStadiumId: string;
+      readonly officialWebsiteUrl: string;
+      readonly logoUrl: string;
+      readonly heroImageUrl: string;
+      readonly id: string;
+      readonly slug: string;
+      readonly createdAt: string;
+      readonly updatedAt: string;
+    };
+    readonly delete: {
+      readonly confirmTitle: string;
+      readonly confirmBody: string;
+      readonly success: string;
+      readonly pending: string;
+      readonly action: string;
+      readonly defaultError: string;
+    };
+    readonly errors: Readonly<Record<string, string>>;
+  };
+  readonly stadiums: {
+    readonly detail: {
+      readonly profile: string;
+      readonly media: string;
+      readonly identity: string;
+      readonly location: string;
+      readonly specifications: string;
+      readonly metadata: string;
+      readonly noImageAvailable: string;
+      readonly notAvailableTitle: string;
+      readonly backToStadiums: string;
+    };
+    readonly form: {
+      readonly name: string;
+      readonly surfaceType: string;
+      readonly seatCount: string;
+      readonly primaryClubId: string;
+      readonly formerNames: string;
+      readonly activeLabel: string;
+      readonly countryId: string;
+      readonly cityId: string;
+      readonly imageUrl: string;
+      readonly id: string;
+      readonly slug: string;
+      readonly createdAt: string;
+      readonly updatedAt: string;
+    };
+    readonly delete: {
+      readonly confirmTitle: string;
+      readonly confirmBody: string;
+      readonly success: string;
+      readonly pending: string;
+      readonly action: string;
+      readonly defaultError: string;
+    };
+    readonly errors: Readonly<Record<string, string>>;
+  };
+  readonly federations: {
+    readonly detail: {
+      readonly profile: string;
+      readonly media: string;
+      readonly teams: string;
+      readonly championships: string;
+      readonly identity: string;
+      readonly foundation: string;
+      readonly location: string;
+      readonly metadata: string;
+      readonly representativeImage: string;
+      readonly sectionsPending: string;
+      readonly noRepresentativeImage: string;
+      readonly notAvailableTitle: string;
+      readonly backToFederations: string;
+    };
+    readonly form: {
+      readonly name: string;
+      readonly federationLevel: string;
+      readonly nativeName: string;
+      readonly shortName: string;
+      readonly acronym: string;
+      readonly foundationDate: string;
+      readonly countryId: string;
+      readonly cityId: string;
+      readonly officialWebsiteUrl: string;
+      readonly iconUrl: string;
+      readonly heroImageUrl: string;
+      readonly description: string;
+      readonly activeLabel: string;
+      readonly id: string;
+      readonly slug: string;
+      readonly createdAt: string;
+      readonly updatedAt: string;
     };
     readonly delete: {
       readonly confirmTitle: string;

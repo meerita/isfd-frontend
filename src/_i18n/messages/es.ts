@@ -57,6 +57,59 @@ const es = {
     stadiums: 'Estadios',
     users: 'Usuarios',
   },
+  brands: {
+    detail: {
+      profile: 'Perfil',
+      media: 'Media',
+      identity: 'Identidad',
+      links: 'Enlaces',
+      metadata: 'Metadatos',
+      noIconAvailable: 'No hay icono disponible.',
+      noDetailImageAvailable: 'No hay imagen de detalle disponible.',
+      notAvailableTitle: 'Marca no disponible',
+      backToBrands: 'Volver a marcas',
+    },
+    form: {
+      name: 'Nombre de la marca',
+      websiteUrl: 'URL del sitio web',
+      iconImageUrl: 'URL del icono',
+      detailImageUrl: 'URL de imagen de detalle',
+      activeLabel: 'Activo',
+      id: 'ID',
+      slug: 'Slug',
+      createdAt: 'Creado el',
+      updatedAt: 'Actualizado el',
+    },
+    delete: {
+      confirmTitle: '¿Eliminar "{name}"?',
+      confirmBody: 'Esta acción no se puede deshacer.',
+      success: '"{name}" se ha eliminado.',
+      pending: 'Eliminando...',
+      action: 'Eliminar marca',
+      defaultError: 'No hemos podido eliminar esta marca.',
+    },
+    errors: {
+      INVALID_REQUEST: 'La solicitud de marca no es válida.',
+      INTERNAL_SERVER_ERROR:
+        'La solicitud de marca ha fallado en el servidor.',
+      BRAND_NOT_FOUND: 'No se ha encontrado esta marca.',
+      BRAND_NAME_REQUIRED: 'El nombre de la marca es obligatorio.',
+      BRAND_NAME_TOO_LONG: 'El nombre de la marca es demasiado largo.',
+      BRAND_NAME_ALREADY_EXISTS: 'Ya existe una marca con este nombre.',
+      BRAND_INVALID_WEBSITE_URL: 'Introduce una URL de sitio web válida.',
+      BRAND_INVALID_ICON_IMAGE_URL: 'Introduce una URL de icono válida.',
+      BRAND_INVALID_DETAIL_IMAGE_URL:
+        'Introduce una URL de imagen de detalle válida.',
+      BRAND_SLUG_GENERATION_FAILED:
+        'El backend no ha podido generar el slug de la marca.',
+      BRAND_HAS_REFERENCES:
+        'Esta marca no se puede eliminar porque está vinculada a otros registros.',
+      FORM_VALIDATION_ERROR:
+        'Revisa los valores del formulario de la marca e inténtalo de nuevo.',
+      INVALID_RESPONSE:
+        'El backend ha devuelto una respuesta de marca no válida.',
+    },
+  },
   persons: {
     sectionTitle: 'Personas',
     addPerson: 'Crear persona',
@@ -259,6 +312,236 @@ const es = {
         'Revisa los valores del formulario de persona e inténtalo de nuevo.',
       INVALID_RESPONSE:
         'El backend ha devuelto una respuesta de persona no válida.',
+    },
+  },
+  clubs: {
+    detail: {
+      profile: 'Perfil',
+      media: 'Media',
+      persons: 'Personas',
+      championships: 'Campeonatos',
+      games: 'Partidos',
+      achievements: 'Logros',
+      identity: 'Identidad',
+      foundation: 'Fundación',
+      location: 'Ubicación',
+      metadata: 'Metadatos',
+      representativeImage: 'Imagen representativa',
+      sectionsPending:
+        'Esta sección está mockeada por ahora y se conectará con la API a continuación.',
+      noRepresentativeImage: 'No hay imagen representativa disponible.',
+      notAvailableTitle: 'Club no disponible',
+      backToClubs: 'Volver a clubes',
+    },
+    form: {
+      name: 'Nombre del club',
+      shortName: 'Nombre corto',
+      acronym: 'Acrónimo',
+      nativeName: 'Nombre nativo',
+      foundedAs: 'Fundado como',
+      foundedAt: 'Fundado el',
+      dissolvedAt: 'Disuelto el',
+      dissolved: 'Disuelto',
+      activeLabel: 'Activo',
+      countryId: 'País',
+      cityId: 'Ciudad',
+      primaryStadiumId: 'Estadio principal',
+      officialWebsiteUrl: 'Sitio web oficial',
+      logoUrl: 'URL del logo',
+      heroImageUrl: 'URL de imagen principal',
+      id: 'ID',
+      slug: 'Slug',
+      createdAt: 'Creado el',
+      updatedAt: 'Actualizado el',
+    },
+    delete: {
+      confirmTitle: '¿Eliminar "{name}"?',
+      confirmBody: 'Esta acción no se puede deshacer.',
+      success: '"{name}" se ha eliminado.',
+      pending: 'Eliminando...',
+      action: 'Eliminar club',
+      defaultError: 'No hemos podido eliminar este club.',
+    },
+    errors: {
+      INVALID_REQUEST: 'La solicitud de club no es válida.',
+      INTERNAL_SERVER_ERROR:
+        'La solicitud de club ha fallado en el servidor.',
+      CLUB_NOT_FOUND: 'No se ha encontrado este club.',
+      CLUB_ID_REQUIRED: 'El identificador del club es obligatorio.',
+      CLUB_SLUG_REQUIRED: 'El slug del club es obligatorio.',
+      CLUB_NAME_REQUIRED: 'El nombre del club es obligatorio.',
+      CLUB_NAME_TOO_LONG: 'El nombre del club es demasiado largo.',
+      CLUB_SHORT_NAME_TOO_LONG: 'El nombre corto es demasiado largo.',
+      CLUB_ACRONYM_TOO_LONG: 'El acrónimo es demasiado largo.',
+      CLUB_NATIVE_NAME_TOO_LONG: 'El nombre nativo es demasiado largo.',
+      CLUB_FOUNDED_AS_TOO_LONG: 'El nombre fundacional es demasiado largo.',
+      CLUB_INVALID_COUNTRY_ID: 'Selecciona un país válido.',
+      CLUB_INVALID_CITY_ID: 'Selecciona una ciudad válida.',
+      CLUB_INVALID_PRIMARY_STADIUM_ID: 'Selecciona un estadio principal válido.',
+      CLUB_CITY_REQUIRES_COUNTRY:
+        'Selecciona un país antes de seleccionar una ciudad.',
+      CLUB_FOUNDED_AT_IN_FUTURE:
+        'La fecha de fundación no puede estar en el futuro.',
+      CLUB_DISSOLVED_AT_IN_FUTURE:
+        'La fecha de disolución no puede estar en el futuro.',
+      CLUB_DISSOLVED_AT_BEFORE_FOUNDED_AT:
+        'La fecha de disolución no puede ser anterior a la de fundación.',
+      CLUB_DISSOLVED_AT_REQUIRES_DISSOLVED:
+        'Marca el club como disuelto antes de añadir una fecha de disolución.',
+      CLUB_INVALID_OFFICIAL_WEBSITE_URL:
+        'Introduce una URL válida para el sitio web oficial.',
+      CLUB_INVALID_LOGO_URL: 'Introduce una URL válida para el logo.',
+      CLUB_INVALID_HERO_IMAGE_URL:
+        'Introduce una URL válida para la imagen principal.',
+      CLUB_SLUG_GENERATION_FAILED:
+        'El backend no ha podido generar el slug del club.',
+      CLUB_HAS_REFERENCES:
+        'Este club no se puede eliminar porque está vinculado a otros registros.',
+      FORM_VALIDATION_ERROR:
+        'Revisa los valores del formulario del club e inténtalo de nuevo.',
+      INVALID_RESPONSE:
+        'El backend ha devuelto una respuesta de club no válida.',
+    },
+  },
+  stadiums: {
+    detail: {
+      profile: 'Perfil',
+      media: 'Media',
+      identity: 'Identidad',
+      location: 'Ubicación',
+      specifications: 'Especificaciones',
+      metadata: 'Metadatos',
+      noImageAvailable: 'No hay imagen disponible.',
+      notAvailableTitle: 'Estadio no disponible',
+      backToStadiums: 'Volver a estadios',
+    },
+    form: {
+      name: 'Nombre del estadio',
+      surfaceType: 'Tipo de superficie',
+      seatCount: 'Aforo',
+      primaryClubId: 'Club principal',
+      formerNames: 'Nombres anteriores',
+      activeLabel: 'Activo',
+      countryId: 'País',
+      cityId: 'Ciudad',
+      imageUrl: 'URL de imagen',
+      id: 'ID',
+      slug: 'Slug',
+      createdAt: 'Creado el',
+      updatedAt: 'Actualizado el',
+    },
+    delete: {
+      confirmTitle: '¿Eliminar "{name}"?',
+      confirmBody: 'Esta acción no se puede deshacer.',
+      success: '"{name}" se ha eliminado.',
+      pending: 'Eliminando...',
+      action: 'Eliminar estadio',
+      defaultError: 'No hemos podido eliminar este estadio.',
+    },
+    errors: {
+      INVALID_REQUEST: 'La solicitud de estadio no es válida.',
+      INTERNAL_SERVER_ERROR:
+        'La solicitud de estadio ha fallado en el servidor.',
+      STADIUM_NOT_FOUND: 'No se ha encontrado este estadio.',
+      STADIUM_ID_REQUIRED: 'El identificador del estadio es obligatorio.',
+      STADIUM_NAME_REQUIRED: 'El nombre del estadio es obligatorio.',
+      STADIUM_NAME_TOO_LONG: 'El nombre del estadio es demasiado largo.',
+      STADIUM_FORMER_NAMES_TOO_LONG:
+        'Los nombres anteriores son demasiado largos.',
+      STADIUM_INVALID_COUNTRY_ID: 'Selecciona un país válido.',
+      STADIUM_INVALID_CITY_ID: 'Selecciona una ciudad válida.',
+      STADIUM_INVALID_PRIMARY_CLUB_ID:
+        'Introduce un UUID válido para el club principal.',
+      STADIUM_CITY_REQUIRES_COUNTRY:
+        'Selecciona un país antes de seleccionar una ciudad.',
+      STADIUM_INVALID_IMAGE_URL: 'Introduce una URL de imagen válida.',
+      STADIUM_INVALID_SEAT_COUNT: 'Introduce un aforo válido.',
+      STADIUM_INVALID_SURFACE_TYPE:
+        'Selecciona un tipo de superficie válido.',
+      STADIUM_SURFACE_TYPE_TOO_LONG:
+        'El tipo de superficie es demasiado largo.',
+      STADIUM_SLUG_GENERATION_FAILED:
+        'El backend no ha podido generar el slug del estadio.',
+      STADIUM_HAS_REFERENCES:
+        'Este estadio no se puede eliminar porque está vinculado a otros registros.',
+      FORM_VALIDATION_ERROR:
+        'Revisa los valores del formulario del estadio e inténtalo de nuevo.',
+      INVALID_RESPONSE:
+        'El backend ha devuelto una respuesta de estadio no válida.',
+    },
+  },
+  federations: {
+    detail: {
+      profile: 'Perfil',
+      media: 'Media',
+      teams: 'Equipos',
+      championships: 'Campeonatos',
+      identity: 'Identidad',
+      foundation: 'Fundación',
+      location: 'Ubicación',
+      metadata: 'Metadatos',
+      representativeImage: 'Imagen representativa',
+      sectionsPending:
+        'Esta sección está mockeada por ahora y se conectará con la API a continuación.',
+      noRepresentativeImage: 'No hay imagen representativa disponible.',
+      notAvailableTitle: 'Federación no disponible',
+      backToFederations: 'Volver a federaciones',
+    },
+    form: {
+      name: 'Nombre de la federación',
+      federationLevel: 'Nivel de la federación',
+      nativeName: 'Nombre nativo',
+      shortName: 'Nombre corto',
+      acronym: 'Acrónimo',
+      foundationDate: 'Fecha de fundación',
+      countryId: 'País',
+      cityId: 'Ciudad',
+      officialWebsiteUrl: 'Sitio web oficial',
+      iconUrl: 'URL del icono',
+      heroImageUrl: 'URL de imagen principal',
+      description: 'Descripción',
+      activeLabel: 'Activo',
+      id: 'ID',
+      slug: 'Slug',
+      createdAt: 'Creado el',
+      updatedAt: 'Actualizado el',
+    },
+    delete: {
+      confirmTitle: '¿Eliminar "{name}"?',
+      confirmBody: 'Esta acción no se puede deshacer.',
+      success: '"{name}" se ha eliminado.',
+      pending: 'Eliminando...',
+      action: 'Eliminar federación',
+      defaultError: 'No hemos podido eliminar esta federación.',
+    },
+    errors: {
+      FEDERATION_NOT_FOUND: 'No se ha encontrado esta federación.',
+      FEDERATION_NAME_REQUIRED: 'El nombre de la federación es obligatorio.',
+      FEDERATION_NAME_TOO_LONG:
+        'El nombre de la federación es demasiado largo.',
+      FEDERATION_NAME_ALREADY_EXISTS:
+        'Ya existe una federación con este nombre.',
+      FEDERATION_NATIVE_NAME_TOO_LONG: 'El nombre nativo es demasiado largo.',
+      FEDERATION_SHORT_NAME_TOO_LONG: 'El nombre corto es demasiado largo.',
+      FEDERATION_ACRONYM_TOO_LONG: 'El acrónimo es demasiado largo.',
+      FEDERATION_INVALID_LEVEL: 'Selecciona un nivel de federación válido.',
+      FEDERATION_INVALID_COUNTRY_ID: 'Selecciona un país válido.',
+      FEDERATION_INVALID_CITY_ID: 'Selecciona una ciudad válida.',
+      FEDERATION_CITY_REQUIRES_COUNTRY:
+        'Selecciona un país antes de seleccionar una ciudad.',
+      FEDERATION_FOUNDATION_DATE_IN_FUTURE:
+        'La fecha de fundación no puede estar en el futuro.',
+      FEDERATION_INVALID_OFFICIAL_WEBSITE:
+        'Introduce una URL válida para el sitio web oficial.',
+      FEDERATION_INVALID_ICON_URL: 'Introduce una URL válida para el icono.',
+      FEDERATION_INVALID_HERO_IMAGE_URL:
+        'Introduce una URL válida para la imagen principal.',
+      FEDERATION_HAS_RELATIONS:
+        'Esta federación no se puede eliminar porque está vinculada a otros registros.',
+      FORM_VALIDATION_ERROR:
+        'Revisa los valores del formulario de la federación e inténtalo de nuevo.',
+      INVALID_RESPONSE:
+        'El backend ha devuelto una respuesta de federación no válida.',
     },
   },
 } as const;

@@ -2,7 +2,9 @@
 
 import type { ApiErrorResponse } from '@/_types/api';
 
-export const BRAND_ERROR_MESSAGES: Readonly<Record<string, string>> = {
+export type BrandErrorMessageMap = Readonly<Record<string, string>>;
+
+export const BRAND_ERROR_MESSAGES: BrandErrorMessageMap = {
   INVALID_REQUEST: 'The brand request was invalid.',
   INTERNAL_SERVER_ERROR: 'The brand request failed on the server.',
   BRAND_NOT_FOUND: 'This brand could not be found.',
@@ -20,12 +22,15 @@ export const BRAND_ERROR_MESSAGES: Readonly<Record<string, string>> = {
 };
 
 export function resolveBrandErrorMessage(error?: ApiErrorResponse): string {
-  if (!error) return 'Unexpected error.';
+  return resolveLocalizedBrandErrorMessage(error);
+}
 
-  return (
-    BRAND_ERROR_MESSAGES[error.reason] ??
-    error.error ??
-    error.message ??
-    'Unexpected error.'
-  );
+export function resolveLocalizedBrandErrorMessage(
+  error?: ApiErrorResponse,
+  messages: BrandErrorMessageMap = BRAND_ERROR_MESSAGES,
+  fallback = 'Unexpected error.',
+): string {
+  if (!error) return fallback;
+
+  return messages[error.reason] ?? error.error ?? error.message ?? fallback;
 }

@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 import { deleteClub } from '@/_actions/club/deleteClub';
 import Button from '@/_components/forms/Button';
 import NAVIGATION from '@/_constants/navigation';
-import { resolveClubErrorMessage } from '@/_constants/clubErrorMessages';
+import { resolveLocalizedClubErrorMessage } from '@/_constants/clubErrorMessages';
+import { useI18n } from '@/_i18n/I18nProvider';
 
 type DeleteClubButtonProps = Readonly<{
   clubId: string;
@@ -24,13 +25,16 @@ export default function DeleteClubButton({
 }: DeleteClubButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const { dictionary } = useI18n();
 
   const handleDelete = useCallback(() => {
     if (isPending) return;
 
     const confirmed =
       globalThis.window?.confirm(
-        `Delete "${clubName}"?\n\nThis action cannot be undone.`,
+        `${dictionary.clubs.delete.confirmTitle.replace('{name}', clubName)}\n\n${
+          dictionary.clubs.delete.confirmBody
+        }`,
       ) ?? false;
 
     if (!confirmed) return;
@@ -39,25 +43,27 @@ export default function DeleteClubButton({
       const result = await deleteClub(clubId, clubSlug);
 
       if (result.success) {
-        toast.success(`"${clubName}" deleted.`);
+        toast.success(dictionary.clubs.delete.success.replace('{name}', clubName));
         router.push(NAVIGATION.CLUBS);
         router.refresh();
         return;
       }
 
       toast.error(
-        resolveClubErrorMessage(
+        resolveLocalizedClubErrorMessage(
           result.reason
             ? {
                 reason: result.reason,
-                message: result.error ?? 'We could not delete this club.',
-                error: result.error ?? 'We could not delete this club.',
+                message: result.error ?? dictionary.clubs.delete.defaultError,
+                error: result.error ?? dictionary.clubs.delete.defaultError,
               }
             : undefined,
+          dictionary.clubs.errors,
+          dictionary.common.unexpectedError,
         ),
       );
     });
-  }, [clubId, clubName, clubSlug, isPending, router]);
+  }, [clubId, clubName, clubSlug, dictionary, isPending, router]);
 
   return (
     <Button
@@ -67,7 +73,7 @@ export default function DeleteClubButton({
       aria-busy={isPending}
       variant='borderless'
     >
-      {isPending ? 'Deleting...' : 'Delete club'}
+      {isPending ? dictionary.clubs.delete.pending : dictionary.clubs.delete.action}
     </Button>
   );
 }

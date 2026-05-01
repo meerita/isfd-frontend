@@ -25,33 +25,16 @@ import TextInput from '@/_components/forms/TextInput';
 import Grid from '@/_components/layout/Grid';
 import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
+import { resolveLocalizedFederationErrorMessage } from '@/_constants/federationErrorMessages';
 import NAVIGATION from '@/_constants/navigation';
+import { useI18n } from '@/_i18n/I18nProvider';
 import type { City } from '@/_types/city';
 import type { Country } from '@/_types/country';
 import type { Federation, FederationActionState } from '@/_types/federation';
+import Card from '@/_components/Card';
+import Title from '@/_components/typography/Title';
 
 const INITIAL_STATE: FederationActionState = { status: 'idle' };
-
-const FEDERATION_ERROR_MESSAGES: Readonly<Record<string, string>> = {
-  FEDERATION_NOT_FOUND: 'This federation could not be found.',
-  FEDERATION_NAME_REQUIRED: 'Federation name is required.',
-  FEDERATION_NAME_TOO_LONG: 'Federation name is too long.',
-  FEDERATION_NAME_ALREADY_EXISTS: 'A federation with this name already exists.',
-  FEDERATION_NATIVE_NAME_TOO_LONG: 'Native name is too long.',
-  FEDERATION_SHORT_NAME_TOO_LONG: 'Short name is too long.',
-  FEDERATION_ACRONYM_TOO_LONG: 'Acronym is too long.',
-  FEDERATION_INVALID_LEVEL: 'Select a valid federation level.',
-  FEDERATION_INVALID_COUNTRY_ID: 'Select a valid country.',
-  FEDERATION_INVALID_CITY_ID: 'Select a valid city.',
-  FEDERATION_CITY_REQUIRES_COUNTRY: 'Select a country before selecting a city.',
-  FEDERATION_FOUNDATION_DATE_IN_FUTURE:
-    'Foundation date cannot be in the future.',
-  FEDERATION_INVALID_OFFICIAL_WEBSITE: 'Enter a valid official website URL.',
-  FEDERATION_INVALID_ICON_URL: 'Enter a valid icon URL.',
-  FEDERATION_INVALID_HERO_IMAGE_URL: 'Enter a valid hero image URL.',
-  FEDERATION_HAS_RELATIONS:
-    'This federation cannot be deleted because it is linked to other records.',
-};
 
 type FederationFormProps = Readonly<{
   federation?: Federation | null;
@@ -61,6 +44,8 @@ type FederationFormProps = Readonly<{
   selectedCountryLabel?: string | null;
   selectedCityLabel?: string | null;
   edit?: boolean;
+  cancelHref?: string;
+  successHref?: string;
 }>;
 
 type SelectorOption = Readonly<{
@@ -87,17 +72,6 @@ function formatDateTime(value: string | null | undefined): string {
   return parsed.toLocaleString();
 }
 
-function resolveErrorMessage(error?: FederationActionState['error']): string {
-  if (!error) return 'Unexpected error.';
-
-  return (
-    FEDERATION_ERROR_MESSAGES[error.reason] ??
-    error.error ??
-    error.message ??
-    'Unexpected error.'
-  );
-}
-
 function resolveGeoErrorMessage(message?: string): string {
   return message || 'We could not load cities for the selected country.';
 }
@@ -110,14 +84,19 @@ export default function FederationForm({
   selectedCountryLabel = null,
   selectedCityLabel = null,
   edit = false,
+  cancelHref,
+  successHref,
 }: FederationFormProps) {
   const router = useRouter();
+  const { dictionary } = useI18n();
   const latestCitiesRequest = useRef(0);
 
   const [selectedCountryId, setSelectedCountryId] = useState(
     federation?.countryId ?? '',
   );
-  const [selectedCityId, setSelectedCityId] = useState(federation?.cityId ?? '');
+  const [selectedCityId, setSelectedCityId] = useState(
+    federation?.cityId ?? '',
+  );
   const [cityOptions, setCityOptions] = useState<ReadonlyArray<SelectorOption>>(
     initialCities.map(city => ({ id: city.id, name: city.name })),
   );
@@ -155,7 +134,10 @@ export default function FederationForm({
   }, [countries, selectedCountryId, selectedCountryLabel]);
 
   const mergedCityOptions = useMemo(() => {
-    if (!selectedCityId || cityOptions.some(city => city.id === selectedCityId)) {
+    if (
+      !selectedCityId ||
+      cityOptions.some(city => city.id === selectedCityId)
+    ) {
       return cityOptions;
     }
 
@@ -192,7 +174,9 @@ export default function FederationForm({
       return;
     }
 
-    setCityOptions(response.data.map(city => ({ id: city.id, name: city.name })));
+    setCityOptions(
+      response.data.map(city => ({ id: city.id, name: city.name })),
+    );
     setCitiesError('');
     setIsCitiesPending(false);
   }, []);
@@ -201,12 +185,21 @@ export default function FederationForm({
     if (actionState.status === 'idle') return;
 
     if (actionState.status === 'error') {
-      toast.error(resolveErrorMessage(actionState.error));
+      toast.error(
+        resolveLocalizedFederationErrorMessage(
+          actionState.error,
+          dictionary.federations.errors,
+          dictionary.common.unexpectedError,
+        ),
+      );
       return;
     }
 
     if (edit) {
       toast.success('Federation updated successfully.');
+      router.push(
+        successHref ?? NAVIGATION.FEDERATION_BY_ID(federation?.id ?? ''),
+      );
       router.refresh();
       return;
     }
@@ -220,16 +213,34 @@ export default function FederationForm({
 
     router.push(NAVIGATION.FEDERATIONS);
     router.refresh();
-  }, [actionState.error, actionState.federationId, actionState.status, edit, router]);
+  }, [
+    actionState.error,
+    actionState.federationId,
+    actionState.status,
+    dictionary.common.unexpectedError,
+    dictionary.federations.errors,
+    edit,
+    federation?.id,
+    router,
+    successHref,
+  ]);
 
   const handleCancel = useCallback(() => {
-    if (globalThis.window?.history.length && globalThis.window.history.length > 1) {
+    if (cancelHref) {
+      router.push(cancelHref);
+      return;
+    }
+
+    if (
+      globalThis.window?.history.length &&
+      globalThis.window.history.length > 1
+    ) {
       router.back();
       return;
     }
 
     router.push(NAVIGATION.FEDERATIONS);
-  }, [router]);
+  }, [cancelHref, router]);
 
   const handleCountryChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -250,190 +261,207 @@ export default function FederationForm({
     [],
   );
 
-  const cityHelperText = !selectedCountryId
-    ? 'Select a country to enable cities.'
-    : isCitiesPending
-      ? 'Loading cities...'
-      : citiesError
-        ? citiesError
-        : mergedCityOptions.length === 0
-          ? 'No cities available for the selected country.'
-          : undefined;
+  let cityHelperText: string | undefined;
+  if (selectedCountryId === '') {
+    cityHelperText = 'Select a country to enable cities.';
+  } else if (isCitiesPending) {
+    cityHelperText = 'Loading cities...';
+  } else if (citiesError) {
+    cityHelperText = citiesError;
+  } else if (mergedCityOptions.length === 0) {
+    cityHelperText = 'No cities available for the selected country.';
+  }
 
-  const countryHelperText = countriesError
-    ? countriesError
-    : countryOptions.length === 0
-      ? 'Countries are currently unavailable.'
-      : undefined;
+  let countryHelperText: string | undefined;
+  if (countriesError) {
+    countryHelperText = countriesError;
+  } else if (countryOptions.length === 0) {
+    countryHelperText = 'Countries are currently unavailable.';
+  }
 
   return (
-    <Form action={formAction}>
-      {edit && federation ? (
-        <input type='hidden' name='federationId' value={federation.id} />
-      ) : null}
-
-      <Section>
-        <Grid gap={8} columns={2}>
-          <TextInput
-            label='Federation name'
-            name='name'
-            placeholder='e.g. Royal Spanish Football Federation'
-            defaultValue={federation?.name ?? ''}
-            required
-            disabled={isPending}
-          />
-          <Select
-            label='Federation level'
-            name='federationLevel'
-            defaultValue={federation?.federationLevel ?? 'NATIONAL'}
-            disabled={isPending}
-            required
-          >
-            <option value='WORLD'>World</option>
-            <option value='CONTINENTAL'>Continental</option>
-            <option value='NATIONAL'>National</option>
-          </Select>
-          <TextInput
-            label='Native name'
-            name='nativeName'
-            placeholder='Optional native name'
-            defaultValue={federation?.nativeName ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Short name'
-            name='shortName'
-            placeholder='Optional short name'
-            defaultValue={federation?.shortName ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Acronym'
-            name='acronym'
-            placeholder='Optional acronym'
-            defaultValue={federation?.acronym ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Foundation date'
-            name='foundationDate'
-            type='date'
-            defaultValue={formatDateForInput(federation?.foundationDate)}
-            disabled={isPending}
-          />
-          <Select
-            label='Country'
-            name='countryId'
-            value={selectedCountryId}
-            onChange={handleCountryChange}
-            disabled={isPending || Boolean(countriesError)}
-            helperText={countryHelperText}
-            error={Boolean(countriesError)}
-          >
-            <option value=''>No country</option>
-            {countryOptions.map(country => (
-              <option key={country.id} value={country.id}>
-                {country.name}
-              </option>
-            ))}
-          </Select>
-          <Select
-            label='City'
-            name='cityId'
-            value={selectedCityId}
-            onChange={handleCityChange}
-            disabled={isPending || !selectedCountryId || isCitiesPending}
-            helperText={cityHelperText}
-            error={Boolean(citiesError)}
-          >
-            <option value=''>No city</option>
-            {mergedCityOptions.map(city => (
-              <option key={city.id} value={city.id}>
-                {city.name}
-              </option>
-            ))}
-          </Select>
-          <TextInput
-            label='Official website URL'
-            name='officialWebsiteUrl'
-            type='url'
-            placeholder='https://...'
-            defaultValue={federation?.officialWebsiteUrl ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Icon URL'
-            name='iconUrl'
-            type='url'
-            placeholder='https://...'
-            defaultValue={federation?.iconUrl ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Hero image URL'
-            name='heroImageUrl'
-            type='url'
-            placeholder='https://...'
-            defaultValue={federation?.heroImageUrl ?? ''}
-            disabled={isPending}
-          />
-          <CheckBoxInput
-            label='Active'
-            name='isActive'
-            value='true'
-            defaultChecked={federation?.isActive ?? true}
-            disabled={isPending}
-          />
-          <TextArea
-            label='Description'
-            name='description'
-            placeholder='Optional description'
-            defaultValue={federation?.description ?? ''}
-            disabled={isPending}
-            rows={6}
-            className='grid-column--2'
-          />
-        </Grid>
-
+    <Card>
+      <Title size='small'>
+        {edit ? 'Edit Federation' : 'Create Federation'}
+      </Title>
+      <Form action={formAction}>
         {edit && federation ? (
-          <Grid gap={8} columns={2} className='margin-top--16'>
-            <TextInput label='ID' defaultValue={federation.id} readOnly disabled />
-            <TextInput label='Slug' defaultValue={federation.slug} readOnly disabled />
-            <TextInput
-              label='Created at'
-              defaultValue={formatDateTime(federation.createdAt)}
-              readOnly
-              disabled
-            />
-            <TextInput
-              label='Updated at'
-              defaultValue={formatDateTime(federation.updatedAt)}
-              readOnly
-              disabled
-            />
-          </Grid>
+          <input type='hidden' name='federationId' value={federation.id} />
         ) : null}
 
-        <ButtonGroup gap={4} className='margin-top--24'>
-          <Button type='submit' disabled={isPending} aria-busy={isPending}>
-            {isPending
-              ? edit
-                ? 'Updating federation...'
-                : 'Creating federation...'
-              : edit
-                ? 'Update federation'
-                : 'Create federation'}
-          </Button>
-          <Button
-            type='button'
-            onClick={handleCancel}
-            disabled={isPending}
-            variant='borderless'
-          >
-            Cancel
-          </Button>
-        </ButtonGroup>
-      </Section>
-    </Form>
+        <Section>
+          <Grid gap={8} columns={2}>
+            <TextInput
+              label='Federation name'
+              name='name'
+              placeholder='e.g. Royal Spanish Football Federation'
+              defaultValue={federation?.name ?? ''}
+              required
+              disabled={isPending}
+            />
+            <Select
+              label='Federation level'
+              name='federationLevel'
+              defaultValue={federation?.federationLevel ?? 'NATIONAL'}
+              disabled={isPending}
+              required
+            >
+              <option value='WORLD'>World</option>
+              <option value='CONTINENTAL'>Continental</option>
+              <option value='NATIONAL'>National</option>
+            </Select>
+            <TextInput
+              label='Native name'
+              name='nativeName'
+              placeholder='Optional native name'
+              defaultValue={federation?.nativeName ?? ''}
+              disabled={isPending}
+            />
+            <TextInput
+              label='Short name'
+              name='shortName'
+              placeholder='Optional short name'
+              defaultValue={federation?.shortName ?? ''}
+              disabled={isPending}
+            />
+            <TextInput
+              label='Acronym'
+              name='acronym'
+              placeholder='Optional acronym'
+              defaultValue={federation?.acronym ?? ''}
+              disabled={isPending}
+            />
+            <TextInput
+              label='Foundation date'
+              name='foundationDate'
+              type='date'
+              defaultValue={formatDateForInput(federation?.foundationDate)}
+              disabled={isPending}
+            />
+            <Select
+              label='Country'
+              name='countryId'
+              value={selectedCountryId}
+              onChange={handleCountryChange}
+              disabled={isPending || Boolean(countriesError)}
+              helperText={countryHelperText}
+              error={Boolean(countriesError)}
+            >
+              <option value=''>No country</option>
+              {countryOptions.map(country => (
+                <option key={country.id} value={country.id}>
+                  {country.name}
+                </option>
+              ))}
+            </Select>
+            <Select
+              label='City'
+              name='cityId'
+              value={selectedCityId}
+              onChange={handleCityChange}
+              disabled={isPending || !selectedCountryId || isCitiesPending}
+              helperText={cityHelperText}
+              error={Boolean(citiesError)}
+            >
+              <option value=''>No city</option>
+              {mergedCityOptions.map(city => (
+                <option key={city.id} value={city.id}>
+                  {city.name}
+                </option>
+              ))}
+            </Select>
+            <TextInput
+              label='Official website URL'
+              name='officialWebsiteUrl'
+              type='url'
+              placeholder='https://...'
+              defaultValue={federation?.officialWebsiteUrl ?? ''}
+              disabled={isPending}
+            />
+            <TextInput
+              label='Icon URL'
+              name='iconUrl'
+              type='url'
+              placeholder='https://...'
+              defaultValue={federation?.iconUrl ?? ''}
+              disabled={isPending}
+            />
+            <TextInput
+              label='Hero image URL'
+              name='heroImageUrl'
+              type='url'
+              placeholder='https://...'
+              defaultValue={federation?.heroImageUrl ?? ''}
+              disabled={isPending}
+            />
+            <CheckBoxInput
+              label='Active'
+              name='isActive'
+              value='true'
+              defaultChecked={federation?.isActive ?? true}
+              disabled={isPending}
+            />
+            <TextArea
+              label='Description'
+              name='description'
+              placeholder='Optional description'
+              defaultValue={federation?.description ?? ''}
+              disabled={isPending}
+              rows={6}
+              className='grid-column--2'
+            />
+          </Grid>
+
+          {edit && federation ? (
+            <Grid gap={8} columns={2} className='margin-top--16'>
+              <TextInput
+                label='ID'
+                defaultValue={federation.id}
+                readOnly
+                disabled
+              />
+              <TextInput
+                label='Slug'
+                defaultValue={federation.slug}
+                readOnly
+                disabled
+              />
+              <TextInput
+                label='Created at'
+                defaultValue={formatDateTime(federation.createdAt)}
+                readOnly
+                disabled
+              />
+              <TextInput
+                label='Updated at'
+                defaultValue={formatDateTime(federation.updatedAt)}
+                readOnly
+                disabled
+              />
+            </Grid>
+          ) : null}
+
+          <ButtonGroup gap={4} className='margin-top--24'>
+            <Button type='submit' disabled={isPending} aria-busy={isPending}>
+              {isPending
+                ? edit
+                  ? 'Updating federation...'
+                  : 'Creating federation...'
+                : edit
+                  ? 'Update federation'
+                  : 'Create federation'}
+            </Button>
+            <Button
+              type='button'
+              onClick={handleCancel}
+              disabled={isPending}
+              variant='borderless'
+            >
+              Cancel
+            </Button>
+          </ButtonGroup>
+        </Section>
+      </Form>
+    </Card>
   );
 }
