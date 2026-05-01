@@ -14,12 +14,21 @@ import {
   type PersonHairColor,
   type PersonSkinColor,
 } from '@/_constants/enums/person';
-import type { PersonActionState } from '@/_types/person';
+import type {
+  CreatePersonRequest,
+  PersonActionState,
+  UpdatePersonRequest,
+} from '@/_types/person';
 
 const UNSET = Symbol('unset');
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_FULL_NAME_LENGTH = 200;
+const MAX_DISPLAY_NAME_LENGTH = 200;
+const MAX_SHORT_NAME_LENGTH = 120;
 
-type NullableStringFieldKey =
+type NullableStringField =
   | 'first_name'
   | 'middle_name'
   | 'last_name'
@@ -27,26 +36,29 @@ type NullableStringFieldKey =
   | 'display_name'
   | 'known_as'
   | 'native_full_name'
-  | 'gender'
   | 'birth_location_id'
+  | 'current_city_id'
   | 'primary_nationality_country_id'
+  | 'avatar_image_url'
+  | 'hero_image_url';
+
+type NullableEnumField =
+  | 'gender'
   | 'hair_color'
   | 'ethnicity'
   | 'skin_color'
   | 'dominant_foot'
-  | 'current_profession'
-  | 'avatar_image_url'
-  | 'hero_image_url';
+  | 'current_profession';
 
-type NullableDateFieldKey =
+type NullableDateField =
   | 'birth_date'
   | 'death_date'
   | 'professional_division_debut_date'
   | 'retirement_date';
 
-type NullableNumberFieldKey = 'height_cm' | 'weight_kg';
+type NullableNumberField = 'height_cm' | 'weight_kg';
 
-type PersonEnumFieldValue =
+type PersonEnumValue =
   | PersonCurrentProfession
   | PersonDominantFoot
   | PersonEthnicity
@@ -55,119 +67,143 @@ type PersonEnumFieldValue =
   | PersonSkinColor;
 
 type PersonEnumField = Readonly<{
-  formKey: string;
-  originalKey?: string;
-  bodyKey: NullableStringFieldKey;
-  parse: (value: unknown) => PersonEnumFieldValue | null;
+  key: NullableEnumField;
+  parse: (value: unknown) => PersonEnumValue | null;
   reason: string;
-  message: string;
-  error: string;
+  label: string;
 }>;
 
 const PERSON_ENUM_FIELDS: ReadonlyArray<PersonEnumField> = [
   {
-    formKey: 'gender',
-    originalKey: 'original_gender',
-    bodyKey: 'gender',
+    key: 'gender',
     parse: parsePersonGender,
     reason: 'PERSON_INVALID_GENDER',
-    message: 'Select a valid gender.',
-    error: 'Select a valid gender.',
+    label: 'gender',
   },
   {
-    formKey: 'hairColor',
-    originalKey: 'original_hairColor',
-    bodyKey: 'hair_color',
+    key: 'hair_color',
     parse: parsePersonHairColor,
     reason: 'PERSON_INVALID_HAIR_COLOR',
-    message: 'Select a valid hair color.',
-    error: 'Select a valid hair color.',
+    label: 'hair color',
   },
   {
-    formKey: 'ethnicity',
-    originalKey: 'original_ethnicity',
-    bodyKey: 'ethnicity',
+    key: 'ethnicity',
     parse: parsePersonEthnicity,
     reason: 'PERSON_INVALID_ETHNICITY',
-    message: 'Select a valid ethnicity.',
-    error: 'Select a valid ethnicity.',
+    label: 'ethnicity',
   },
   {
-    formKey: 'skinColor',
-    originalKey: 'original_skinColor',
-    bodyKey: 'skin_color',
+    key: 'skin_color',
     parse: parsePersonSkinColor,
     reason: 'PERSON_INVALID_SKIN_COLOR',
-    message: 'Select a valid skin color.',
-    error: 'Select a valid skin color.',
+    label: 'skin color',
   },
   {
-    formKey: 'dominantFoot',
-    originalKey: 'original_dominantFoot',
-    bodyKey: 'dominant_foot',
+    key: 'dominant_foot',
     parse: parsePersonDominantFoot,
     reason: 'PERSON_INVALID_DOMINANT_FOOT',
-    message: 'Select a valid dominant foot.',
-    error: 'Select a valid dominant foot.',
+    label: 'dominant foot',
   },
   {
-    formKey: 'currentProfession',
-    originalKey: 'original_currentProfession',
-    bodyKey: 'current_profession',
+    key: 'current_profession',
     parse: parsePersonCurrentProfession,
     reason: 'PERSON_INVALID_CURRENT_PROFESSION',
-    message: 'Select a valid current profession.',
-    error: 'Select a valid current profession.',
+    label: 'current profession',
   },
 ];
 
-function str(formData: FormData, key: string): string {
+const SHORT_NAME_FIELDS: ReadonlyArray<
+  Readonly<{ key: 'first_name' | 'middle_name' | 'last_name' | 'second_surname' | 'known_as' | 'native_full_name'; reason: string; label: string }>
+> = [
+  { key: 'first_name', reason: 'PERSON_FIRST_NAME_TOO_LONG', label: 'first name' },
+  { key: 'middle_name', reason: 'PERSON_MIDDLE_NAME_TOO_LONG', label: 'middle name' },
+  { key: 'last_name', reason: 'PERSON_LAST_NAME_TOO_LONG', label: 'last name' },
+  {
+    key: 'second_surname',
+    reason: 'PERSON_SECOND_SURNAME_TOO_LONG',
+    label: 'second surname',
+  },
+  { key: 'known_as', reason: 'PERSON_KNOWN_AS_TOO_LONG', label: 'known as' },
+  {
+    key: 'native_full_name',
+    reason: 'PERSON_NATIVE_FULL_NAME_TOO_LONG',
+    label: 'native full name',
+  },
+];
+
+const UUID_FIELDS: ReadonlyArray<
+  Readonly<{
+    key: 'birth_location_id' | 'current_city_id' | 'primary_nationality_country_id';
+    reason: string;
+    label: string;
+  }>
+> = [
+  {
+    key: 'birth_location_id',
+    reason: 'PERSON_INVALID_BIRTH_LOCATION_ID',
+    label: 'birth location id',
+  },
+  {
+    key: 'current_city_id',
+    reason: 'PERSON_INVALID_CURRENT_CITY_ID',
+    label: 'current city id',
+  },
+  {
+    key: 'primary_nationality_country_id',
+    reason: 'PERSON_INVALID_PRIMARY_NATIONALITY_COUNTRY_ID',
+    label: 'primary nationality country id',
+  },
+];
+
+function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === 'string' ? value.trim() : '';
 }
 
-function bool(formData: FormData, key: string, fallback = false): boolean {
-  const value = formData.get(key);
-  if (typeof value !== 'string') return fallback;
+function getBoolean(formData: FormData, key: string, fallback = false): boolean {
+  const values = formData
+    .getAll(key)
+    .filter((value): value is string => typeof value === 'string');
 
-  const normalized = value.toLowerCase();
-  return normalized === 'true' || normalized === 'on' || normalized === '1';
+  if (values.length === 0) {
+    return fallback;
+  }
+
+  return values.some(value => {
+    const normalized = value.toLowerCase();
+    return normalized === 'true' || normalized === 'on' || normalized === '1';
+  });
 }
 
 function optionalString(value: string): string | null {
   return value.length > 0 ? value : null;
 }
 
-function normalizeDateInput(value: string): string | null {
-  if (!value) return null;
-  if (DATE_PATTERN.test(value)) return value;
+function parseDate(value: string): string | null {
+  if (!value) {
+    return null;
+  }
 
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
-
-  return parsed.toISOString().slice(0, 10);
-}
-
-function formatDateForComparison(value: string | null): string | null {
-  if (!value) return null;
-
-  const normalized = normalizeDateInput(value);
-  return normalized ?? value;
+  return DATE_PATTERN.test(value) ? value : null;
 }
 
 function parseNullableNumber(
   value: string,
 ): number | null | typeof Number.NaN {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
 
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return Number.NaN;
-
-  return parsed;
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
 function isFutureDate(value: string): boolean {
   return value > new Date().toISOString().slice(0, 10);
+}
+
+function isValidUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
 }
 
 function isValidHttpUrl(value: string): boolean {
@@ -182,7 +218,7 @@ function isValidHttpUrl(value: string): boolean {
 function formError(
   reason: string,
   message: string,
-  error: string,
+  error = message,
 ): PersonActionState {
   return {
     status: 'error',
@@ -194,85 +230,130 @@ function formError(
   };
 }
 
-function validateNullableUrl(
+function validateMaxLength(
   value: string | null,
+  max: number,
   reason: string,
-  message: string,
+  label: string,
 ): PersonActionState | null {
-  if (!value || isValidHttpUrl(value)) return null;
-  return formError(reason, message, message);
+  if (!value || value.length <= max) {
+    return null;
+  }
+
+  return formError(reason, `${label} is too long.`);
 }
 
-function validateNullableNumber(
+function validateUuid(
+  value: string | null,
+  reason: string,
+  label: string,
+): PersonActionState | null {
+  if (!value || isValidUuid(value)) {
+    return null;
+  }
+
+  return formError(reason, `${label} must be a valid UUID.`);
+}
+
+function validateUrl(
+  value: string | null,
+  reason: string,
+  label: string,
+): PersonActionState | null {
+  if (!value || isValidHttpUrl(value)) {
+    return null;
+  }
+
+  return formError(reason, `${label} must be an http or https URL.`);
+}
+
+function validateNumber(
   value: number | null,
   reason: string,
-  message: string,
+  label: string,
 ): PersonActionState | null {
-  if (value === null) return null;
-  if (value > 0) return null;
-  return formError(reason, message, message);
+  if (value === null || value > 0) {
+    return null;
+  }
+
+  return formError(reason, `${label} must be greater than zero.`);
+}
+
+function validateDateValue(
+  raw: string,
+  label: string,
+): PersonActionState | null {
+  if (!raw || DATE_PATTERN.test(raw)) {
+    return null;
+  }
+
+  return formError(
+    'INVALID_REQUEST',
+    `request is invalid`,
+    `${label} must use YYYY-MM-DD format.`,
+  );
 }
 
 function validateDateRelationships(
-  birthDate: string | null,
-  deathDate: string | null,
-  isDeceased: boolean,
-  debutDate: string | null,
-  retirementDate: string | null,
+  birth_date: string | null,
+  death_date: string | null,
+  is_deceased: boolean,
+  professional_division_debut_date: string | null,
+  retirement_date: string | null,
 ): PersonActionState | null {
-  if (birthDate && isFutureDate(birthDate)) {
+  if (birth_date && isFutureDate(birth_date)) {
     return formError(
       'PERSON_BIRTH_DATE_IN_FUTURE',
-      'Birth date cannot be in the future.',
-      'Birth date cannot be in the future.',
+      'birth date cannot be in the future',
     );
   }
 
-  if (deathDate && isFutureDate(deathDate)) {
+  if (death_date && isFutureDate(death_date)) {
     return formError(
       'PERSON_DEATH_DATE_IN_FUTURE',
-      'Death date cannot be in the future.',
-      'Death date cannot be in the future.',
+      'death date cannot be in the future',
     );
   }
 
-  if (deathDate && !isDeceased) {
+  if (death_date && !is_deceased) {
     return formError(
       'PERSON_DEATH_DATE_REQUIRES_DECEASED',
-      'Death date requires the person to be deceased.',
-      'Set the person as deceased before adding a death date.',
+      'death date requires deceased',
     );
   }
 
-  if (birthDate && deathDate && deathDate < birthDate) {
+  if (birth_date && death_date && death_date < birth_date) {
     return formError(
       'PERSON_DEATH_DATE_BEFORE_BIRTH_DATE',
-      'Death date cannot be before birth date.',
-      'Death date cannot be before birth date.',
+      'death date cannot be before birth date',
     );
   }
 
-  if (debutDate && isFutureDate(debutDate)) {
+  if (
+    professional_division_debut_date &&
+    isFutureDate(professional_division_debut_date)
+  ) {
     return formError(
       'PERSON_PROFESSIONAL_DEBUT_DATE_IN_FUTURE',
-      'Professional debut date cannot be in the future.',
-      'Professional debut date cannot be in the future.',
+      'professional debut date cannot be in the future',
     );
   }
 
-  if (retirementDate && isFutureDate(retirementDate)) {
+  if (retirement_date && isFutureDate(retirement_date)) {
     return formError(
       'PERSON_RETIREMENT_DATE_IN_FUTURE',
-      'Retirement date cannot be in the future.',
-      'Retirement date cannot be in the future.',
+      'retirement date cannot be in the future',
     );
   }
 
-  if (debutDate && retirementDate && retirementDate < debutDate) {
+  if (
+    professional_division_debut_date &&
+    retirement_date &&
+    retirement_date < professional_division_debut_date
+  ) {
     return formError(
       'PERSON_RETIREMENT_DATE_BEFORE_DEBUT_DATE',
-      'Retirement date cannot be before professional debut date.',
-      'Retirement date cannot be before professional debut date.',
+      'retirement date cannot be before professional debut date',
     );
   }
 
@@ -280,456 +361,449 @@ function validateDateRelationships(
 }
 
 function partialNullable<T>(
-  value: T | null,
+  current: T | null,
   original: T | null,
 ): T | null | typeof UNSET {
-  if (value === original) return UNSET;
-  return value;
+  return current === original ? UNSET : current;
 }
 
 function partialRequired(
-  value: string,
+  current: string,
   original: string,
 ): string | typeof UNSET {
-  if (value === original) return UNSET;
-  return value;
+  return current === original ? UNSET : current;
 }
 
-function parseNullableEnumField(
-  rawValue: string,
+function parseEnumField(
+  value: string,
   field: PersonEnumField,
 ): Readonly<{
-  value: PersonEnumFieldValue | null;
+  value: PersonEnumValue | null;
   error?: PersonActionState;
 }> {
-  if (!rawValue) return { value: null };
+  if (!value) {
+    return { value: null };
+  }
 
-  const value = field.parse(rawValue);
-  if (value !== null) {
-    return { value };
+  const parsed = field.parse(value);
+  if (parsed !== null) {
+    return { value: parsed };
   }
 
   return {
     value: null,
-    error: formError(field.reason, field.message, field.error),
+    error: formError(field.reason, `${field.label} is invalid.`),
   };
 }
 
+function runSharedValidations(input: Readonly<{
+  full_name: string | null;
+  display_name: string | null;
+  first_name: string | null;
+  middle_name: string | null;
+  last_name: string | null;
+  second_surname: string | null;
+  known_as: string | null;
+  native_full_name: string | null;
+  birth_location_id: string | null;
+  current_city_id: string | null;
+  primary_nationality_country_id: string | null;
+  avatar_image_url: string | null;
+  hero_image_url: string | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  birth_date: string | null;
+  death_date: string | null;
+  is_deceased: boolean;
+  professional_division_debut_date: string | null;
+  retirement_date: string | null;
+}>): PersonActionState | null {
+  const validations: Array<PersonActionState | null> = [
+    input.full_name
+      ? validateMaxLength(
+          input.full_name,
+          MAX_FULL_NAME_LENGTH,
+          'PERSON_FULL_NAME_TOO_LONG',
+          'full name',
+        )
+      : null,
+    validateMaxLength(
+      input.display_name,
+      MAX_DISPLAY_NAME_LENGTH,
+      'PERSON_DISPLAY_NAME_TOO_LONG',
+      'display name',
+    ),
+    ...SHORT_NAME_FIELDS.map(field =>
+      validateMaxLength(
+        input[field.key],
+        MAX_SHORT_NAME_LENGTH,
+        field.reason,
+        field.label,
+      ),
+    ),
+    ...UUID_FIELDS.map(field =>
+      validateUuid(input[field.key], field.reason, field.label),
+    ),
+    validateUrl(
+      input.avatar_image_url,
+      'PERSON_INVALID_AVATAR_IMAGE_URL',
+      'avatar image url',
+    ),
+    validateUrl(
+      input.hero_image_url,
+      'PERSON_INVALID_HERO_IMAGE_URL',
+      'hero image url',
+    ),
+    validateNumber(
+      input.height_cm,
+      'PERSON_INVALID_HEIGHT_CM',
+      'height_cm',
+    ),
+    validateNumber(
+      input.weight_kg,
+      'PERSON_INVALID_WEIGHT_KG',
+      'weight_kg',
+    ),
+    validateDateRelationships(
+      input.birth_date,
+      input.death_date,
+      input.is_deceased,
+      input.professional_division_debut_date,
+      input.retirement_date,
+    ),
+  ];
+
+  return validations.find(Boolean) ?? null;
+}
+
 export function formatDateForInput(value: string | null | undefined): string {
-  if (!value) return '';
-  if (DATE_PATTERN.test(value)) return value;
+  if (!value || DATE_PATTERN.test(value)) {
+    return value ?? '';
+  }
 
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '';
+  if (Number.isNaN(parsed.getTime())) {
+    return '';
+  }
 
   return parsed.toISOString().slice(0, 10);
 }
 
 export function buildCreatePersonBody(
   formData: FormData,
-): { body?: Record<string, unknown>; error?: PersonActionState } {
-  const fullName = str(formData, 'fullName');
-  if (!fullName) {
+): { body?: CreatePersonRequest; error?: PersonActionState } {
+  const full_name = getString(formData, 'full_name');
+
+  if (!full_name) {
     return {
-      error: formError(
-        'PERSON_FULL_NAME_REQUIRED',
-        'Full name is required.',
-        'Full name is required.',
-      ),
+      error: formError('PERSON_FULL_NAME_REQUIRED', 'full name is required'),
     };
   }
 
-  const birthDateRaw = str(formData, 'birthDate');
-  const deathDateRaw = str(formData, 'deathDate');
-  const debutDateRaw = str(formData, 'professionalDivisionDebutDate');
-  const retirementDateRaw = str(formData, 'retirementDate');
-  const birthDate = normalizeDateInput(birthDateRaw);
-  const deathDate = normalizeDateInput(deathDateRaw);
-  const debutDate = normalizeDateInput(debutDateRaw);
-  const retirementDate = normalizeDateInput(retirementDateRaw);
-  const isDeceased = bool(formData, 'isDeceased', false);
-  const heightCm = parseNullableNumber(str(formData, 'heightCm'));
-  const weightKg = parseNullableNumber(str(formData, 'weightKg'));
+  const birth_date_raw = getString(formData, 'birth_date');
+  const death_date_raw = getString(formData, 'death_date');
+  const professional_division_debut_date_raw = getString(
+    formData,
+    'professional_division_debut_date',
+  );
+  const retirement_date_raw = getString(formData, 'retirement_date');
+  const birth_date = parseDate(birth_date_raw);
+  const death_date = parseDate(death_date_raw);
+  const professional_division_debut_date = parseDate(
+    professional_division_debut_date_raw,
+  );
+  const retirement_date = parseDate(retirement_date_raw);
+  const is_deceased = getBoolean(formData, 'is_deceased', false);
+  const height_cm = parseNullableNumber(getString(formData, 'height_cm'));
+  const weight_kg = parseNullableNumber(getString(formData, 'weight_kg'));
 
-  if (birthDateRaw && !birthDate) {
-    return {
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Birth date must use YYYY-MM-DD.',
-        'Enter a valid birth date in YYYY-MM-DD format.',
-      ),
-    };
-  }
-
-  if (deathDateRaw && !deathDate) {
-    return {
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Death date must use YYYY-MM-DD.',
-        'Enter a valid death date in YYYY-MM-DD format.',
-      ),
-    };
-  }
-
-  if (debutDateRaw && !debutDate) {
-    return {
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Professional debut date must use YYYY-MM-DD.',
-        'Enter a valid professional debut date in YYYY-MM-DD format.',
-      ),
-    };
-  }
-
-  if (retirementDateRaw && !retirementDate) {
-    return {
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Retirement date must use YYYY-MM-DD.',
-        'Enter a valid retirement date in YYYY-MM-DD format.',
-      ),
-    };
-  }
-
-  if (Number.isNaN(heightCm)) {
-    return {
-      error: formError(
-        'PERSON_INVALID_HEIGHT_CM',
-        'Height must be a valid number.',
-        'Enter a valid height in centimeters.',
-      ),
-    };
-  }
-
-  if (Number.isNaN(weightKg)) {
-    return {
-      error: formError(
-        'PERSON_INVALID_WEIGHT_KG',
-        'Weight must be a valid number.',
-        'Enter a valid weight in kilograms.',
-      ),
-    };
-  }
-
-  const validations = [
-    validateNullableUrl(
-      optionalString(str(formData, 'avatarImageUrl')),
-      'PERSON_INVALID_AVATAR_IMAGE_URL',
-      'Enter a valid avatar image URL.',
+  const dateErrors = [
+    validateDateValue(birth_date_raw, 'birth_date'),
+    validateDateValue(death_date_raw, 'death_date'),
+    validateDateValue(
+      professional_division_debut_date_raw,
+      'professional_division_debut_date',
     ),
-    validateNullableUrl(
-      optionalString(str(formData, 'heroImageUrl')),
-      'PERSON_INVALID_HERO_IMAGE_URL',
-      'Enter a valid hero image URL.',
-    ),
-    validateNullableNumber(
-      heightCm,
-      'PERSON_INVALID_HEIGHT_CM',
-      'Enter a valid height in centimeters.',
-    ),
-    validateNullableNumber(
-      weightKg,
-      'PERSON_INVALID_WEIGHT_KG',
-      'Enter a valid weight in kilograms.',
-    ),
-    validateDateRelationships(
-      birthDate,
-      deathDate,
-      isDeceased,
-      debutDate,
-      retirementDate,
-    ),
+    validateDateValue(retirement_date_raw, 'retirement_date'),
   ];
-
-  const validationError = validations.find(Boolean);
-  if (validationError) {
-    return { error: validationError };
+  const dateError = dateErrors.find(Boolean);
+  if (dateError) {
+    return { error: dateError };
   }
 
-  const enumValues = new Map<NullableStringFieldKey, PersonEnumFieldValue | null>();
+  if (Number.isNaN(height_cm)) {
+    return {
+      error: formError('PERSON_INVALID_HEIGHT_CM', 'height_cm is invalid'),
+    };
+  }
 
+  if (Number.isNaN(weight_kg)) {
+    return {
+      error: formError('PERSON_INVALID_WEIGHT_KG', 'weight_kg is invalid'),
+    };
+  }
+
+  const enumValues = new Map<NullableEnumField, PersonEnumValue | null>();
   for (const field of PERSON_ENUM_FIELDS) {
-    const result = parseNullableEnumField(str(formData, field.formKey), field);
+    const result = parseEnumField(getString(formData, field.key), field);
     if (result.error) {
       return { error: result.error };
     }
 
-    enumValues.set(field.bodyKey, result.value);
+    enumValues.set(field.key, result.value);
+  }
+
+  const values = {
+    full_name,
+    display_name: optionalString(getString(formData, 'display_name')),
+    first_name: optionalString(getString(formData, 'first_name')),
+    middle_name: optionalString(getString(formData, 'middle_name')),
+    last_name: optionalString(getString(formData, 'last_name')),
+    second_surname: optionalString(getString(formData, 'second_surname')),
+    known_as: optionalString(getString(formData, 'known_as')),
+    native_full_name: optionalString(getString(formData, 'native_full_name')),
+    birth_location_id: optionalString(getString(formData, 'birth_location_id')),
+    current_city_id: optionalString(getString(formData, 'current_city_id')),
+    primary_nationality_country_id: optionalString(
+      getString(formData, 'primary_nationality_country_id'),
+    ),
+    avatar_image_url: optionalString(getString(formData, 'avatar_image_url')),
+    hero_image_url: optionalString(getString(formData, 'hero_image_url')),
+    height_cm,
+    weight_kg,
+    birth_date,
+    death_date,
+    is_deceased,
+    professional_division_debut_date,
+    retirement_date,
+  } as const;
+
+  const validationError = runSharedValidations(values);
+  if (validationError) {
+    return { error: validationError };
   }
 
   const body: Record<string, unknown> = {
-    full_name: fullName,
-    is_deceased: isDeceased,
-    is_active: bool(formData, 'isActive', true),
+    full_name,
+    is_deceased,
+    is_active: getBoolean(formData, 'is_active', true),
   };
 
-  const nullableStringFields: ReadonlyArray<
-    Readonly<{
-      formKey: string;
-      bodyKey: NullableStringFieldKey;
-    }>
-  > = [
-    { formKey: 'firstName', bodyKey: 'first_name' },
-    { formKey: 'middleName', bodyKey: 'middle_name' },
-    { formKey: 'lastName', bodyKey: 'last_name' },
-    { formKey: 'secondSurname', bodyKey: 'second_surname' },
-    { formKey: 'displayName', bodyKey: 'display_name' },
-    { formKey: 'knownAs', bodyKey: 'known_as' },
-    { formKey: 'nativeFullName', bodyKey: 'native_full_name' },
-    { formKey: 'birthLocationId', bodyKey: 'birth_location_id' },
-    {
-      formKey: 'primaryNationalityCountryId',
-      bodyKey: 'primary_nationality_country_id',
-    },
-    { formKey: 'avatarImageUrl', bodyKey: 'avatar_image_url' },
-    { formKey: 'heroImageUrl', bodyKey: 'hero_image_url' },
+  const nullableStringFields: ReadonlyArray<NullableStringField> = [
+    'first_name',
+    'middle_name',
+    'last_name',
+    'second_surname',
+    'display_name',
+    'known_as',
+    'native_full_name',
+    'birth_location_id',
+    'current_city_id',
+    'primary_nationality_country_id',
+    'avatar_image_url',
+    'hero_image_url',
   ];
 
-  for (const field of nullableStringFields) {
-    const value = optionalString(str(formData, field.formKey));
+  for (const key of nullableStringFields) {
+    const value = values[key];
     if (value !== null) {
-      body[field.bodyKey] = value;
+      body[key] = value;
     }
   }
 
-  for (const [bodyKey, value] of enumValues) {
+  for (const field of PERSON_ENUM_FIELDS) {
+    const value = enumValues.get(field.key) ?? null;
     if (value !== null) {
-      body[bodyKey] = value;
+      body[field.key] = value;
     }
   }
 
-  const nullableDateFields: ReadonlyArray<
-    Readonly<{
-      bodyKey: NullableDateFieldKey;
-      value: string | null;
-    }>
-  > = [
-    { bodyKey: 'birth_date', value: birthDate },
-    { bodyKey: 'death_date', value: deathDate },
-    {
-      bodyKey: 'professional_division_debut_date',
-      value: debutDate,
-    },
-    { bodyKey: 'retirement_date', value: retirementDate },
+  const nullableDateFields: ReadonlyArray<NullableDateField> = [
+    'birth_date',
+    'death_date',
+    'professional_division_debut_date',
+    'retirement_date',
   ];
 
-  for (const field of nullableDateFields) {
-    if (field.value !== null) {
-      body[field.bodyKey] = field.value;
+  for (const key of nullableDateFields) {
+    const value = values[key];
+    if (value !== null) {
+      body[key] = value;
     }
   }
 
-  const nullableNumberFields: ReadonlyArray<
-    Readonly<{
-      bodyKey: NullableNumberFieldKey;
-      value: number | null;
-    }>
-  > = [
-    { bodyKey: 'height_cm', value: heightCm },
-    { bodyKey: 'weight_kg', value: weightKg },
+  const nullableNumberFields: ReadonlyArray<NullableNumberField> = [
+    'height_cm',
+    'weight_kg',
   ];
 
-  for (const field of nullableNumberFields) {
-    if (field.value !== null) {
-      body[field.bodyKey] = field.value;
+  for (const key of nullableNumberFields) {
+    const value = values[key];
+    if (value !== null) {
+      body[key] = value;
     }
   }
 
-  return { body };
+  return { body: body as CreatePersonRequest };
 }
 
 export function buildUpdatePersonBody(formData: FormData): {
-  body?: Record<string, unknown>;
+  body?: UpdatePersonRequest;
   error?: PersonActionState;
   personId?: string;
 } {
-  const personId = str(formData, 'personId');
+  const personId = getString(formData, 'person_id');
+
   if (!personId) {
     return {
-      error: formError(
-        'PERSON_ID_REQUIRED',
-        'Missing person identifier.',
-        'Person identifier is required to update the record.',
-      ),
+      error: formError('PERSON_ID_REQUIRED', 'person id is required'),
     };
   }
 
-  const fullName = str(formData, 'fullName');
-  const originalFullName = str(formData, 'original_fullName');
-  const fullNameResult = partialRequired(fullName, originalFullName);
+  const full_name = getString(formData, 'full_name');
+  const original_full_name = getString(formData, 'original_full_name');
+  const fullNameResult = partialRequired(full_name, original_full_name);
+
   if (fullNameResult !== UNSET && !fullNameResult) {
     return {
       personId,
-      error: formError(
-        'PERSON_FULL_NAME_REQUIRED',
-        'Full name is required.',
-        'Full name is required.',
-      ),
+      error: formError('PERSON_FULL_NAME_REQUIRED', 'full name is required'),
     };
   }
 
-  const birthDateRaw = str(formData, 'birthDate');
-  const deathDateRaw = str(formData, 'deathDate');
-  const debutDateRaw = str(formData, 'professionalDivisionDebutDate');
-  const retirementDateRaw = str(formData, 'retirementDate');
-  const birthDate = normalizeDateInput(birthDateRaw);
-  const deathDate = normalizeDateInput(deathDateRaw);
-  const debutDate = normalizeDateInput(debutDateRaw);
-  const retirementDate = normalizeDateInput(retirementDateRaw);
-  const originalBirthDate = formatDateForComparison(
-    optionalString(str(formData, 'original_birthDate')),
+  const currentIsDeceased = getBoolean(formData, 'is_deceased', false);
+  const originalIsDeceased = getBoolean(formData, 'original_is_deceased', false);
+  const currentIsActive = getBoolean(formData, 'is_active', false);
+  const originalIsActive = getBoolean(formData, 'original_is_active', false);
+
+  const birth_date_raw = getString(formData, 'birth_date');
+  const death_date_raw = getString(formData, 'death_date');
+  const professional_division_debut_date_raw = getString(
+    formData,
+    'professional_division_debut_date',
   );
-  const originalDeathDate = formatDateForComparison(
-    optionalString(str(formData, 'original_deathDate')),
+  const retirement_date_raw = getString(formData, 'retirement_date');
+
+  const birth_date = parseDate(birth_date_raw);
+  const death_date = parseDate(death_date_raw);
+  const professional_division_debut_date = parseDate(
+    professional_division_debut_date_raw,
   );
-  const originalDebutDate = formatDateForComparison(
-    optionalString(str(formData, 'original_professionalDivisionDebutDate')),
-  );
-  const originalRetirementDate = formatDateForComparison(
-    optionalString(str(formData, 'original_retirementDate')),
-  );
-  const currentIsDeceased = bool(formData, 'isDeceased', false);
-  const originalIsDeceased = bool(formData, 'original_isDeceased', false);
-  const currentDeathDate = currentIsDeceased ? deathDate : null;
-  const effectiveBirthDate = birthDate ?? originalBirthDate;
-  const effectiveDeathDate = currentIsDeceased
-    ? deathDate ?? originalDeathDate
-    : null;
-  const effectiveDebutDate = debutDate ?? originalDebutDate;
-  const effectiveRetirementDate = retirementDate ?? originalRetirementDate;
-  const heightCm = parseNullableNumber(str(formData, 'heightCm'));
-  const weightKg = parseNullableNumber(str(formData, 'weightKg'));
+  const retirement_date = parseDate(retirement_date_raw);
 
-  if (birthDateRaw && !birthDate) {
-    return {
-      personId,
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Birth date must use YYYY-MM-DD.',
-        'Enter a valid birth date in YYYY-MM-DD format.',
-      ),
-    };
-  }
-
-  if (deathDateRaw && !deathDate) {
-    return {
-      personId,
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Death date must use YYYY-MM-DD.',
-        'Enter a valid death date in YYYY-MM-DD format.',
-      ),
-    };
-  }
-
-  if (debutDateRaw && !debutDate) {
-    return {
-      personId,
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Professional debut date must use YYYY-MM-DD.',
-        'Enter a valid professional debut date in YYYY-MM-DD format.',
-      ),
-    };
-  }
-
-  if (retirementDateRaw && !retirementDate) {
-    return {
-      personId,
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Retirement date must use YYYY-MM-DD.',
-        'Enter a valid retirement date in YYYY-MM-DD format.',
-      ),
-    };
-  }
-
-  if (Number.isNaN(heightCm)) {
-    return {
-      personId,
-      error: formError(
-        'PERSON_INVALID_HEIGHT_CM',
-        'Height must be a valid number.',
-        'Enter a valid height in centimeters.',
-      ),
-    };
-  }
-
-  if (Number.isNaN(weightKg)) {
-    return {
-      personId,
-      error: formError(
-        'PERSON_INVALID_WEIGHT_KG',
-        'Weight must be a valid number.',
-        'Enter a valid weight in kilograms.',
-      ),
-    };
-  }
-
-  const validations = [
-    validateNullableUrl(
-      optionalString(str(formData, 'avatarImageUrl')),
-      'PERSON_INVALID_AVATAR_IMAGE_URL',
-      'Enter a valid avatar image URL.',
+  const dateErrors = [
+    validateDateValue(birth_date_raw, 'birth_date'),
+    validateDateValue(death_date_raw, 'death_date'),
+    validateDateValue(
+      professional_division_debut_date_raw,
+      'professional_division_debut_date',
     ),
-    validateNullableUrl(
-      optionalString(str(formData, 'heroImageUrl')),
-      'PERSON_INVALID_HERO_IMAGE_URL',
-      'Enter a valid hero image URL.',
-    ),
-    validateNullableNumber(
-      heightCm,
-      'PERSON_INVALID_HEIGHT_CM',
-      'Enter a valid height in centimeters.',
-    ),
-    validateNullableNumber(
-      weightKg,
-      'PERSON_INVALID_WEIGHT_KG',
-      'Enter a valid weight in kilograms.',
-    ),
-    validateDateRelationships(
-      effectiveBirthDate,
-      effectiveDeathDate,
-      currentIsDeceased,
-      effectiveDebutDate,
-      effectiveRetirementDate,
-    ),
+    validateDateValue(retirement_date_raw, 'retirement_date'),
   ];
-
-  const validationError = validations.find(Boolean);
-  if (validationError) {
-    return { personId, error: validationError };
+  const dateError = dateErrors.find(Boolean);
+  if (dateError) {
+    return { personId, error: dateError };
   }
+
+  const height_cm = parseNullableNumber(getString(formData, 'height_cm'));
+  const weight_kg = parseNullableNumber(getString(formData, 'weight_kg'));
+  const original_height_cm = parseNullableNumber(
+    getString(formData, 'original_height_cm'),
+  );
+  const original_weight_kg = parseNullableNumber(
+    getString(formData, 'original_weight_kg'),
+  );
+
+  if (Number.isNaN(height_cm)) {
+    return {
+      personId,
+      error: formError('PERSON_INVALID_HEIGHT_CM', 'height_cm is invalid'),
+    };
+  }
+
+  if (Number.isNaN(weight_kg)) {
+    return {
+      personId,
+      error: formError('PERSON_INVALID_WEIGHT_KG', 'weight_kg is invalid'),
+    };
+  }
+
+  const original_birth_date =
+    parseDate(getString(formData, 'original_birth_date')) ??
+    optionalString(getString(formData, 'original_birth_date'));
+  const original_death_date =
+    parseDate(getString(formData, 'original_death_date')) ??
+    optionalString(getString(formData, 'original_death_date'));
+  const original_professional_division_debut_date =
+    parseDate(getString(formData, 'original_professional_division_debut_date')) ??
+    optionalString(getString(formData, 'original_professional_division_debut_date'));
+  const original_retirement_date =
+    parseDate(getString(formData, 'original_retirement_date')) ??
+    optionalString(getString(formData, 'original_retirement_date'));
+
+  const effective_birth_date = birth_date ?? original_birth_date;
+  const effective_death_date = currentIsDeceased
+    ? death_date ?? original_death_date
+    : null;
+  const effective_professional_division_debut_date =
+    professional_division_debut_date ??
+    original_professional_division_debut_date;
+  const effective_retirement_date = retirement_date ?? original_retirement_date;
 
   const enumValues = new Map<
-    NullableStringFieldKey,
-    Readonly<{
-      current: PersonEnumFieldValue | null;
-      original: PersonEnumFieldValue | null;
-    }>
+    NullableEnumField,
+    Readonly<{ current: PersonEnumValue | null; original: PersonEnumValue | null }>
   >();
 
   for (const field of PERSON_ENUM_FIELDS) {
-    const currentResult = parseNullableEnumField(
-      str(formData, field.formKey),
-      field,
-    );
+    const currentResult = parseEnumField(getString(formData, field.key), field);
     if (currentResult.error) {
       return { personId, error: currentResult.error };
     }
 
-    const originalResult = parseNullableEnumField(
-      str(formData, field.originalKey ?? ''),
+    const originalResult = parseEnumField(
+      getString(formData, `original_${field.key}`),
       field,
     );
     if (originalResult.error) {
       return { personId, error: originalResult.error };
     }
 
-    enumValues.set(field.bodyKey, {
+    enumValues.set(field.key, {
       current: currentResult.value,
       original: originalResult.value,
     });
+  }
+
+  const values = {
+    full_name: fullNameResult === UNSET ? original_full_name : fullNameResult,
+    display_name: optionalString(getString(formData, 'display_name')),
+    first_name: optionalString(getString(formData, 'first_name')),
+    middle_name: optionalString(getString(formData, 'middle_name')),
+    last_name: optionalString(getString(formData, 'last_name')),
+    second_surname: optionalString(getString(formData, 'second_surname')),
+    known_as: optionalString(getString(formData, 'known_as')),
+    native_full_name: optionalString(getString(formData, 'native_full_name')),
+    birth_location_id: optionalString(getString(formData, 'birth_location_id')),
+    current_city_id: optionalString(getString(formData, 'current_city_id')),
+    primary_nationality_country_id: optionalString(
+      getString(formData, 'primary_nationality_country_id'),
+    ),
+    avatar_image_url: optionalString(getString(formData, 'avatar_image_url')),
+    hero_image_url: optionalString(getString(formData, 'hero_image_url')),
+    height_cm,
+    weight_kg,
+    birth_date: effective_birth_date,
+    death_date: effective_death_date,
+    is_deceased: currentIsDeceased,
+    professional_division_debut_date:
+      effective_professional_division_debut_date,
+    retirement_date: effective_retirement_date,
+  } as const;
+
+  const validationError = runSharedValidations(values);
+  if (validationError) {
+    return { personId, error: validationError };
   }
 
   const body: Record<string, unknown> = {};
@@ -738,112 +812,81 @@ export function buildUpdatePersonBody(formData: FormData): {
     body.full_name = fullNameResult;
   }
 
-  const nullableStringFields: ReadonlyArray<
-    Readonly<{
-      formKey: string;
-      originalKey: string;
-      bodyKey: NullableStringFieldKey;
-    }>
-  > = [
-    { formKey: 'firstName', originalKey: 'original_firstName', bodyKey: 'first_name' },
-    {
-      formKey: 'middleName',
-      originalKey: 'original_middleName',
-      bodyKey: 'middle_name',
-    },
-    { formKey: 'lastName', originalKey: 'original_lastName', bodyKey: 'last_name' },
-    {
-      formKey: 'secondSurname',
-      originalKey: 'original_secondSurname',
-      bodyKey: 'second_surname',
-    },
-    {
-      formKey: 'displayName',
-      originalKey: 'original_displayName',
-      bodyKey: 'display_name',
-    },
-    { formKey: 'knownAs', originalKey: 'original_knownAs', bodyKey: 'known_as' },
-    {
-      formKey: 'nativeFullName',
-      originalKey: 'original_nativeFullName',
-      bodyKey: 'native_full_name',
-    },
-    {
-      formKey: 'birthLocationId',
-      originalKey: 'original_birthLocationId',
-      bodyKey: 'birth_location_id',
-    },
-    {
-      formKey: 'primaryNationalityCountryId',
-      originalKey: 'original_primaryNationalityCountryId',
-      bodyKey: 'primary_nationality_country_id',
-    },
-    {
-      formKey: 'avatarImageUrl',
-      originalKey: 'original_avatarImageUrl',
-      bodyKey: 'avatar_image_url',
-    },
-    {
-      formKey: 'heroImageUrl',
-      originalKey: 'original_heroImageUrl',
-      bodyKey: 'hero_image_url',
-    },
+  const nullableStringFields: ReadonlyArray<NullableStringField> = [
+    'first_name',
+    'middle_name',
+    'last_name',
+    'second_surname',
+    'display_name',
+    'known_as',
+    'native_full_name',
+    'birth_location_id',
+    'current_city_id',
+    'primary_nationality_country_id',
+    'avatar_image_url',
+    'hero_image_url',
   ];
 
-  for (const field of nullableStringFields) {
-    const currentValue = optionalString(str(formData, field.formKey));
-    const originalValue = optionalString(str(formData, field.originalKey));
-    const result = partialNullable(currentValue, originalValue);
+  for (const key of nullableStringFields) {
+    const result = partialNullable(
+      optionalString(getString(formData, key)),
+      optionalString(getString(formData, `original_${key}`)),
+    );
     if (result !== UNSET) {
-      body[field.bodyKey] = result;
+      body[key] = result;
     }
   }
 
-  for (const [bodyKey, value] of enumValues) {
+  for (const field of PERSON_ENUM_FIELDS) {
+    const value = enumValues.get(field.key);
+    if (!value) {
+      continue;
+    }
+
     const result = partialNullable(value.current, value.original);
     if (result !== UNSET) {
-      body[bodyKey] = result;
+      body[field.key] = result;
     }
   }
 
-  const birthDateResult = partialNullable(birthDate, originalBirthDate);
+  const birthDateResult = partialNullable(birth_date, original_birth_date);
   if (birthDateResult !== UNSET) {
     body.birth_date = birthDateResult;
   }
 
   if (!currentIsDeceased) {
-    if (originalDeathDate !== null || deathDateRaw) {
+    if (original_death_date !== null || death_date_raw.length > 0) {
       body.death_date = null;
     }
   } else {
-    const deathDateResult = partialNullable(currentDeathDate, originalDeathDate);
+    const deathDateResult = partialNullable(death_date, original_death_date);
     if (deathDateResult !== UNSET) {
       body.death_date = deathDateResult;
     }
   }
 
-  const debutDateResult = partialNullable(debutDate, originalDebutDate);
+  const debutDateResult = partialNullable(
+    professional_division_debut_date,
+    original_professional_division_debut_date,
+  );
   if (debutDateResult !== UNSET) {
     body.professional_division_debut_date = debutDateResult;
   }
 
   const retirementDateResult = partialNullable(
-    retirementDate,
-    originalRetirementDate,
+    retirement_date,
+    original_retirement_date,
   );
   if (retirementDateResult !== UNSET) {
     body.retirement_date = retirementDateResult;
   }
 
-  const originalHeightCm = parseNullableNumber(str(formData, 'original_heightCm'));
-  const originalWeightKg = parseNullableNumber(str(formData, 'original_weightKg'));
-
-  const heightResult = partialNullable(heightCm, originalHeightCm);
+  const heightResult = partialNullable(height_cm, original_height_cm);
   if (heightResult !== UNSET) {
     body.height_cm = heightResult;
   }
 
-  const weightResult = partialNullable(weightKg, originalWeightKg);
+  const weightResult = partialNullable(weight_kg, original_weight_kg);
   if (weightResult !== UNSET) {
     body.weight_kg = weightResult;
   }
@@ -852,15 +895,9 @@ export function buildUpdatePersonBody(formData: FormData): {
     body.is_deceased = currentIsDeceased;
   }
 
-  const currentIsActive = bool(formData, 'isActive', false);
-  const originalIsActive = bool(formData, 'original_isActive', false);
   if (currentIsActive !== originalIsActive) {
     body.is_active = currentIsActive;
   }
 
-  if (Object.keys(body).length === 0) {
-    return { personId, body: {} };
-  }
-
-  return { personId, body };
+  return { personId, body: body as UpdatePersonRequest };
 }

@@ -9,116 +9,181 @@ import {
   parsePersonSkinColor,
 } from '@/_constants/enums/person';
 import type {
-  Person,
-  PersonListItem,
+  GeoRef,
+  PersonAdminDetail,
+  PersonAdminListItem,
+  PersonCurrentLocationPublic,
   PersonListMetadata,
+  PersonPublicDetail,
   PersonSort,
   PersonStatusFilter,
 } from '@/_types/person';
 
-type RawPerson = Record<string, unknown>;
+type RawRecord = Record<string, unknown>;
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
-
-function toNullableString(value: unknown): string | null {
-  if (typeof value !== 'string') return null;
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
 
 function toStringValue(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
 
+function toNullableString(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  return value.trim().length > 0 ? value : null;
+}
+
 function toNullableNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value !== 'string') return null;
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return null;
+  }
 
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export function mapPersonListItem(raw: RawPerson): PersonListItem {
+function isRecord(value: unknown): value is RawRecord {
+  return typeof value === 'object' && value !== null;
+}
+
+function mapGeoRef(raw: unknown): GeoRef | null {
+  if (!isRecord(raw) || typeof raw.name !== 'string') {
+    return null;
+  }
+
+  return {
+    ...(typeof raw.id === 'string' ? { id: raw.id } : {}),
+    name: raw.name,
+    ...(typeof raw.slug === 'string' ? { slug: raw.slug } : {}),
+  };
+}
+
+function mapCurrentLocation(raw: unknown): PersonCurrentLocationPublic | null {
+  if (!isRecord(raw)) {
+    return null;
+  }
+
+  const city = mapGeoRef(raw.city);
+  const country = mapGeoRef(raw.country);
+  const province_name = toNullableString(raw.province_name) ?? undefined;
+
+  if (!city && !country && !province_name) {
+    return null;
+  }
+
+  return {
+    ...(city ? { city } : {}),
+    ...(province_name ? { province_name } : {}),
+    ...(country ? { country } : {}),
+  };
+}
+
+export function mapPersonAdminListItem(raw: RawRecord): PersonAdminListItem {
   return {
     id: String(raw.id ?? ''),
-    fullName: String(raw.full_name ?? raw.fullName ?? ''),
+    full_name: String(raw.full_name ?? ''),
     slug: String(raw.slug ?? ''),
-    displayName: toStringValue(raw.display_name ?? raw.displayName),
-    gender: parsePersonGender(raw.gender),
-    currentProfession: parsePersonCurrentProfession(
-      raw.current_profession ?? raw.currentProfession,
+    display_name: String(raw.display_name ?? ''),
+    gender:
+      (parsePersonGender(raw.gender) ??
+        toStringValue(raw.gender)) as PersonAdminListItem['gender'],
+    current_profession: parsePersonCurrentProfession(raw.current_profession),
+    primary_nationality_country_id: toNullableString(
+      raw.primary_nationality_country_id,
     ),
-    primaryNationalityCountryId: toNullableString(
-      raw.primary_nationality_country_id ?? raw.primaryNationalityCountryId,
-    ),
-    avatarImageUrl: toNullableString(
-      raw.avatar_image_url ?? raw.avatarImageUrl,
-    ),
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
-    createdAt: String(raw.created_at ?? raw.createdAt ?? ''),
-    updatedAt: String(raw.updated_at ?? raw.updatedAt ?? ''),
+    avatar_image_url: toNullableString(raw.avatar_image_url),
+    is_active: Boolean(raw.is_active ?? false),
+    created_at: String(raw.created_at ?? ''),
+    updated_at: String(raw.updated_at ?? ''),
   };
 }
 
-export function mapPerson(raw: RawPerson): Person {
-  const summary = mapPersonListItem(raw);
-
+export function mapPersonAdminDetail(raw: RawRecord): PersonAdminDetail {
   return {
-    ...summary,
-    firstName: toNullableString(raw.first_name ?? raw.firstName),
-    middleName: toNullableString(raw.middle_name ?? raw.middleName),
-    lastName: toNullableString(raw.last_name ?? raw.lastName),
-    secondSurname: toNullableString(
-      raw.second_surname ?? raw.secondSurname,
+    ...mapPersonAdminListItem(raw),
+    first_name: toNullableString(raw.first_name),
+    middle_name: toNullableString(raw.middle_name),
+    last_name: toNullableString(raw.last_name),
+    second_surname: toNullableString(raw.second_surname),
+    known_as: toNullableString(raw.known_as),
+    native_full_name: toNullableString(raw.native_full_name),
+    birth_date: toNullableString(raw.birth_date),
+    death_date: toNullableString(raw.death_date),
+    is_deceased: Boolean(raw.is_deceased ?? false),
+    birth_location_id: toNullableString(raw.birth_location_id),
+    current_city_id: toNullableString(raw.current_city_id),
+    primary_nationality_country_id: toNullableString(
+      raw.primary_nationality_country_id,
     ),
-    knownAs: toNullableString(raw.known_as ?? raw.knownAs),
-    nativeFullName: toNullableString(
-      raw.native_full_name ?? raw.nativeFullName,
-    ),
-    birthDate: toNullableString(raw.birth_date ?? raw.birthDate),
-    deathDate: toNullableString(raw.death_date ?? raw.deathDate),
-    isDeceased: Boolean(raw.is_deceased ?? raw.isDeceased ?? false),
-    birthLocationId: toNullableString(
-      raw.birth_location_id ?? raw.birthLocationId,
-    ),
-    heightCm: toNullableNumber(raw.height_cm ?? raw.heightCm),
-    weightKg: toNullableNumber(raw.weight_kg ?? raw.weightKg),
-    hairColor: parsePersonHairColor(raw.hair_color ?? raw.hairColor),
+    height_cm: toNullableNumber(raw.height_cm),
+    weight_kg: toNullableNumber(raw.weight_kg),
+    hair_color: parsePersonHairColor(raw.hair_color),
     ethnicity: parsePersonEthnicity(raw.ethnicity),
-    skinColor: parsePersonSkinColor(raw.skin_color ?? raw.skinColor),
-    dominantFoot: parsePersonDominantFoot(
-      raw.dominant_foot ?? raw.dominantFoot,
+    skin_color: parsePersonSkinColor(raw.skin_color),
+    dominant_foot: parsePersonDominantFoot(raw.dominant_foot),
+    current_profession: parsePersonCurrentProfession(raw.current_profession),
+    professional_division_debut_date: toNullableString(
+      raw.professional_division_debut_date,
     ),
-    professionalDivisionDebutDate: toNullableString(
-      raw.professional_division_debut_date ??
-        raw.professionalDivisionDebutDate,
-    ),
-    retirementDate: toNullableString(
-      raw.retirement_date ?? raw.retirementDate,
-    ),
-    heroImageUrl: toNullableString(raw.hero_image_url ?? raw.heroImageUrl),
+    retirement_date: toNullableString(raw.retirement_date),
+    avatar_image_url: toNullableString(raw.avatar_image_url),
+    hero_image_url: toNullableString(raw.hero_image_url),
   };
 }
 
-export function mapPersonMetadata(
-  raw: Record<string, unknown>,
-): PersonListMetadata {
-  const filters =
-    typeof raw.filters === 'object' && raw.filters !== null
-      ? (raw.filters as Record<string, unknown>)
-      : null;
+export function mapPersonPublicDetail(raw: RawRecord): PersonPublicDetail {
+  return {
+    slug: String(raw.slug ?? ''),
+    full_name: String(raw.full_name ?? ''),
+    display_name: String(raw.display_name ?? ''),
+    first_name: toNullableString(raw.first_name),
+    middle_name: toNullableString(raw.middle_name),
+    last_name: toNullableString(raw.last_name),
+    second_surname: toNullableString(raw.second_surname),
+    known_as: toNullableString(raw.known_as),
+    native_full_name: toNullableString(raw.native_full_name),
+    gender:
+      (parsePersonGender(raw.gender) ??
+        toStringValue(raw.gender)) as PersonPublicDetail['gender'],
+    birth_date: toNullableString(raw.birth_date),
+    death_date: toNullableString(raw.death_date),
+    is_deceased: Boolean(raw.is_deceased ?? false),
+    birth_location: mapGeoRef(raw.birth_location),
+    current_location: mapCurrentLocation(raw.current_location),
+    primary_nationality: mapGeoRef(raw.primary_nationality),
+    height_cm: toNullableNumber(raw.height_cm),
+    weight_kg: toNullableNumber(raw.weight_kg),
+    hair_color: parsePersonHairColor(raw.hair_color),
+    ethnicity: parsePersonEthnicity(raw.ethnicity),
+    skin_color: parsePersonSkinColor(raw.skin_color),
+    dominant_foot: parsePersonDominantFoot(raw.dominant_foot),
+    current_profession: parsePersonCurrentProfession(raw.current_profession),
+    professional_division_debut_date: toNullableString(
+      raw.professional_division_debut_date,
+    ),
+    retirement_date: toNullableString(raw.retirement_date),
+    avatar_image_url: toNullableString(raw.avatar_image_url),
+    hero_image_url: toNullableString(raw.hero_image_url),
+  };
+}
+
+export function mapPersonMetadata(raw: RawRecord): PersonListMetadata {
+  const filters = isRecord(raw.filters) ? raw.filters : null;
 
   return {
     page: Number(raw.page ?? DEFAULT_PAGE),
-    pageSize: Number(raw.page_size ?? raw.pageSize ?? DEFAULT_PAGE_SIZE),
-    totalItems: Number(raw.total_items ?? raw.totalItems ?? 0),
-    totalPages: Number(raw.total_pages ?? raw.totalPages ?? 1),
-    hasNextPage: Boolean(raw.has_next_page ?? raw.hasNextPage ?? false),
-    hasPreviousPage: Boolean(
-      raw.has_previous_page ?? raw.hasPreviousPage ?? false,
-    ),
+    pageSize: Number(raw.page_size ?? DEFAULT_PAGE_SIZE),
+    totalItems: Number(raw.total_items ?? 0),
+    totalPages: Number(raw.total_pages ?? 1),
+    hasNextPage: Boolean(raw.has_next_page ?? false),
+    hasPreviousPage: Boolean(raw.has_previous_page ?? false),
     filters: filters
       ? {
           sort:
@@ -130,9 +195,8 @@ export function mapPersonMetadata(
               ? (filters.status as PersonStatusFilter)
               : undefined,
           gender: parsePersonGender(filters.gender) ?? undefined,
-          currentProfession: parsePersonCurrentProfession(
-            filters.current_profession ?? filters.currentProfession,
-          ) ?? undefined,
+          current_profession:
+            parsePersonCurrentProfession(filters.current_profession) ?? undefined,
         }
       : undefined,
   };

@@ -1,10 +1,4 @@
 /** @format */
-/**
- * @file src/app/persons/_components/PersonForm.tsx
- * @description Renders the localized create and edit person form.
- * @layer app
- * @created Diego Martín Lafuente <diego.lafuente@cognativinc.com>
- */
 
 'use client';
 
@@ -47,16 +41,18 @@ import NAVIGATION from '@/_constants/navigation';
 import { resolvePersonErrorMessage } from '@/_constants/personErrorMessages';
 import { useI18n } from '@/_i18n/I18nProvider';
 import type { CountrySelectOption } from '@/_types/country';
-import type { Person, PersonActionState } from '@/_types/person';
+import type { PersonActionState, PersonAdminDetail } from '@/_types/person';
 
 const INITIAL_STATE: PersonActionState = { status: 'idle' };
 
 type PersonFormProps = Readonly<{
-  person?: Person | null;
+  person?: PersonAdminDetail | null;
   countries: ReadonlyArray<CountrySelectOption>;
   countriesError?: string | null;
   selectedPrimaryNationalityCountryLabel?: string | null;
   edit?: boolean;
+  cancelHref?: string;
+  successHref?: string;
 }>;
 
 function formatDateTime(
@@ -68,7 +64,6 @@ function formatDateTime(
   }
 
   const parsed = new Date(value);
-
   if (Number.isNaN(parsed.getTime())) {
     return '--';
   }
@@ -77,11 +72,17 @@ function formatDateTime(
 }
 
 function formatNumberForInput(value: number | null | undefined): string {
-  if (typeof value === 'number') {
-    return String(value);
-  }
+  return typeof value === 'number' ? String(value) : '';
+}
 
-  return '';
+function OriginalField({
+  name,
+  value,
+}: Readonly<{
+  name: string;
+  value: string;
+}>): React.JSX.Element {
+  return <input type='hidden' name={`original_${name}`} value={value} />;
 }
 
 export default function PersonForm({
@@ -90,6 +91,8 @@ export default function PersonForm({
   countriesError = null,
   selectedPrimaryNationalityCountryLabel = null,
   edit = false,
+  cancelHref,
+  successHref,
 }: PersonFormProps): React.JSX.Element {
   const router = useRouter();
   const { dictionary, locale } = useI18n();
@@ -97,8 +100,8 @@ export default function PersonForm({
   const [
     selectedPrimaryNationalityCountryId,
     setSelectedPrimaryNationalityCountryId,
-  ] = useState(person?.primaryNationalityCountryId ?? '');
-  const [isDeceased, setIsDeceased] = useState(person?.isDeceased ?? false);
+  ] = useState(person?.primary_nationality_country_id ?? '');
+  const [isDeceased, setIsDeceased] = useState(person?.is_deceased ?? false);
 
   const [editState, editAction, editPending] = useActionState<
     PersonActionState,
@@ -117,9 +120,7 @@ export default function PersonForm({
     function buildCountryOptions() {
       if (
         !selectedPrimaryNationalityCountryId ||
-        countries.some(function countryMatchesSelection(country) {
-          return country.id === selectedPrimaryNationalityCountryId;
-        })
+        countries.some(country => country.id === selectedPrimaryNationalityCountryId)
       ) {
         return countries;
       }
@@ -141,79 +142,77 @@ export default function PersonForm({
     ],
   );
 
-  useEffect(
-    function syncActionFeedback(): void {
-      if (actionState.status === 'idle') {
-        return;
-      }
+  useEffect(() => {
+    if (actionState.status === 'idle') {
+      return;
+    }
 
-      if (actionState.status === 'error') {
-        toast.error(
-          resolvePersonErrorMessage(
-            actionState.error,
-            dictionary.persons.errors,
-            dictionary.common.unexpectedError,
-          ),
-        );
-        return;
-      }
+    if (actionState.status === 'error') {
+      toast.error(
+        resolvePersonErrorMessage(
+          actionState.error,
+          dictionary.persons.errors,
+          dictionary.common.unexpectedError,
+        ),
+      );
+      return;
+    }
 
-      if (edit) {
-        toast.success(dictionary.persons.form.updateSuccess);
-        router.refresh();
-        return;
-      }
-
-      toast.success(dictionary.persons.form.createSuccess);
-
-      if (actionState.personId) {
-        router.push(NAVIGATION.PERSON_BY_ID(actionState.personId));
-        router.refresh();
-        return;
-      }
-
-      router.push(NAVIGATION.PERSONS);
+    if (edit) {
+      toast.success(dictionary.persons.form.updateSuccess);
+      router.push(successHref ?? NAVIGATION.PERSON_BY_ID(person?.id ?? ''));
       router.refresh();
+      return;
+    }
+
+    toast.success(dictionary.persons.form.createSuccess);
+    router.push(
+      actionState.personId
+        ? NAVIGATION.PERSON_BY_ID(actionState.personId)
+        : NAVIGATION.PERSONS,
+    );
+    router.refresh();
+  }, [
+    actionState.error,
+    actionState.personId,
+    actionState.status,
+    dictionary.common.unexpectedError,
+    dictionary.persons.errors,
+    dictionary.persons.form.createSuccess,
+    dictionary.persons.form.updateSuccess,
+    edit,
+    person?.id,
+    router,
+    successHref,
+  ]);
+
+  const handleCancel = useCallback((): void => {
+    if (cancelHref) {
+      router.push(cancelHref);
+      return;
+    }
+
+    if (globalThis.window?.history.length && globalThis.window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push(NAVIGATION.PERSONS);
+  }, [cancelHref, router]);
+
+  const handleCountryChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>): void => {
+      setSelectedPrimaryNationalityCountryId(event.target.value);
     },
-    [
-      actionState.error,
-      actionState.personId,
-      actionState.status,
-      dictionary.common.unexpectedError,
-      dictionary.persons.errors,
-      dictionary.persons.form.createSuccess,
-      dictionary.persons.form.updateSuccess,
-      edit,
-      router,
-    ],
+    [],
   );
 
-  const handleCancel = useCallback(
-    function handleCancel(): void {
-      if (
-        globalThis.window?.history.length &&
-        globalThis.window.history.length > 1
-      ) {
-        router.back();
-        return;
-      }
-
-      router.push(NAVIGATION.PERSONS);
+  const handleIsDeceasedChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>): void => {
+      setIsDeceased(event.target.checked);
     },
-    [router],
+    [],
   );
-
-  const handleCountryChange = useCallback(function handleCountryChange(
-    event: ChangeEvent<HTMLSelectElement>,
-  ): void {
-    setSelectedPrimaryNationalityCountryId(event.target.value);
-  }, []);
-
-  const handleIsDeceasedChange = useCallback(function handleIsDeceasedChange(
-    event: ChangeEvent<HTMLInputElement>,
-  ): void {
-    setIsDeceased(event.target.checked);
-  }, []);
 
   const countryHelperText = countriesError
     ? countriesError
@@ -225,136 +224,78 @@ export default function PersonForm({
     <Form action={formAction}>
       {edit && person ? (
         <>
-          <input type='hidden' name='personId' value={person.id} />
-          <input
-            type='hidden'
-            name='original_fullName'
-            value={person.fullName}
+          <input type='hidden' name='person_id' value={person.id} />
+          <OriginalField name='full_name' value={person.full_name} />
+          <OriginalField name='first_name' value={person.first_name ?? ''} />
+          <OriginalField name='middle_name' value={person.middle_name ?? ''} />
+          <OriginalField name='last_name' value={person.last_name ?? ''} />
+          <OriginalField
+            name='second_surname'
+            value={person.second_surname ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_firstName'
-            value={person.firstName ?? ''}
+          <OriginalField name='display_name' value={person.display_name ?? ''} />
+          <OriginalField name='known_as' value={person.known_as ?? ''} />
+          <OriginalField
+            name='native_full_name'
+            value={person.native_full_name ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_middleName'
-            value={person.middleName ?? ''}
+          <OriginalField name='gender' value={person.gender ?? ''} />
+          <OriginalField name='birth_date' value={person.birth_date ?? ''} />
+          <OriginalField name='death_date' value={person.death_date ?? ''} />
+          <OriginalField
+            name='birth_location_id'
+            value={person.birth_location_id ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_lastName'
-            value={person.lastName ?? ''}
+          <OriginalField
+            name='current_city_id'
+            value={person.current_city_id ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_secondSurname'
-            value={person.secondSurname ?? ''}
+          <OriginalField
+            name='primary_nationality_country_id'
+            value={person.primary_nationality_country_id ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_displayName'
-            value={person.displayName ?? ''}
+          <OriginalField
+            name='height_cm'
+            value={formatNumberForInput(person.height_cm)}
           />
-          <input
-            type='hidden'
-            name='original_knownAs'
-            value={person.knownAs ?? ''}
+          <OriginalField
+            name='weight_kg'
+            value={formatNumberForInput(person.weight_kg)}
           />
-          <input
-            type='hidden'
-            name='original_nativeFullName'
-            value={person.nativeFullName ?? ''}
+          <OriginalField name='hair_color' value={person.hair_color ?? ''} />
+          <OriginalField name='ethnicity' value={person.ethnicity ?? ''} />
+          <OriginalField name='skin_color' value={person.skin_color ?? ''} />
+          <OriginalField
+            name='dominant_foot'
+            value={person.dominant_foot ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_gender'
-            value={person.gender ?? ''}
+          <OriginalField
+            name='current_profession'
+            value={person.current_profession ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_birthDate'
-            value={person.birthDate ?? ''}
+          <OriginalField
+            name='professional_division_debut_date'
+            value={person.professional_division_debut_date ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_deathDate'
-            value={person.deathDate ?? ''}
+          <OriginalField
+            name='retirement_date'
+            value={person.retirement_date ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_birthLocationId'
-            value={person.birthLocationId ?? ''}
+          <OriginalField
+            name='avatar_image_url'
+            value={person.avatar_image_url ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_primaryNationalityCountryId'
-            value={person.primaryNationalityCountryId ?? ''}
+          <OriginalField
+            name='hero_image_url'
+            value={person.hero_image_url ?? ''}
           />
-          <input
-            type='hidden'
-            name='original_heightCm'
-            value={formatNumberForInput(person.heightCm)}
+          <OriginalField
+            name='is_deceased'
+            value={person.is_deceased ? 'true' : 'false'}
           />
-          <input
-            type='hidden'
-            name='original_weightKg'
-            value={formatNumberForInput(person.weightKg)}
-          />
-          <input
-            type='hidden'
-            name='original_hairColor'
-            value={person.hairColor ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_ethnicity'
-            value={person.ethnicity ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_skinColor'
-            value={person.skinColor ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_dominantFoot'
-            value={person.dominantFoot ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_currentProfession'
-            value={person.currentProfession ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_professionalDivisionDebutDate'
-            value={person.professionalDivisionDebutDate ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_retirementDate'
-            value={person.retirementDate ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_avatarImageUrl'
-            value={person.avatarImageUrl ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_heroImageUrl'
-            value={person.heroImageUrl ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_isDeceased'
-            value={person.isDeceased ? 'true' : 'false'}
-          />
-          <input
-            type='hidden'
-            name='original_isActive'
-            value={person.isActive ? 'true' : 'false'}
+          <OriginalField
+            name='is_active'
+            value={person.is_active ? 'true' : 'false'}
           />
         </>
       ) : null}
@@ -367,8 +308,8 @@ export default function PersonForm({
               <Grid gap={8} columns={4}>
                 <TextInput
                   label={dictionary.persons.form.fullName}
-                  name='fullName'
-                  defaultValue={person?.fullName ?? ''}
+                  name='full_name'
+                  defaultValue={person?.full_name ?? ''}
                   required
                   placeholder={dictionary.persons.form.placeholders.fullName}
                   disabled={isPending}
@@ -376,69 +317,66 @@ export default function PersonForm({
                 />
                 <TextInput
                   label={dictionary.persons.form.displayName}
-                  name='displayName'
+                  name='display_name'
                   placeholder={dictionary.persons.form.placeholders.displayName}
-                  defaultValue={person?.displayName ?? ''}
+                  defaultValue={person?.display_name ?? ''}
                   disabled={isPending}
                   className='grid-column--2'
                 />
                 <TextInput
                   label={dictionary.persons.form.firstName}
-                  name='firstName'
+                  name='first_name'
                   placeholder={dictionary.persons.form.placeholders.firstName}
-                  defaultValue={person?.firstName ?? ''}
+                  defaultValue={person?.first_name ?? ''}
                   disabled={isPending}
                 />
                 <TextInput
                   label={dictionary.persons.form.middleName}
-                  name='middleName'
+                  name='middle_name'
                   placeholder={dictionary.persons.form.placeholders.middleName}
-                  defaultValue={person?.middleName ?? ''}
+                  defaultValue={person?.middle_name ?? ''}
                   disabled={isPending}
                 />
                 <TextInput
                   label={dictionary.persons.form.lastName}
-                  name='lastName'
+                  name='last_name'
                   placeholder={dictionary.persons.form.placeholders.lastName}
-                  defaultValue={person?.lastName ?? ''}
+                  defaultValue={person?.last_name ?? ''}
                   disabled={isPending}
                 />
                 <TextInput
                   label={dictionary.persons.form.secondSurname}
-                  name='secondSurname'
-                  placeholder={
-                    dictionary.persons.form.placeholders.secondSurname
-                  }
-                  defaultValue={person?.secondSurname ?? ''}
+                  name='second_surname'
+                  placeholder={dictionary.persons.form.placeholders.secondSurname}
+                  defaultValue={person?.second_surname ?? ''}
                   disabled={isPending}
                 />
                 <TextInput
                   label={dictionary.persons.form.knownAs}
-                  name='knownAs'
+                  name='known_as'
                   placeholder={dictionary.persons.form.placeholders.knownAs}
-                  defaultValue={person?.knownAs ?? ''}
+                  defaultValue={person?.known_as ?? ''}
                   disabled={isPending}
                   className='grid-column--2'
                 />
                 <TextInput
                   label={dictionary.persons.form.nativeFullName}
-                  name='nativeFullName'
-                  defaultValue={person?.nativeFullName ?? ''}
+                  name='native_full_name'
+                  defaultValue={person?.native_full_name ?? ''}
                   disabled={isPending}
-                  placeholder={
-                    dictionary.persons.form.placeholders.nativeFullName
-                  }
+                  placeholder={dictionary.persons.form.placeholders.nativeFullName}
                   className='grid-column--2'
                   title={dictionary.persons.form.titles.nativeFullName}
                 />
               </Grid>
             </FieldSet>
 
+            <input type='hidden' name='is_active' value='false' />
             <CheckBoxInput
               label={dictionary.persons.form.activeLabel}
-              name='isActive'
+              name='is_active'
               value='true'
-              defaultChecked={person?.isActive ?? true}
+              defaultChecked={person?.is_active ?? true}
               disabled={isPending}
               placeholder={dictionary.persons.form.activeHelper}
             />
@@ -451,23 +389,24 @@ export default function PersonForm({
               <Grid gap={8} columns={4} alignItems='end'>
                 <TextInput
                   label={dictionary.persons.form.birthDate}
-                  name='birthDate'
+                  name='birth_date'
                   type='date'
-                  defaultValue={formatDateForInput(person?.birthDate)}
+                  defaultValue={formatDateForInput(person?.birth_date)}
                   disabled={isPending}
                 />
                 <TextInput
                   label={dictionary.persons.form.deathDate}
-                  name='deathDate'
+                  name='death_date'
                   type='date'
-                  defaultValue={formatDateForInput(person?.deathDate)}
+                  defaultValue={formatDateForInput(person?.death_date)}
                   disabled={isPending || !isDeceased}
                 />
+                <input type='hidden' name='is_deceased' value='false' />
                 <CheckBoxInput
                   label={dictionary.persons.form.deceased}
-                  name='isDeceased'
+                  name='is_deceased'
                   value='true'
-                  defaultChecked={person?.isDeceased ?? false}
+                  defaultChecked={person?.is_deceased ?? false}
                   onChange={handleIsDeceasedChange}
                   disabled={isPending}
                 />
@@ -479,37 +418,33 @@ export default function PersonForm({
                 <Select
                   label={dictionary.persons.form.gender}
                   name='gender'
-                  defaultValue={person?.gender ?? 'MALE'}
+                  defaultValue={person?.gender ?? ''}
                   disabled={isPending}
                 >
                   <option value=''>{dictionary.persons.form.noGender}</option>
-                  {getPersonGenderOptions().map(
-                    function renderGenderOption(option): React.JSX.Element {
-                      return (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      );
-                    },
-                  )}
+                  {getPersonGenderOptions().map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </Select>
 
                 <NumberInput
                   label={dictionary.persons.form.heightCm}
-                  name='heightCm'
+                  name='height_cm'
                   type='number'
                   min='0'
-                  step='0.1'
-                  defaultValue={formatNumberForInput(person?.heightCm)}
+                  step='1'
+                  defaultValue={formatNumberForInput(person?.height_cm)}
                   disabled={isPending}
                 />
                 <NumberInput
                   label={dictionary.persons.form.weightKg}
-                  name='weightKg'
+                  name='weight_kg'
                   type='number'
                   min='0'
-                  step='0.1'
-                  defaultValue={formatNumberForInput(person?.weightKg)}
+                  step='1'
+                  defaultValue={formatNumberForInput(person?.weight_kg)}
                   disabled={isPending}
                 />
               </Grid>
@@ -519,22 +454,16 @@ export default function PersonForm({
               <Grid gap={8} columns={4}>
                 <Select
                   label={dictionary.persons.form.hairColor}
-                  name='hairColor'
-                  defaultValue={person?.hairColor ?? ''}
+                  name='hair_color'
+                  defaultValue={person?.hair_color ?? ''}
                   disabled={isPending}
                 >
-                  <option value=''>
-                    {dictionary.persons.form.noHairColor}
-                  </option>
-                  {getPersonHairColorOptions().map(
-                    function renderHairOption(option): React.JSX.Element {
-                      return (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      );
-                    },
-                  )}
+                  <option value=''>{dictionary.persons.form.noHairColor}</option>
+                  {getPersonHairColorOptions().map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </Select>
 
                 <Select
@@ -543,38 +472,26 @@ export default function PersonForm({
                   defaultValue={person?.ethnicity ?? ''}
                   disabled={isPending}
                 >
-                  <option value=''>
-                    {dictionary.persons.form.noEthnicity}
-                  </option>
-                  {getPersonEthnicityOptions().map(
-                    function renderEthnicityOption(option): React.JSX.Element {
-                      return (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      );
-                    },
-                  )}
+                  <option value=''>{dictionary.persons.form.noEthnicity}</option>
+                  {getPersonEthnicityOptions().map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </Select>
 
                 <Select
                   label={dictionary.persons.form.skinColor}
-                  name='skinColor'
-                  defaultValue={person?.skinColor ?? ''}
+                  name='skin_color'
+                  defaultValue={person?.skin_color ?? ''}
                   disabled={isPending}
                 >
-                  <option value=''>
-                    {dictionary.persons.form.noSkinColor}
-                  </option>
-                  {getPersonSkinColorOptions().map(
-                    function renderSkinColorOption(option): React.JSX.Element {
-                      return (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      );
-                    },
-                  )}
+                  <option value=''>{dictionary.persons.form.noSkinColor}</option>
+                  {getPersonSkinColorOptions().map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </Select>
               </Grid>
             </FieldSet>
@@ -586,13 +503,19 @@ export default function PersonForm({
               <Grid gap={8} columns={2}>
                 <TextInput
                   label={dictionary.persons.form.birthLocationId}
-                  name='birthLocationId'
-                  defaultValue={person?.birthLocationId ?? ''}
+                  name='birth_location_id'
+                  defaultValue={person?.birth_location_id ?? ''}
+                  disabled={isPending}
+                />
+                <TextInput
+                  label={dictionary.persons.form.currentCityId}
+                  name='current_city_id'
+                  defaultValue={person?.current_city_id ?? ''}
                   disabled={isPending}
                 />
                 <Select
                   label={dictionary.persons.form.primaryNationalityCountry}
-                  name='primaryNationalityCountryId'
+                  name='primary_nationality_country_id'
                   value={selectedPrimaryNationalityCountryId}
                   onChange={handleCountryChange}
                   disabled={isPending || Boolean(countriesError)}
@@ -601,15 +524,11 @@ export default function PersonForm({
                   title={dictionary.persons.form.primaryNationalityCountryTitle}
                 >
                   <option value=''>{dictionary.persons.form.noCountry}</option>
-                  {countryOptions.map(
-                    function renderCountryOption(country): React.JSX.Element {
-                      return (
-                        <option key={country.id} value={country.id}>
-                          {country.name}
-                        </option>
-                      );
-                    },
-                  )}
+                  {countryOptions.map(country => (
+                    <option key={country.id} value={country.id}>
+                      {country.name}
+                    </option>
+                  ))}
                 </Select>
               </Grid>
             </FieldSet>
@@ -624,63 +543,53 @@ export default function PersonForm({
               <Grid gap={8} columns={4}>
                 <Select
                   label={dictionary.persons.form.currentProfession}
-                  name='currentProfession'
-                  defaultValue={person?.currentProfession ?? ''}
+                  name='current_profession'
+                  defaultValue={person?.current_profession ?? ''}
                   disabled={isPending}
                   className='grid-column--2'
                 >
                   <option value=''>
                     {dictionary.persons.form.noCurrentProfession}
                   </option>
-                  {getPersonCurrentProfessionOptions().map(
-                    function renderProfessionOption(option): React.JSX.Element {
-                      return (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      );
-                    },
-                  )}
+                  {getPersonCurrentProfessionOptions().map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </Select>
 
                 <Select
                   label={dictionary.persons.form.dominantFoot}
-                  name='dominantFoot'
-                  defaultValue={person?.dominantFoot ?? ''}
+                  name='dominant_foot'
+                  defaultValue={person?.dominant_foot ?? ''}
                   disabled={isPending}
                   className='grid-column--2'
                 >
                   <option value=''>
                     {dictionary.persons.form.noDominantFoot}
                   </option>
-                  {getPersonDominantFootOptions().map(
-                    function renderDominantFootOption(
-                      option,
-                    ): React.JSX.Element {
-                      return (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      );
-                    },
-                  )}
+                  {getPersonDominantFootOptions().map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </Select>
 
                 <TextInput
                   label={dictionary.persons.form.professionalDebutDate}
-                  name='professionalDivisionDebutDate'
+                  name='professional_division_debut_date'
                   type='date'
                   defaultValue={formatDateForInput(
-                    person?.professionalDivisionDebutDate,
+                    person?.professional_division_debut_date,
                   )}
                   disabled={isPending}
                 />
 
                 <TextInput
                   label={dictionary.persons.form.retirementDate}
-                  name='retirementDate'
+                  name='retirement_date'
                   type='date'
-                  defaultValue={formatDateForInput(person?.retirementDate)}
+                  defaultValue={formatDateForInput(person?.retirement_date)}
                   disabled={isPending}
                 />
               </Grid>
@@ -697,22 +606,18 @@ export default function PersonForm({
               <Grid gap={8} columns={2}>
                 <TextInput
                   label={dictionary.persons.form.avatarImageUrl}
-                  name='avatarImageUrl'
+                  name='avatar_image_url'
                   type='url'
-                  placeholder={
-                    dictionary.persons.form.placeholders.avatarImageUrl
-                  }
-                  defaultValue={person?.avatarImageUrl ?? ''}
+                  placeholder={dictionary.persons.form.placeholders.avatarImageUrl}
+                  defaultValue={person?.avatar_image_url ?? ''}
                   disabled={isPending}
                 />
                 <TextInput
                   label={dictionary.persons.form.heroImageUrl}
-                  name='heroImageUrl'
+                  name='hero_image_url'
                   type='url'
-                  placeholder={
-                    dictionary.persons.form.placeholders.heroImageUrl
-                  }
-                  defaultValue={person?.heroImageUrl ?? ''}
+                  placeholder={dictionary.persons.form.placeholders.heroImageUrl}
+                  defaultValue={person?.hero_image_url ?? ''}
                   disabled={isPending}
                 />
               </Grid>
@@ -738,13 +643,13 @@ export default function PersonForm({
                   />
                   <TextInput
                     label={dictionary.persons.form.createdAt}
-                    defaultValue={formatDateTime(person.createdAt, locale)}
+                    defaultValue={formatDateTime(person.created_at, locale)}
                     readOnly
                     disabled
                   />
                   <TextInput
                     label={dictionary.persons.form.updatedAt}
-                    defaultValue={formatDateTime(person.updatedAt, locale)}
+                    defaultValue={formatDateTime(person.updated_at, locale)}
                     readOnly
                     disabled
                   />

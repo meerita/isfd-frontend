@@ -11,6 +11,7 @@ const API_ROUTES = {
   CLUB_ADMIN_BY_ID: (id: string) => `/admin/clubs/${id}`,
   PERSONS_ADMIN: '/admin/persons',
   PERSON_ADMIN_BY_ID: (id: string) => `/admin/persons/${id}`,
+  PERSON_BY_SLUG: (slug: string) => `/persons/${slug}`,
   BRANDS_ADMIN: '/admin/brands',
   BRAND_ADMIN_BY_ID: (id: string) => `/admin/brands/${id}`,
   STADIUMS_ADMIN: '/admin/stadiums',

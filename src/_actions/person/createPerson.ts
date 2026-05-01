@@ -9,7 +9,7 @@ import NAVIGATION from '@/_constants/navigation';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { PersonActionState } from '@/_types/person';
-import { mapPerson } from './mappers';
+import { mapPersonAdminDetail } from './mappers';
 import { buildCreatePersonBody } from './payload';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -44,7 +44,7 @@ export async function createPerson(
 
     const { data } = await client.post<unknown>(API_ROUTES.PERSONS_ADMIN, body);
     const raw = extractRaw(data);
-    const person = raw ? mapPerson(raw) : null;
+    const person = raw ? mapPersonAdminDetail(raw) : null;
 
     if (process.env.NODE_ENV === 'development') {
       console.log('[createPerson] POST /admin/persons response', data);

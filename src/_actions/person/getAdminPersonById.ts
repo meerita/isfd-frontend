@@ -5,8 +5,8 @@
 import API_ROUTES from '@/_constants/apiRoutes';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
-import type { PersonDetailResponse } from '@/_types/person';
-import { mapPerson } from './mappers';
+import type { PersonAdminDetailResponse } from '@/_types/person';
+import { mapPersonAdminDetail } from './mappers';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -26,7 +26,7 @@ function extractRaw(payload: unknown): Record<string, unknown> | null {
 
 export async function getAdminPersonById(
   personId: string,
-): Promise<PersonDetailResponse> {
+): Promise<PersonAdminDetailResponse> {
   if (!personId) {
     return {
       data: null,
@@ -57,7 +57,7 @@ export async function getAdminPersonById(
       };
     }
 
-    return { data: mapPerson(raw) };
+    return { data: mapPersonAdminDetail(raw) };
   } catch (error) {
     const normalized = normalizeApiError(error);
     if (normalized.statusCode !== 404) {

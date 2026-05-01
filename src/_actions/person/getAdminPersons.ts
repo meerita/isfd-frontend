@@ -10,11 +10,11 @@ import API_ROUTES from '@/_constants/apiRoutes';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type {
-  PersonListResponse,
+  PersonAdminListResponse,
   PersonSort,
   PersonStatusFilter,
 } from '@/_types/person';
-import { mapPersonListItem, mapPersonMetadata } from './mappers';
+import { mapPersonAdminListItem, mapPersonMetadata } from './mappers';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
@@ -23,8 +23,8 @@ function buildEmptyResponse(filters?: {
   sort?: PersonSort;
   status?: PersonStatusFilter;
   gender?: PersonGender;
-  currentProfession?: PersonCurrentProfession;
-}): PersonListResponse {
+  current_profession?: PersonCurrentProfession;
+}): PersonAdminListResponse {
   return {
     data: [],
     metadata: {
@@ -46,18 +46,18 @@ export async function getAdminPersons(
     sort?: PersonSort;
     status?: PersonStatusFilter;
     gender?: PersonGender;
-    currentProfession?: PersonCurrentProfession;
+    current_profession?: PersonCurrentProfession;
   }> = {},
-): Promise<PersonListResponse> {
+): Promise<PersonAdminListResponse> {
   const {
     page = DEFAULT_PAGE,
     pageSize = DEFAULT_PAGE_SIZE,
     sort,
     status,
     gender,
-    currentProfession,
+    current_profession,
   } = query;
-  const filters = { sort, status, gender, currentProfession };
+  const filters = { sort, status, gender, current_profession };
   const params: Record<string, string | number> = {
     page,
     page_size: pageSize,
@@ -66,7 +66,7 @@ export async function getAdminPersons(
   if (sort) params.sort = sort;
   if (status) params.status = status;
   if (gender) params.gender = gender;
-  if (currentProfession) params.current_profession = currentProfession;
+  if (current_profession) params.current_profession = current_profession;
 
   const client = await getServerAxios();
 
@@ -96,7 +96,7 @@ export async function getAdminPersons(
     };
 
     return {
-      data: raw.data.map(mapPersonListItem),
+      data: raw.data.map(mapPersonAdminListItem),
       metadata: raw.metadata
         ? mapPersonMetadata(raw.metadata)
         : buildEmptyResponse(filters).metadata,

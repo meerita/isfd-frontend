@@ -8,7 +8,6 @@
 
 import Link from 'next/link';
 
-import { getMe } from '@/_actions/auth/getMe';
 import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getAdminPersons } from '@/_actions/person/getAdminPersons';
 import Button from '@/_components/forms/Button';
@@ -106,7 +105,7 @@ function buildHref(
   sort: PersonSort,
   status?: PersonStatusFilter,
   gender?: PersonGender,
-  currentProfession?: PersonCurrentProfession,
+  current_profession?: PersonCurrentProfession,
 ): string {
   const params = new URLSearchParams();
 
@@ -122,8 +121,8 @@ function buildHref(
     params.set('gender', gender);
   }
 
-  if (currentProfession) {
-    params.set('current_profession', currentProfession);
+  if (current_profession) {
+    params.set('current_profession', current_profession);
   }
 
   return `${NAVIGATION.PERSONS}?${params.toString()}`;
@@ -199,15 +198,14 @@ export default async function PersonsPage({
     parsePersonCurrentProfession(parseString(params?.current_profession)) ??
     undefined;
 
-  const [user, personsResponse, countriesResponse] = await Promise.all([
-    getMe(),
+  const [personsResponse, countriesResponse] = await Promise.all([
     getAdminPersons({
       page,
       pageSize,
       sort,
       status,
       gender,
-      currentProfession,
+      current_profession: currentProfession,
     }),
     getAllCountries(),
   ]);
@@ -313,51 +311,51 @@ export default async function PersonsPage({
                           key={person.id}
                           href={NAVIGATION.PERSON_BY_ID(person.id)}
                         >
-                          <Cell>
-                            {renderAvatarPreview(
-                              person.fullName,
-                              person.avatarImageUrl,
-                              dictionary.persons.avatarMissing,
-                              dictionary.persons.avatarAvailable,
-                            )}
-                          </Cell>
-                          <Cell className='padding-left--16'>
-                            {person.fullName}
-                          </Cell>
+                           <Cell>
+                             {renderAvatarPreview(
+                               person.full_name,
+                               person.avatar_image_url ?? null,
+                               dictionary.persons.avatarMissing,
+                               dictionary.persons.avatarAvailable,
+                             )}
+                           </Cell>
+                           <Cell className='padding-left--16'>
+                             {person.full_name}
+                           </Cell>
                           <Cell className='padding-left--16'>
                             {person.slug}
                           </Cell>
                           <Cell className='padding-left--16'>
-                            {person.displayName || PLACEHOLDER}
+                             {person.display_name || PLACEHOLDER}
                           </Cell>
                           <Cell className='padding-left--16'>
                             {getPersonGenderLabel(person.gender) ?? PLACEHOLDER}
                           </Cell>
                           <Cell className='padding-left--16'>
-                            {getPersonCurrentProfessionLabel(
-                              person.currentProfession,
-                            ) ?? PLACEHOLDER}
-                          </Cell>
-                          <Cell className='padding-left--16'>
-                            {person.primaryNationalityCountryId
-                              ? (countryLabels.get(
-                                  person.primaryNationalityCountryId,
-                                ) ?? person.primaryNationalityCountryId)
-                              : PLACEHOLDER}
-                          </Cell>
-                          <Cell align='center'>
-                            {person.isActive ? (
-                              <Dot active inline />
-                            ) : (
-                              <Dot inline />
-                            )}
-                          </Cell>
-                          <Cell align='right' className='padding-left--16'>
-                            {formatDateTime(person.createdAt, locale)}
-                          </Cell>
-                          <Cell align='right' className='padding-left--16'>
-                            {formatDateTime(person.updatedAt, locale)}
-                          </Cell>
+                             {getPersonCurrentProfessionLabel(
+                               person.current_profession,
+                             ) ?? PLACEHOLDER}
+                           </Cell>
+                           <Cell className='padding-left--16'>
+                             {person.primary_nationality_country_id
+                               ? (countryLabels.get(
+                                   person.primary_nationality_country_id,
+                                 ) ?? person.primary_nationality_country_id)
+                               : PLACEHOLDER}
+                           </Cell>
+                           <Cell align='center'>
+                             {person.is_active ? (
+                               <Dot active inline />
+                             ) : (
+                               <Dot inline />
+                             )}
+                           </Cell>
+                           <Cell align='right' className='padding-left--16'>
+                             {formatDateTime(person.created_at, locale)}
+                           </Cell>
+                           <Cell align='right' className='padding-left--16'>
+                             {formatDateTime(person.updated_at, locale)}
+                           </Cell>
                         </Row>
                       );
                     },
