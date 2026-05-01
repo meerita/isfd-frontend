@@ -22,6 +22,17 @@ const API_ROUTES = {
   FEDERATION_BY_SLUG: (slug: string) => `/federations/${slug}`,
   FEDERATIONS_ADMIN: '/admin/federations',
   FEDERATION_ADMIN_BY_ID: (id: string) => `/admin/federations/${id}`,
+  COMPETITION_TYPES_ADMIN: '/admin/competition-types',
+  COMPETITION_TYPE_ADMIN_BY_ID: (id: string) => `/admin/competition-types/${id}`,
+  COMPETITIONS_ADMIN: '/admin/competitions',
+  COMPETITION_ADMIN_BY_ID: (id: string) => `/admin/competitions/${id}`,
+  SEASONS_ADMIN: '/admin/seasons',
+  SEASON_ADMIN_BY_ID: (id: string) => `/admin/seasons/${id}`,
+  COMPETITION_EDITIONS_ADMIN: '/admin/competition-editions',
+  COMPETITION_EDITION_ADMIN_BY_ID: (id: string) =>
+    `/admin/competition-editions/${id}`,
+  COMPETITION_EDITION_CODE_ADMIN_BY_ID: (id: string) =>
+    `/admin/competition-editions/${id}/code`,
   COUNTRIES: '/countries',
   COUNTRIES_ALL: '/countries/all',
   COUNTRY_BY_ID: (id: string) => `/countries/${id}`,

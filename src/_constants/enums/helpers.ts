@@ -25,6 +25,13 @@ export function toEnumValue<TValue extends string>(
     : null;
 }
 
+export function parseOptionalEnum<TValue extends string>(
+  values: readonly TValue[],
+  value: unknown,
+): TValue | null {
+  return toEnumValue(value, values);
+}
+
 export function getEnumLabel<TValue extends string>(
   value: TValue | null | undefined,
   labels: Readonly<Record<TValue, string>>,

@@ -53,6 +53,7 @@ export interface AppDictionary {
     readonly account: string;
     readonly brands: string;
     readonly clubs: string;
+    readonly competitions: string;
     readonly countries: string;
     readonly dashboard: string;
     readonly federations: string;

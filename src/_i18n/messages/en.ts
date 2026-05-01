@@ -49,6 +49,7 @@ const en = {
     account: 'Account',
     brands: 'Brands',
     clubs: 'Clubs',
+    competitions: 'Competitions',
     countries: 'Countries',
     dashboard: 'Dashboard',
     federations: 'Federations',
