@@ -22,9 +22,12 @@ import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import Text from '@/_components/typography/Text';
 import Title from '@/_components/typography/Title';
 import CONTINENTS, { type ContinentCode } from '@/_constants/continents';
+import {
+  getPersonGenderOptions,
+  type PersonGender,
+} from '@/_constants/enums/person';
 import type { City } from '@/_types/city';
 import type { Country } from '@/_types/country';
-import { GENDERS } from '@/_types/genders';
 import type { User } from '@/_types/user';
 import type { ChangeEvent } from 'react';
 import React, { useEffect, useState } from 'react';
@@ -40,7 +43,7 @@ type ProfileDetailFormState = Readonly<{
   height: string;
   weight: string;
   birthdate: string;
-  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  gender: PersonGender;
   continent: ContinentCode | '';
   country: string;
   localizedName: string;
@@ -68,9 +71,9 @@ type UserCityOption = Readonly<{
 }>;
 
 function renderGenderOptions(): React.ReactNode[] {
-  return GENDERS.map(gender => (
-    <option key={gender} value={gender}>
-      {gender}
+  return getPersonGenderOptions().map(gender => (
+    <option key={gender.value} value={gender.value}>
+      {gender.label}
     </option>
   ));
 }

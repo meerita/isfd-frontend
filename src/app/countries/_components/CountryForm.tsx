@@ -16,7 +16,7 @@ import TextInput from '@/_components/forms/TextInput';
 import Grid from '@/_components/layout/Grid';
 import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
-import CONTINENTS from '@/_constants/continents';
+import { getContinentOptions } from '@/_constants/continents';
 import { resolveCountryErrorMessage } from '@/_constants/countryErrorMessages';
 import NAVIGATION from '@/_constants/navigation';
 import type { Country, CountryActionState } from '@/_types/country';
@@ -158,7 +158,7 @@ export default function CountryForm({
               disabled={isPending}
             >
               <option value=''>— none —</option>
-              {CONTINENTS.map(continent => (
+              {getContinentOptions().map(continent => (
                 <option key={continent.value} value={continent.value}>
                   {continent.label}
                 </option>

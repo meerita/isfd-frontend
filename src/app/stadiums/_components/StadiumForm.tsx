@@ -18,9 +18,7 @@ import { getAdminCitiesByCountryIdAndProvince } from '@/_actions/city/getCities'
 import { getAdminProvincesByCountryId } from '@/_actions/country/getAdminProvincesByCountryId';
 import { createStadium } from '@/_actions/stadium/createStadium';
 import { updateStadium } from '@/_actions/stadium/updateStadium';
-import {
-  formatFormerNamesForInput,
-} from '@/_actions/stadium/payload';
+import { formatFormerNamesForInput } from '@/_actions/stadium/payload';
 import Card from '@/_components/Card';
 import Button from '@/_components/forms/Button';
 import CheckBoxInput from '@/_components/forms/CheckBoxInput';
@@ -33,12 +31,12 @@ import Grid from '@/_components/layout/Grid';
 import Line from '@/_components/Line';
 import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
+import { getStadiumSurfaceTypeOptions } from '@/_constants/enums/stadium';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveStadiumErrorMessage } from '@/_constants/stadiumErrorMessages';
 import type { City } from '@/_types/city';
 import type { CountrySelectOption, ProvinceAdmin } from '@/_types/country';
 import {
-  STADIUM_SURFACE_TYPES,
   type Stadium,
   type StadiumActionState,
 } from '@/_types/stadium';
@@ -397,9 +395,9 @@ export default function StadiumForm({
                     disabled={isPending}
                   >
                     <option value=''>No surface type</option>
-                    {STADIUM_SURFACE_TYPES.map(surfaceType => (
-                      <option key={surfaceType} value={surfaceType}>
-                        {surfaceType}
+                    {getStadiumSurfaceTypeOptions().map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </Select>

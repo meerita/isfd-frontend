@@ -2,6 +2,10 @@
 
 'use server';
 
+import type {
+  PersonCurrentProfession,
+  PersonGender,
+} from '@/_constants/enums/person';
 import API_ROUTES from '@/_constants/apiRoutes';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
@@ -18,8 +22,8 @@ const DEFAULT_PAGE_SIZE = 20;
 function buildEmptyResponse(filters?: {
   sort?: PersonSort;
   status?: PersonStatusFilter;
-  gender?: string;
-  currentProfession?: string;
+  gender?: PersonGender;
+  currentProfession?: PersonCurrentProfession;
 }): PersonListResponse {
   return {
     data: [],
@@ -41,8 +45,8 @@ export async function getAdminPersons(
     pageSize?: number;
     sort?: PersonSort;
     status?: PersonStatusFilter;
-    gender?: string;
-    currentProfession?: string;
+    gender?: PersonGender;
+    currentProfession?: PersonCurrentProfession;
   }> = {},
 ): Promise<PersonListResponse> {
   const {

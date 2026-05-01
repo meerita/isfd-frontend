@@ -22,7 +22,6 @@ import SECTIONS from '@/_constants/sections';
 import { resolveClubErrorMessage } from '@/_constants/clubErrorMessages';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
 import type { ClubSort, ClubStatusFilter } from '@/_types/club';
-import ClubAdminShell from './_components/ClubAdminShell';
 import ClubFilters from './_components/ClubFilters';
 import Dot from '@/_components/Dot';
 
@@ -154,12 +153,12 @@ export default async function ClubsPage({
 
   const uniqueCountryIds = Array.from(
     new Set(
-        clubsResponse.data
-          .map(club => club.countryId)
-          .filter(
-            (value): value is string =>
-              typeof value === 'string' && availableCountryIds.has(value),
-          ),
+      clubsResponse.data
+        .map(club => club.countryId)
+        .filter(
+          (value): value is string =>
+            typeof value === 'string' && availableCountryIds.has(value),
+        ),
     ),
   );
 
@@ -188,163 +187,152 @@ export default async function ClubsPage({
   const hasNext = metadata.hasNextPage;
 
   return (
-    <ClubAdminShell username={user?.username ?? 'User'}>
-      <Grid gap={16}>
-        <SectionHeader title={SECTIONS.CLUBS} icon='club'>
-          <Button icon='plus' href={NAVIGATION.CREATE_A_CLUB}>
-            {SECTIONS.ADD_CLUB}
-          </Button>
-        </SectionHeader>
+    <Grid gap={16}>
+      <SectionHeader title={SECTIONS.CLUBS} icon='club'>
+        <Button icon='plus' href={NAVIGATION.CREATE_A_CLUB}>
+          {SECTIONS.ADD_CLUB}
+        </Button>
+      </SectionHeader>
 
-        <ClubFilters
-          pageSize={pageSize}
-          sort={sort}
-          status={status}
-          countryId={countryId}
-          countries={countriesResponse}
-        />
+      <ClubFilters
+        pageSize={pageSize}
+        sort={sort}
+        status={status}
+        countryId={countryId}
+        countries={countriesResponse}
+      />
 
-        {clubsResponse.error ? (
+      {clubsResponse.error ? (
+        <Main>
+          <Grid gap={8}>
+            <Text weight='bold'>We could not load clubs.</Text>
+            <Text size='small' color='gray'>
+              {resolveClubErrorMessage(clubsResponse.error)}
+            </Text>
+          </Grid>
+        </Main>
+      ) : (
+        <>
           <Main>
-            <Grid gap={8}>
-              <Text weight='bold'>We could not load clubs.</Text>
-              <Text size='small' color='gray'>
-                {resolveClubErrorMessage(clubsResponse.error)}
-              </Text>
-            </Grid>
-          </Main>
-        ) : (
-          <>
-            <Main>
-              <Table>
-                <Thead>
+            <Table>
+              <Thead>
+                <Row>
+                  <Cell header>Logo</Cell>
+                  <Cell header className='padding-left--16'>
+                    Name
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    Slug
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    Short name
+                  </Cell>
+                  <Cell header align='center'>
+                    Active
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    Country
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    City
+                  </Cell>
+                  <Cell header className='padding-left--16'>
+                    Primary stadium
+                  </Cell>
+                  <Cell align='right' header className='padding-left--16'>
+                    Created
+                  </Cell>
+                  <Cell align='right' header className='padding-left--16'>
+                    Updated
+                  </Cell>
+                </Row>
+              </Thead>
+              <Tbody>
+                {clubsResponse.data.length === 0 ? (
                   <Row>
-                    <Cell header>Logo</Cell>
-                    <Cell header className='padding-left--16'>
-                      Name
-                    </Cell>
-                    <Cell header className='padding-left--16'>
-                      Slug
-                    </Cell>
-                    <Cell header className='padding-left--16'>
-                      Short name
-                    </Cell>
-                    <Cell header align='center'>
-                      Active
-                    </Cell>
-                    <Cell header className='padding-left--16'>
-                      Country
-                    </Cell>
-                    <Cell header className='padding-left--16'>
-                      City
-                    </Cell>
-                    <Cell header className='padding-left--16'>
-                      Primary stadium
-                    </Cell>
-                    <Cell align='right' header className='padding-left--16'>
-                      Created
-                    </Cell>
-                    <Cell align='right' header className='padding-left--16'>
-                      Updated
-                    </Cell>
+                    <Cell>No clubs found for the current filters.</Cell>
+                    {Array.from({ length: 9 }).map((_, index) => (
+                      <Cell key={`none-${index}`} className='padding-left--16'>
+                        {PLACEHOLDER}
+                      </Cell>
+                    ))}
                   </Row>
-                </Thead>
-                <Tbody>
-                  {clubsResponse.data.length === 0 ? (
-                    <Row>
-                      <Cell>No clubs found for the current filters.</Cell>
-                      {Array.from({ length: 9 }).map((_, index) => (
-                        <Cell
-                          key={`none-${index}`}
-                          className='padding-left--16'
-                        >
-                          {PLACEHOLDER}
-                        </Cell>
-                      ))}
+                ) : (
+                  clubsResponse.data.map(club => (
+                    <Row key={club.id} href={NAVIGATION.CLUB_BY_ID(club.id)}>
+                      <Cell>{renderLogoPreview(club.name, club.logoUrl)}</Cell>
+                      <Cell className='padding-left--16'>{club.name}</Cell>
+                      <Cell className='padding-left--16'>{club.slug}</Cell>
+                      <Cell className='padding-left--16'>
+                        {club.shortName ?? PLACEHOLDER}
+                      </Cell>
+                      <Cell align='center'>
+                        {club.isActive ? <Dot active inline /> : <Dot inline />}
+                      </Cell>
+                      <Cell className='padding-left--16'>
+                        {club.countryId
+                          ? (countryLabels.get(club.countryId) ??
+                            club.countryId)
+                          : PLACEHOLDER}
+                      </Cell>
+                      <Cell className='padding-left--16'>
+                        {club.cityId
+                          ? (cityLabels.get(club.cityId) ?? club.cityId)
+                          : PLACEHOLDER}
+                      </Cell>
+                      <Cell className='padding-left--16'>
+                        {club.primaryStadiumId ?? PLACEHOLDER}
+                      </Cell>
+                      <Cell align='right' className='padding-left--16'>
+                        {formatDateOnly(club.createdAt)}
+                      </Cell>
+                      <Cell align='right' className='padding-left--16'>
+                        {formatDateOnly(club.updatedAt)}
+                      </Cell>
                     </Row>
-                  ) : (
-                    clubsResponse.data.map(club => (
-                      <Row key={club.id} href={NAVIGATION.CLUB_BY_ID(club.id)}>
-                        <Cell>
-                          {renderLogoPreview(club.name, club.logoUrl)}
-                        </Cell>
-                        <Cell className='padding-left--16'>{club.name}</Cell>
-                        <Cell className='padding-left--16'>{club.slug}</Cell>
-                        <Cell className='padding-left--16'>
-                          {club.shortName ?? PLACEHOLDER}
-                        </Cell>
-                        <Cell align='center'>
-                          {club.isActive ? (
-                            <Dot active inline />
-                          ) : (
-                            <Dot inline />
-                          )}
-                        </Cell>
-                        <Cell className='padding-left--16'>
-                          {club.countryId
-                            ? (countryLabels.get(club.countryId) ??
-                              club.countryId)
-                            : PLACEHOLDER}
-                        </Cell>
-                        <Cell className='padding-left--16'>
-                          {club.cityId
-                            ? (cityLabels.get(club.cityId) ?? club.cityId)
-                            : PLACEHOLDER}
-                        </Cell>
-                        <Cell className='padding-left--16'>
-                          {club.primaryStadiumId ?? PLACEHOLDER}
-                        </Cell>
-                        <Cell align='right' className='padding-left--16'>
-                          {formatDateOnly(club.createdAt)}
-                        </Cell>
-                        <Cell align='right' className='padding-left--16'>
-                          {formatDateOnly(club.updatedAt)}
-                        </Cell>
-                      </Row>
-                    ))
-                  )}
-                </Tbody>
-              </Table>
-            </Main>
+                  ))
+                )}
+              </Tbody>
+            </Table>
+          </Main>
 
-            <Grid justifyItems='center' className='margin-block--16'>
-              <Grid gap={16} display='flex' alignItems='center'>
-                {hasPrev ? (
-                  <Link
-                    href={buildHref(
-                      currentPage - 1,
-                      pageSize,
-                      sort,
-                      status,
-                      countryId,
-                    )}
-                    aria-label='Previous'
-                  >
-                    <Icon name='arrowLeft' size={24} fill='gray' />
-                  </Link>
-                ) : null}
-                <Text color='gray' size='small' weight='semibold'>
-                  Page {currentPage} of {totalPages}
-                </Text>
-                {hasNext ? (
-                  <Link
-                    href={buildHref(
-                      currentPage + 1,
-                      pageSize,
-                      sort,
-                      status,
-                      countryId,
-                    )}
-                    aria-label='Next'
-                  >
-                    <Icon name='arrowRight' size={24} fill='gray' />
-                  </Link>
-                ) : null}
-              </Grid>
+          <Grid justifyItems='center' className='margin-block--16'>
+            <Grid gap={16} display='flex' alignItems='center'>
+              {hasPrev ? (
+                <Link
+                  href={buildHref(
+                    currentPage - 1,
+                    pageSize,
+                    sort,
+                    status,
+                    countryId,
+                  )}
+                  aria-label='Previous'
+                >
+                  <Icon name='arrowLeft' size={24} fill='gray' />
+                </Link>
+              ) : null}
+              <Text color='gray' size='small' weight='semibold'>
+                Page {currentPage} of {totalPages}
+              </Text>
+              {hasNext ? (
+                <Link
+                  href={buildHref(
+                    currentPage + 1,
+                    pageSize,
+                    sort,
+                    status,
+                    countryId,
+                  )}
+                  aria-label='Next'
+                >
+                  <Icon name='arrowRight' size={24} fill='gray' />
+                </Link>
+              ) : null}
             </Grid>
-          </>
-        )}
-      </Grid>
-    </ClubAdminShell>
+          </Grid>
+        </>
+      )}
+    </Grid>
   );
 }

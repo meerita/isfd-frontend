@@ -1,12 +1,11 @@
 /** @format */
 
+import { parseContinentCode } from '@/_constants/continents';
 import type { CountryActionState } from '@/_types/country';
 
 const UNSET = Symbol('unset');
 const ISO2_PATTERN = /^[A-Z]{2}$/;
 const ISO3_PATTERN = /^[A-Z]{3}$/;
-const CONTINENT_CODES = new Set(['AF', 'AN', 'AS', 'EU', 'NA', 'OC', 'SA']);
-
 function str(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === 'string' ? value.trim() : '';
@@ -91,7 +90,7 @@ function validateNullableIso3(value: string | null): CountryActionState | null {
 function validateNullableContinent(
   value: string | null,
 ): CountryActionState | null {
-  if (!value || CONTINENT_CODES.has(value)) return null;
+  if (!value || parseContinentCode(value)) return null;
 
   return formError(
     'COUNTRY_INVALID_CONTINENT_CODE',

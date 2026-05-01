@@ -1,9 +1,12 @@
 /** @format */
 
 import {
+  parseStadiumSurfaceType,
   STADIUM_SURFACE_TYPES,
-  type StadiumActionState,
   type StadiumSurfaceType,
+} from '@/_constants/enums/stadium';
+import {
+  type StadiumActionState,
 } from '@/_types/stadium';
 
 const UUID_PATTERN =
@@ -30,9 +33,7 @@ function optionalString(value: string): string | null {
 function optionalSurfaceType(value: string): StadiumSurfaceType | null {
   if (!value) return null;
 
-  return STADIUM_SURFACE_TYPES.includes(value as StadiumSurfaceType)
-    ? (value as StadiumSurfaceType)
-    : null;
+  return parseStadiumSurfaceType(value);
 }
 
 function parseFormerNames(value: string): ReadonlyArray<string> {

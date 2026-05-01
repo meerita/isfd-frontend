@@ -1,5 +1,19 @@
 /** @format */
 
+import {
+  parsePersonCurrentProfession,
+  parsePersonDominantFoot,
+  parsePersonEthnicity,
+  parsePersonGender,
+  parsePersonHairColor,
+  parsePersonSkinColor,
+  type PersonCurrentProfession,
+  type PersonDominantFoot,
+  type PersonEthnicity,
+  type PersonGender,
+  type PersonHairColor,
+  type PersonSkinColor,
+} from '@/_constants/enums/person';
 import type { PersonActionState } from '@/_types/person';
 
 const UNSET = Symbol('unset');
@@ -31,6 +45,81 @@ type NullableDateFieldKey =
   | 'retirement_date';
 
 type NullableNumberFieldKey = 'height_cm' | 'weight_kg';
+
+type PersonEnumFieldValue =
+  | PersonCurrentProfession
+  | PersonDominantFoot
+  | PersonEthnicity
+  | PersonGender
+  | PersonHairColor
+  | PersonSkinColor;
+
+type PersonEnumField = Readonly<{
+  formKey: string;
+  originalKey?: string;
+  bodyKey: NullableStringFieldKey;
+  parse: (value: unknown) => PersonEnumFieldValue | null;
+  reason: string;
+  message: string;
+  error: string;
+}>;
+
+const PERSON_ENUM_FIELDS: ReadonlyArray<PersonEnumField> = [
+  {
+    formKey: 'gender',
+    originalKey: 'original_gender',
+    bodyKey: 'gender',
+    parse: parsePersonGender,
+    reason: 'PERSON_INVALID_GENDER',
+    message: 'Select a valid gender.',
+    error: 'Select a valid gender.',
+  },
+  {
+    formKey: 'hairColor',
+    originalKey: 'original_hairColor',
+    bodyKey: 'hair_color',
+    parse: parsePersonHairColor,
+    reason: 'PERSON_INVALID_HAIR_COLOR',
+    message: 'Select a valid hair color.',
+    error: 'Select a valid hair color.',
+  },
+  {
+    formKey: 'ethnicity',
+    originalKey: 'original_ethnicity',
+    bodyKey: 'ethnicity',
+    parse: parsePersonEthnicity,
+    reason: 'PERSON_INVALID_ETHNICITY',
+    message: 'Select a valid ethnicity.',
+    error: 'Select a valid ethnicity.',
+  },
+  {
+    formKey: 'skinColor',
+    originalKey: 'original_skinColor',
+    bodyKey: 'skin_color',
+    parse: parsePersonSkinColor,
+    reason: 'PERSON_INVALID_SKIN_COLOR',
+    message: 'Select a valid skin color.',
+    error: 'Select a valid skin color.',
+  },
+  {
+    formKey: 'dominantFoot',
+    originalKey: 'original_dominantFoot',
+    bodyKey: 'dominant_foot',
+    parse: parsePersonDominantFoot,
+    reason: 'PERSON_INVALID_DOMINANT_FOOT',
+    message: 'Select a valid dominant foot.',
+    error: 'Select a valid dominant foot.',
+  },
+  {
+    formKey: 'currentProfession',
+    originalKey: 'original_currentProfession',
+    bodyKey: 'current_profession',
+    parse: parsePersonCurrentProfession,
+    reason: 'PERSON_INVALID_CURRENT_PROFESSION',
+    message: 'Select a valid current profession.',
+    error: 'Select a valid current profession.',
+  },
+];
 
 function str(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -206,6 +295,26 @@ function partialRequired(
   return value;
 }
 
+function parseNullableEnumField(
+  rawValue: string,
+  field: PersonEnumField,
+): Readonly<{
+  value: PersonEnumFieldValue | null;
+  error?: PersonActionState;
+}> {
+  if (!rawValue) return { value: null };
+
+  const value = field.parse(rawValue);
+  if (value !== null) {
+    return { value };
+  }
+
+  return {
+    value: null,
+    error: formError(field.reason, field.message, field.error),
+  };
+}
+
 export function formatDateForInput(value: string | null | undefined): string {
   if (!value) return '';
   if (DATE_PATTERN.test(value)) return value;
@@ -337,6 +446,17 @@ export function buildCreatePersonBody(
     return { error: validationError };
   }
 
+  const enumValues = new Map<NullableStringFieldKey, PersonEnumFieldValue | null>();
+
+  for (const field of PERSON_ENUM_FIELDS) {
+    const result = parseNullableEnumField(str(formData, field.formKey), field);
+    if (result.error) {
+      return { error: result.error };
+    }
+
+    enumValues.set(field.bodyKey, result.value);
+  }
+
   const body: Record<string, unknown> = {
     full_name: fullName,
     is_deceased: isDeceased,
@@ -356,17 +476,11 @@ export function buildCreatePersonBody(
     { formKey: 'displayName', bodyKey: 'display_name' },
     { formKey: 'knownAs', bodyKey: 'known_as' },
     { formKey: 'nativeFullName', bodyKey: 'native_full_name' },
-    { formKey: 'gender', bodyKey: 'gender' },
     { formKey: 'birthLocationId', bodyKey: 'birth_location_id' },
     {
       formKey: 'primaryNationalityCountryId',
       bodyKey: 'primary_nationality_country_id',
     },
-    { formKey: 'hairColor', bodyKey: 'hair_color' },
-    { formKey: 'ethnicity', bodyKey: 'ethnicity' },
-    { formKey: 'skinColor', bodyKey: 'skin_color' },
-    { formKey: 'dominantFoot', bodyKey: 'dominant_foot' },
-    { formKey: 'currentProfession', bodyKey: 'current_profession' },
     { formKey: 'avatarImageUrl', bodyKey: 'avatar_image_url' },
     { formKey: 'heroImageUrl', bodyKey: 'hero_image_url' },
   ];
@@ -375,6 +489,12 @@ export function buildCreatePersonBody(
     const value = optionalString(str(formData, field.formKey));
     if (value !== null) {
       body[field.bodyKey] = value;
+    }
+  }
+
+  for (const [bodyKey, value] of enumValues) {
+    if (value !== null) {
+      body[bodyKey] = value;
     }
   }
 
@@ -581,6 +701,37 @@ export function buildUpdatePersonBody(formData: FormData): {
     return { personId, error: validationError };
   }
 
+  const enumValues = new Map<
+    NullableStringFieldKey,
+    Readonly<{
+      current: PersonEnumFieldValue | null;
+      original: PersonEnumFieldValue | null;
+    }>
+  >();
+
+  for (const field of PERSON_ENUM_FIELDS) {
+    const currentResult = parseNullableEnumField(
+      str(formData, field.formKey),
+      field,
+    );
+    if (currentResult.error) {
+      return { personId, error: currentResult.error };
+    }
+
+    const originalResult = parseNullableEnumField(
+      str(formData, field.originalKey ?? ''),
+      field,
+    );
+    if (originalResult.error) {
+      return { personId, error: originalResult.error };
+    }
+
+    enumValues.set(field.bodyKey, {
+      current: currentResult.value,
+      original: originalResult.value,
+    });
+  }
+
   const body: Record<string, unknown> = {};
 
   if (fullNameResult !== UNSET) {
@@ -617,7 +768,6 @@ export function buildUpdatePersonBody(formData: FormData): {
       originalKey: 'original_nativeFullName',
       bodyKey: 'native_full_name',
     },
-    { formKey: 'gender', originalKey: 'original_gender', bodyKey: 'gender' },
     {
       formKey: 'birthLocationId',
       originalKey: 'original_birthLocationId',
@@ -627,31 +777,6 @@ export function buildUpdatePersonBody(formData: FormData): {
       formKey: 'primaryNationalityCountryId',
       originalKey: 'original_primaryNationalityCountryId',
       bodyKey: 'primary_nationality_country_id',
-    },
-    {
-      formKey: 'hairColor',
-      originalKey: 'original_hairColor',
-      bodyKey: 'hair_color',
-    },
-    {
-      formKey: 'ethnicity',
-      originalKey: 'original_ethnicity',
-      bodyKey: 'ethnicity',
-    },
-    {
-      formKey: 'skinColor',
-      originalKey: 'original_skinColor',
-      bodyKey: 'skin_color',
-    },
-    {
-      formKey: 'dominantFoot',
-      originalKey: 'original_dominantFoot',
-      bodyKey: 'dominant_foot',
-    },
-    {
-      formKey: 'currentProfession',
-      originalKey: 'original_currentProfession',
-      bodyKey: 'current_profession',
     },
     {
       formKey: 'avatarImageUrl',
@@ -671,6 +796,13 @@ export function buildUpdatePersonBody(formData: FormData): {
     const result = partialNullable(currentValue, originalValue);
     if (result !== UNSET) {
       body[field.bodyKey] = result;
+    }
+  }
+
+  for (const [bodyKey, value] of enumValues) {
+    const result = partialNullable(value.current, value.original);
+    if (result !== UNSET) {
+      body[bodyKey] = result;
     }
   }
 

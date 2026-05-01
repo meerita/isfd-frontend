@@ -2,6 +2,10 @@
 
 import type { ApiErrorResponse } from '@/_types/api';
 import type { GeoMetadata } from '@/_types/country';
+import {
+  STADIUM_SURFACE_TYPES,
+  type StadiumSurfaceType,
+} from '@/_constants/enums/stadium';
 
 export type StadiumSort =
   | 'created_at_asc'
@@ -15,17 +19,7 @@ export type StadiumSort =
 
 export type StadiumStatusFilter = 'all' | 'active' | 'inactive';
 
-export const STADIUM_SURFACE_TYPES = [
-  'NATURAL_GRASS',
-  'ARTIFICIAL_TURF',
-  'HYBRID',
-  'CLAY',
-  'SAND',
-  'CONCRETE',
-  'OTHER',
-] as const;
-
-export type StadiumSurfaceType = (typeof STADIUM_SURFACE_TYPES)[number];
+export { STADIUM_SURFACE_TYPES, type StadiumSurfaceType };
 
 export type StadiumListItem = Readonly<{
   id: string;

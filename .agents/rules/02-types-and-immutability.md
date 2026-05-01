@@ -7,6 +7,8 @@
 - Prefer `ReadonlyArray<T>` for arrays returned by the API or accepted by props.
 - Mark nested objects as readonly as well. Do not stop at the top level.
 - Use readonly props for components, pages, layouts, filters, and helper arguments.
+- Do not use Array index in keys, even for placeholder rows.
+- Never use `any`. Also avoid `unknown` without a very specific reason and a comment explaining why.
 
 ## Patterns To Follow
 

@@ -15,6 +15,7 @@ import Tbody from '@/_components/tables/Tbody';
 import Thead from '@/_components/tables/Thead';
 import Icon from '@/_components/Icon';
 import Text from '@/_components/typography/Text';
+import { getContinentLabel } from '@/_constants/continents';
 import { resolveCountryErrorMessage } from '@/_constants/countryErrorMessages';
 import NAVIGATION from '@/_constants/navigation';
 import SECTIONS from '@/_constants/sections';
@@ -127,20 +128,24 @@ export default async function CountriesPage({
                   <Cell header align='center' className='padding-left--16'>
                     ISO 3
                   </Cell>
-                  <Cell header className='padding-left--16'>Slug</Cell>
+                  <Cell header className='padding-left--16'>
+                    Slug
+                  </Cell>
                   <Cell header className='padding-left--16'>
                     Translation key
                   </Cell>
                   <Cell header align='center' className='padding-left--16'>
                     Continent
                   </Cell>
-                  <Cell header align='right' className='padding-left--16'>
+                  <Cell header align='center' className='padding-left--16'>
                     Provinces
                   </Cell>
-                  <Cell header align='right' className='padding-left--16'>
+                  <Cell header align='center' className='padding-left--16'>
                     Cities
                   </Cell>
-                  <Cell header align='center'>Active</Cell>
+                  <Cell header align='center'>
+                    Active
+                  </Cell>
                 </Row>
               </Thead>
               <Tbody>
@@ -155,7 +160,10 @@ export default async function CountriesPage({
                   </Row>
                 ) : (
                   countriesResponse.data.map(country => (
-                    <Row key={country.id} href={NAVIGATION.COUNTRY_BY_ID(country.id)}>
+                    <Row
+                      key={country.id}
+                      href={NAVIGATION.COUNTRY_BY_ID(country.id)}
+                    >
                       <Cell>{country.name}</Cell>
                       <Cell align='center' className='padding-left--16'>
                         {country.iso2Code ?? PLACEHOLDER}
@@ -168,16 +176,21 @@ export default async function CountriesPage({
                         {country.translationKey}
                       </Cell>
                       <Cell align='center' className='padding-left--16'>
-                        {country.continentCode ?? PLACEHOLDER}
+                        {getContinentLabel(country.continentCode) ??
+                          PLACEHOLDER}
                       </Cell>
-                      <Cell align='right' className='padding-left--16'>
+                      <Cell align='center' className='padding-left--16'>
                         {country.provinceCount ?? PLACEHOLDER}
                       </Cell>
-                      <Cell align='right' className='padding-left--16'>
+                      <Cell align='center' className='padding-left--16'>
                         {country.cityCount ?? PLACEHOLDER}
                       </Cell>
                       <Cell align='center'>
-                        {country.isActive ? <Dot active inline /> : <Dot inline />}
+                        {country.isActive ? (
+                          <Dot active inline />
+                        ) : (
+                          <Dot inline />
+                        )}
                       </Cell>
                     </Row>
                   ))

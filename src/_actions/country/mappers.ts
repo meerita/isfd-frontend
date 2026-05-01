@@ -1,5 +1,6 @@
 /** @format */
 
+import { parseContinentCode } from '@/_constants/continents';
 import type {
   Country,
   CountryListMetadata,
@@ -42,7 +43,7 @@ export function mapCountry(raw: RawCountry): Country {
     flagImageUrl: toNullableString(raw.flag_image_url ?? raw.flagImageUrl),
     iso2Code: toNullableString(raw.iso2_code ?? raw.iso2Code),
     iso3Code: toNullableString(raw.iso3_code ?? raw.iso3Code),
-    continentCode: toNullableString(raw.continent_code ?? raw.continentCode),
+    continentCode: parseContinentCode(raw.continent_code ?? raw.continentCode),
     isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
     provinceCount: toOptionalNumber(raw.province_count ?? raw.provinceCount),
     cityCount: toOptionalNumber(raw.city_count ?? raw.cityCount),

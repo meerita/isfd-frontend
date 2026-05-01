@@ -1,7 +1,6 @@
 /** @format */
 
 import { getAllCountries } from '@/_actions/country/getAllCountries';
-import { getAdminProvincesByCountryId } from '@/_actions/country/getAdminProvincesByCountryId';
 import Grid from '@/_components/layout/Grid';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Title from '@/_components/typography/Title';
@@ -31,12 +30,7 @@ export default async function CreateCityPage({
   const initialCountryId =
     parseString(resolvedSearchParams?.country_id) ??
     parseString(resolvedSearchParams?.countryId);
-  const [countries, initialProvinces] = await Promise.all([
-    getAllCountries(),
-    initialCountryId
-      ? getAdminProvincesByCountryId(initialCountryId)
-      : Promise.resolve([]),
-  ]);
+  const countries = await getAllCountries();
 
   return (
     <Grid gap={24}>
@@ -47,7 +41,6 @@ export default async function CreateCityPage({
       <CityForm
         countries={countries}
         initialCountryId={initialCountryId}
-        initialProvinces={initialProvinces}
       />
     </Grid>
   );

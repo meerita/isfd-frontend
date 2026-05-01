@@ -1,105 +1,87 @@
 /** @format */
+/**
+ * @file src/app/persons/[id]/page.tsx
+ * @description Renders the person detail page shell with localized actions and navigation.
+ * @layer app
+ * @created Diego Martín Lafuente <diego.lafuente@cognativinc.com>
+ */
 
-import { getMe } from '@/_actions/auth/getMe';
-import { getAllCountries } from '@/_actions/country/getAllCountries';
-import { getAdminPersonById } from '@/_actions/person/getAdminPersonById';
 import Button from '@/_components/forms/Button';
-import Box from '@/_components/layout/Box';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
 import SectionHeader from '@/_components/layout/SectionHeader';
-import Text from '@/_components/typography/Text';
-import Title from '@/_components/typography/Title';
+import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import NAVIGATION from '@/_constants/navigation';
-import { resolvePersonErrorMessage } from '@/_constants/personErrorMessages';
-import SECTIONS from '@/_constants/sections';
-import requireAdminAccess from '@/_lib/requireAdminAccess';
-import ClubAdminShell from '../../clubs/_components/ClubAdminShell';
-import DeletePersonButton from '../_components/DeletePersonButton';
-import PersonForm from '../_components/PersonForm';
+import { getDictionary } from '../../../_i18n/getDictionary';
+import { resolveRequestLocale } from '../../../_i18n/resolveRequestLocale';
+import PersonInformationTab from '../_components/PersonInformationTab';
+import PersonSidebarNavigation from '../_components/PersonSideBar';
 
 type PersonPageParams = Readonly<{
-  id?: string;
+  id: string;
 }>;
 
-type PersonDetailsPageProps = Readonly<{
-  params?: Promise<PersonPageParams> | PersonPageParams;
+type PersonPageSearchParams = Readonly<{
+  value?: string | string[];
+  id?: string | string[];
+  section?: string | string[];
+  edit?: string | string[];
 }>;
 
-function renderUnavailable(username: string, title: string, message: string) {
-  return (
-    <ClubAdminShell username={username}>
-      <Main>
-        <Grid gap={16}>
-          <Title size='large'>{title}</Title>
-          <Text size='small' color='gray'>
-            {message}
-          </Text>
-          <Button href={NAVIGATION.PERSONS}>Back to persons</Button>
-        </Grid>
-      </Main>
-    </ClubAdminShell>
-  );
-}
+type PersonPageProps = Readonly<{
+  params: Promise<PersonPageParams> | PersonPageParams;
+  searchParams?: Promise<PersonPageSearchParams> | PersonPageSearchParams;
+}>;
 
-export default async function PersonDetailsPage({
+export default async function PersonPage({
   params,
-}: PersonDetailsPageProps = {}) {
-  await requireAdminAccess();
+  searchParams,
+}: PersonPageProps): Promise<React.JSX.Element> {
+  const locale = await resolveRequestLocale();
+  const dictionary = getDictionary(locale);
 
-  const resolvedParams = await Promise.resolve(params);
-  const personId = resolvedParams?.id;
-  const user = await getMe();
-  const username = user?.username ?? 'User';
-
-  if (!personId) {
-    return renderUnavailable(
-      username,
-      'Person unavailable',
-      'Missing person identifier in the URL.',
-    );
-  }
-
-  const [personResponse, countriesResponse] = await Promise.all([
-    getAdminPersonById(personId),
-    getAllCountries(),
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
   ]);
 
-  if (!personResponse.data) {
-    return renderUnavailable(
-      username,
-      'Person unavailable',
-      resolvePersonErrorMessage(personResponse.error),
-    );
-  }
-
-  const person = personResponse.data;
-  const selectedCountry = countriesResponse.find(
-    country => country.id === person.primaryNationalityCountryId,
-  );
+  const personIdSlug = resolvedParams?.id?.trim() ?? '';
 
   return (
-    <ClubAdminShell username={username}>
-      <Grid gap={24}>
-        <SectionHeader title={`${SECTIONS.PERSONS} / ${person.fullName}`} icon='person'>
-          <Box display='flex' gap={4} alignItems='center'>
-            <DeletePersonButton
-              personId={person.id}
-              personName={person.fullName}
-            />
-            <Button href={NAVIGATION.PERSONS}>All persons</Button>
-          </Box>
-        </SectionHeader>
-
-        <PersonForm
-          person={person}
-          countries={countriesResponse}
-          selectedPrimaryNationalityCountryLabel={
-            selectedCountry?.name ?? person.primaryNationalityCountryId
-          }
-          edit
-        />
-      </Grid>
-    </ClubAdminShell>
+    <Grid gap={16}>
+      <SectionHeader
+        navigation={[
+          { label: dictionary.navigation.persons, href: NAVIGATION.PERSONS },
+          { label: 'Lionel Messi' },
+        ]}
+        icon='users'
+      >
+        <ButtonGroup gap={4}>
+          <Button icon='remove' type='button' variant='borderless'>
+            {dictionary.persons.detail.deletePerson}
+          </Button>
+          <Button
+            icon='visibility'
+            type='button'
+            href={`?value=${personIdSlug}&section=profile&edit=true`}
+          >
+            {dictionary.persons.detail.makeActive}
+          </Button>
+          <Button
+            icon='visibility'
+            type='button'
+            href={`?value=${personIdSlug}&section=profile&edit=true`}
+          >
+            {dictionary.persons.detail.makeInactive}
+          </Button>
+        </ButtonGroup>
+      </SectionHeader>
+      <Main>
+        <Grid className='c-aside-grid' gap={16}>
+          <PersonSidebarNavigation person={{ id: personIdSlug } as never} />
+          <PersonInformationTab person={{ id: personIdSlug } as never} />
+        </Grid>
+      </Main>
+    </Grid>
   );
 }

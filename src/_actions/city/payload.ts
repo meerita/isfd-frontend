@@ -144,42 +144,12 @@ export function buildCreateCityBody(
     };
   }
 
-  const latitudeResult = parseOptionalNumber(str(formData, 'latitude'));
-  const longitudeResult = parseOptionalNumber(str(formData, 'longitude'));
-
-  if (!latitudeResult.valid || !longitudeResult.valid) {
-    return {
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Coordinates must be valid numbers.',
-        'Enter valid numeric coordinates.',
-      ),
-    };
-  }
-
-  const validationError = [
-    validateLatitude(latitudeResult.value),
-    validateLongitude(longitudeResult.value),
-  ].find(Boolean);
-
-  if (validationError) {
-    return { error: validationError };
-  }
-
-  const body: Record<string, unknown> = {
-    country_id: countryId,
-    name,
+  return {
+    body: {
+      country_id: countryId,
+      name,
+    },
   };
-
-  const provinceName = optionalString(str(formData, 'provinceName'));
-  const regionName = optionalString(str(formData, 'regionName'));
-
-  if (provinceName !== null) body.province_name = provinceName;
-  if (regionName !== null) body.region_name = regionName;
-  if (latitudeResult.value !== null) body.latitude = latitudeResult.value;
-  if (longitudeResult.value !== null) body.longitude = longitudeResult.value;
-
-  return { body };
 }
 
 export function buildUpdateCityBody(formData: FormData): {

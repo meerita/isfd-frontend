@@ -121,7 +121,7 @@ export default function CityForm({
   }, [provinceOptions, selectedProvinceName]);
 
   useEffect(() => {
-    if (!selectedCountryId) return;
+    if (!edit || !selectedCountryId) return;
 
     const requestId = latestProvincesRequest.current + 1;
     latestProvincesRequest.current = requestId;
@@ -151,7 +151,7 @@ export default function CityForm({
           }
         });
     });
-  }, [selectedCountryId]);
+  }, [edit, selectedCountryId]);
 
   useEffect(() => {
     if (actionState.status === 'idle') return;
@@ -272,23 +272,25 @@ export default function CityForm({
               </option>
             ))}
           </Select>
-          <Select
-            label='Province'
-            name='provinceName'
-            value={selectedProvinceName}
-            onChange={event => {
-              setSelectedProvinceName(event.target.value);
-            }}
-            disabled={isPending || !selectedCountryId || isProvincesPending}
-            helperText={provinceHelperText}
-          >
-            <option value=''>— none —</option>
-            {provinceSelectOptions.map(province => (
-              <option key={province.name} value={province.name}>
-                {province.name}
-              </option>
-            ))}
-          </Select>
+          {edit ? (
+            <Select
+              label='Province'
+              name='provinceName'
+              value={selectedProvinceName}
+              onChange={event => {
+                setSelectedProvinceName(event.target.value);
+              }}
+              disabled={isPending || !selectedCountryId || isProvincesPending}
+              helperText={provinceHelperText}
+            >
+              <option value=''>— none —</option>
+              {provinceSelectOptions.map(province => (
+                <option key={province.name} value={province.name}>
+                  {province.name}
+                </option>
+              ))}
+            </Select>
+          ) : null}
           <TextInput
             label='City name'
             name='name'
@@ -297,31 +299,35 @@ export default function CityForm({
             required
             disabled={isPending}
           />
-          <TextInput
-            label='Region'
-            name='regionName'
-            placeholder='Optional region'
-            defaultValue={city?.regionName ?? ''}
-            disabled={isPending}
-          />
-          <TextInput
-            label='Latitude'
-            name='latitude'
-            placeholder='40.4168'
-            defaultValue={toStringValue(city?.latitude)}
-            inputMode='decimal'
-            pattern='-?[0-9]*[.,]?[0-9]*'
-            disabled={isPending}
-          />
-          <TextInput
-            label='Longitude'
-            name='longitude'
-            placeholder='-3.7038'
-            defaultValue={toStringValue(city?.longitude)}
-            inputMode='decimal'
-            pattern='-?[0-9]*[.,]?[0-9]*'
-            disabled={isPending}
-          />
+          {edit ? (
+            <>
+              <TextInput
+                label='Region'
+                name='regionName'
+                placeholder='Optional region'
+                defaultValue={city?.regionName ?? ''}
+                disabled={isPending}
+              />
+              <TextInput
+                label='Latitude'
+                name='latitude'
+                placeholder='40.4168'
+                defaultValue={toStringValue(city?.latitude)}
+                inputMode='decimal'
+                pattern='-?[0-9]*[.,]?[0-9]*'
+                disabled={isPending}
+              />
+              <TextInput
+                label='Longitude'
+                name='longitude'
+                placeholder='-3.7038'
+                defaultValue={toStringValue(city?.longitude)}
+                inputMode='decimal'
+                pattern='-?[0-9]*[.,]?[0-9]*'
+                disabled={isPending}
+              />
+            </>
+          ) : null}
           {edit ? (
             <CheckBoxInput
               label='Active'

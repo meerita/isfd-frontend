@@ -18,6 +18,7 @@ import Tbody from '@/_components/tables/Tbody';
 import Thead from '@/_components/tables/Thead';
 import Icon from '@/_components/Icon';
 import Text from '@/_components/typography/Text';
+import { getStadiumSurfaceTypeLabel } from '@/_constants/enums/stadium';
 import NAVIGATION from '@/_constants/navigation';
 import SECTIONS from '@/_constants/sections';
 import { resolveStadiumErrorMessage } from '@/_constants/stadiumErrorMessages';
@@ -322,7 +323,8 @@ export default async function StadiumsPage({
                         {stadium.seatCount?.toLocaleString() ?? PLACEHOLDER}
                       </Cell>
                       <Cell className='padding-left--16'>
-                        {stadium.surfaceType ?? PLACEHOLDER}
+                        {getStadiumSurfaceTypeLabel(stadium.surfaceType) ??
+                          PLACEHOLDER}
                       </Cell>
                       <Cell className='padding-left--16'>
                         {stadium.primaryClubId ?? PLACEHOLDER}

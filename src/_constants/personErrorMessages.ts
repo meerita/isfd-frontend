@@ -1,8 +1,16 @@
 /** @format */
+/**
+ * @file src/_constants/personErrorMessages.ts
+ * @description Resolves person error messages from a provided translation map.
+ * @layer app
+ * @created Diego Martín Lafuente <diego.lafuente@cognativinc.com>
+ */
 
 import type { ApiErrorResponse } from '@/_types/api';
 
-export const PERSON_ERROR_MESSAGES: Readonly<Record<string, string>> = {
+export type PersonErrorMessageMap = Readonly<Record<string, string>>;
+
+export const PERSON_ERROR_MESSAGES: PersonErrorMessageMap = {
   INVALID_REQUEST: 'The person request was invalid.',
   INTERNAL_SERVER_ERROR: 'The person request failed on the server.',
   PERSON_NOT_FOUND: 'This person could not be found.',
@@ -49,13 +57,14 @@ export const PERSON_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   INVALID_RESPONSE: 'The backend returned an invalid person response.',
 };
 
-export function resolvePersonErrorMessage(error?: ApiErrorResponse): string {
-  if (!error) return 'Unexpected error.';
+export function resolvePersonErrorMessage(
+  error?: ApiErrorResponse,
+  messages: PersonErrorMessageMap = PERSON_ERROR_MESSAGES,
+  fallback = 'Unexpected error.',
+): string {
+  if (!error) {
+    return fallback;
+  }
 
-  return (
-    PERSON_ERROR_MESSAGES[error.reason] ??
-    error.error ??
-    error.message ??
-    'Unexpected error.'
-  );
+  return messages[error.reason] ?? error.error ?? error.message ?? fallback;
 }

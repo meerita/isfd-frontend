@@ -1,5 +1,13 @@
 /** @format */
 
+import {
+  parsePersonCurrentProfession,
+  parsePersonDominantFoot,
+  parsePersonEthnicity,
+  parsePersonGender,
+  parsePersonHairColor,
+  parsePersonSkinColor,
+} from '@/_constants/enums/person';
 import type {
   Person,
   PersonListItem,
@@ -38,8 +46,8 @@ export function mapPersonListItem(raw: RawPerson): PersonListItem {
     fullName: String(raw.full_name ?? raw.fullName ?? ''),
     slug: String(raw.slug ?? ''),
     displayName: toStringValue(raw.display_name ?? raw.displayName),
-    gender: toStringValue(raw.gender),
-    currentProfession: toNullableString(
+    gender: parsePersonGender(raw.gender),
+    currentProfession: parsePersonCurrentProfession(
       raw.current_profession ?? raw.currentProfession,
     ),
     primaryNationalityCountryId: toNullableString(
@@ -77,10 +85,12 @@ export function mapPerson(raw: RawPerson): Person {
     ),
     heightCm: toNullableNumber(raw.height_cm ?? raw.heightCm),
     weightKg: toNullableNumber(raw.weight_kg ?? raw.weightKg),
-    hairColor: toNullableString(raw.hair_color ?? raw.hairColor),
-    ethnicity: toNullableString(raw.ethnicity),
-    skinColor: toNullableString(raw.skin_color ?? raw.skinColor),
-    dominantFoot: toNullableString(raw.dominant_foot ?? raw.dominantFoot),
+    hairColor: parsePersonHairColor(raw.hair_color ?? raw.hairColor),
+    ethnicity: parsePersonEthnicity(raw.ethnicity),
+    skinColor: parsePersonSkinColor(raw.skin_color ?? raw.skinColor),
+    dominantFoot: parsePersonDominantFoot(
+      raw.dominant_foot ?? raw.dominantFoot,
+    ),
     professionalDivisionDebutDate: toNullableString(
       raw.professional_division_debut_date ??
         raw.professionalDivisionDebutDate,
@@ -119,14 +129,10 @@ export function mapPersonMetadata(
             typeof filters.status === 'string'
               ? (filters.status as PersonStatusFilter)
               : undefined,
-          gender:
-            typeof filters.gender === 'string' ? filters.gender : undefined,
-          currentProfession:
-            typeof filters.current_profession === 'string'
-              ? filters.current_profession
-              : typeof filters.currentProfession === 'string'
-                ? filters.currentProfession
-                : undefined,
+          gender: parsePersonGender(filters.gender) ?? undefined,
+          currentProfession: parsePersonCurrentProfession(
+            filters.current_profession ?? filters.currentProfession,
+          ) ?? undefined,
         }
       : undefined,
   };

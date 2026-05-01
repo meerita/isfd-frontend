@@ -1,4 +1,10 @@
 /** @format */
+/**
+ * @file src/_components/RegisterForm.tsx
+ * @description Renders the registration form with locale-aware OTP and credential copy.
+ * @layer app
+ * @created Diego Martín Lafuente <diego.lafuente@cognativinc.com>
+ */
 
 'use client';
 
@@ -6,6 +12,7 @@ import { useActionState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { registerAction } from '@/_actions/auth/registerAction';
+import { useI18n } from '@/_i18n/I18nProvider';
 import type { RegisterActionState } from '@/_types/auth';
 
 import Button from './forms/Button';
@@ -21,42 +28,49 @@ const INITIAL_STATE: RegisterActionState = {
 
 const IS_LOCAL_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
-export default function RegisterForm() {
-  const [state, formAction, pending] = useActionState<RegisterActionState, FormData>(
-    registerAction,
-    INITIAL_STATE,
-  );
+export default function RegisterForm(): React.JSX.Element {
+  const { dictionary, locale } = useI18n();
+  const [state, formAction, pending] = useActionState<
+    RegisterActionState,
+    FormData
+  >(registerAction, INITIAL_STATE);
+
   const isOtpStep = state.step === 'otp';
 
-  useEffect(() => {
-    if (state.status === 'error' && state.error) {
-      toast.error(state.error.error);
-    }
+  useEffect(
+    function syncRegistrationNotifications(): void {
+      if (state.status === 'error' && state.error) {
+        toast.error(state.error.error);
+      }
 
-    if (state.status === 'awaiting_otp') {
-      toast.success('OTP code sent. Check your email.');
-    }
-  }, [state.status, state.error]);
+      if (state.status === 'awaiting_otp') {
+        toast.success(dictionary.auth.otpSentCheckEmail);
+      }
+    },
+    [dictionary.auth.otpSentCheckEmail, state.error, state.status],
+  );
 
   return (
     <Form action={formAction} gap={24}>
       {isOtpStep ? (
         <>
-          <input type='hidden' name='challenge_id' value={state.challengeId ?? ''} />
+          <input
+            type='hidden'
+            name='challenge_id'
+            value={state.challengeId ?? ''}
+          />
           {IS_LOCAL_DEVELOPMENT && state.otpCode ? (
             <Text color='gray'>
-              This is your OTP code: <strong>{state.otpCode}</strong>
+              {dictionary.auth.otpCode}: <strong>{state.otpCode}</strong>
             </Text>
           ) : (
-            <Text color='gray'>
-              Check your email for the OTP code.
-            </Text>
+            <Text color='gray'>{dictionary.auth.checkEmailForOtp}</Text>
           )}
           <TextInput
-            label='OTP code'
+            label={dictionary.auth.otpCode}
             name='code'
             type='text'
-            placeholder='Enter the 6-digit code'
+            placeholder={dictionary.auth.enterOtpCode}
             autoComplete='one-time-code'
             disabled={pending}
             autoFocus
@@ -64,49 +78,57 @@ export default function RegisterForm() {
           />
           {state.otpExpiresAt ? (
             <Text size='small' color='gray'>
-              Code expires at {new Date(state.otpExpiresAt).toLocaleString()}.
+              {dictionary.auth.codeExpiresAt.replace(
+                '{date}',
+                new Date(state.otpExpiresAt).toLocaleString(locale),
+              )}
             </Text>
           ) : null}
         </>
       ) : (
         <>
           <TextInput
-            label='Email'
+            label={dictionary.auth.email}
             name='email'
             type='email'
-            placeholder='name@example.com'
+            placeholder={dictionary.auth.emailPlaceholder}
             autoComplete='email'
             disabled={pending}
             required
           />
           <TextInput
-            label='Password'
+            label={dictionary.auth.password}
             name='password'
             type='password'
-            placeholder='Choose a password'
+            placeholder={dictionary.auth.choosePassword}
             autoComplete='new-password'
             disabled={pending}
             required
           />
           <TextInput
-            label='Username (optional)'
+            label={dictionary.auth.usernameOptional}
             name='username'
             type='text'
-            placeholder='your_username'
+            placeholder={dictionary.auth.usernamePlaceholder}
             autoComplete='username'
             disabled={pending}
           />
         </>
       )}
       <ButtonGroup>
-        <Button icon='send' type='submit' disabled={pending} aria-busy={pending}>
+        <Button
+          icon='send'
+          type='submit'
+          disabled={pending}
+          aria-busy={pending}
+        >
           {pending
             ? isOtpStep
-              ? 'Verifying...'
-              : 'Creating account...'
+              ? dictionary.common.verifying
+              : dictionary.auth.createAccountPending
             : isOtpStep
-              ? 'Verify code'
-              : 'Create account'}
+              ? dictionary.common.verifyCode
+              : dictionary.common.createAccount}
         </Button>
       </ButtonGroup>
     </Form>

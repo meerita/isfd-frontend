@@ -2,6 +2,14 @@
 
 import type { ApiErrorResponse } from '@/_types/api';
 import type { GeoMetadata } from '@/_types/country';
+import type {
+  PersonCurrentProfession,
+  PersonDominantFoot,
+  PersonEthnicity,
+  PersonGender,
+  PersonHairColor,
+  PersonSkinColor,
+} from '@/_constants/enums/person';
 
 export type PersonSort =
   | 'created_at_asc'
@@ -22,8 +30,8 @@ export type PersonListItem = Readonly<{
   fullName: string;
   slug: string;
   displayName: string;
-  gender: string;
-  currentProfession: string | null;
+  gender: PersonGender | null;
+  currentProfession: PersonCurrentProfession | null;
   primaryNationalityCountryId: string | null;
   avatarImageUrl: string | null;
   isActive: boolean;
@@ -45,10 +53,10 @@ export type Person = PersonListItem &
     birthLocationId: string | null;
     heightCm: number | null;
     weightKg: number | null;
-    hairColor: string | null;
-    ethnicity: string | null;
-    skinColor: string | null;
-    dominantFoot: string | null;
+    hairColor: PersonHairColor | null;
+    ethnicity: PersonEthnicity | null;
+    skinColor: PersonSkinColor | null;
+    dominantFoot: PersonDominantFoot | null;
     professionalDivisionDebutDate: string | null;
     retirementDate: string | null;
     heroImageUrl: string | null;
@@ -59,8 +67,8 @@ export type PersonListMetadata = GeoMetadata &
     filters?: Readonly<{
       sort?: PersonSort;
       status?: PersonStatusFilter;
-      gender?: string;
-      currentProfession?: string;
+      gender?: PersonGender;
+      currentProfession?: PersonCurrentProfession;
     }>;
   }>;
 

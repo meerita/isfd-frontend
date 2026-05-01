@@ -19,7 +19,6 @@ import AccountSidebarNavigation from '../_components/AccountSidebarNavigation';
 import Avatar from '../_components/Avatar';
 import ChangeUsernameForm from '../_components/forms/Username';
 import Skills from '../_components/Skills';
-import { getSports } from '@/_actions/sport/getSports';
 import { extractSports } from '@/_helpers/extractSports';
 
 type UserDetailPageParams = Readonly<{

@@ -16,7 +16,6 @@ import NAVIGATION from '@/_constants/navigation';
 import SECTIONS from '@/_constants/sections';
 import { resolveClubErrorMessage } from '@/_constants/clubErrorMessages';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
-import ClubAdminShell from '../_components/ClubAdminShell';
 import ClubForm from '../_components/ClubForm';
 import DeleteClubButton from '../_components/DeleteClubButton';
 
@@ -30,17 +29,15 @@ type ClubDetailsPageProps = Readonly<{
 
 function renderUnavailable(username: string, title: string, message: string) {
   return (
-    <ClubAdminShell username={username}>
-      <Main>
-        <Grid gap={16}>
-          <Title size='large'>{title}</Title>
-          <Text size='small' color='gray'>
-            {message}
-          </Text>
-          <Button href={NAVIGATION.CLUBS}>Back to clubs</Button>
-        </Grid>
-      </Main>
-    </ClubAdminShell>
+    <Main>
+      <Grid gap={16}>
+        <Title size='large'>{title}</Title>
+        <Text size='small' color='gray'>
+          {message}
+        </Text>
+        <Button href={NAVIGATION.CLUBS}>Back to clubs</Button>
+      </Grid>
+    </Main>
   );
 }
 

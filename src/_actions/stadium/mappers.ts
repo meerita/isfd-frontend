@@ -1,12 +1,12 @@
 /** @format */
 
+import { parseStadiumSurfaceType } from '@/_constants/enums/stadium';
 import type {
   Stadium,
   StadiumListItem,
   StadiumListMetadata,
   StadiumSort,
   StadiumStatusFilter,
-  StadiumSurfaceType,
 } from '@/_types/stadium';
 
 type RawStadium = Record<string, unknown>;
@@ -19,24 +19,6 @@ function toNullableString(value: unknown): string | null {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
-}
-
-function toNullableSurfaceType(value: unknown): StadiumSurfaceType | null {
-  const parsed = toNullableString(value);
-
-  if (
-    parsed === 'NATURAL_GRASS' ||
-    parsed === 'ARTIFICIAL_TURF' ||
-    parsed === 'HYBRID' ||
-    parsed === 'CLAY' ||
-    parsed === 'SAND' ||
-    parsed === 'CONCRETE' ||
-    parsed === 'OTHER'
-  ) {
-    return parsed;
-  }
-
-  return null;
 }
 
 function toNullableNumber(value: unknown): number | null {
@@ -87,7 +69,7 @@ export function mapStadiumListItem(raw: RawStadium): StadiumListItem {
     ),
     imageUrl: toNullableString(raw.image_url ?? raw.imageUrl),
     seatCount: toNullableNumber(raw.seat_count ?? raw.seatCount),
-    surfaceType: toNullableSurfaceType(raw.surface_type ?? raw.surfaceType),
+    surfaceType: parseStadiumSurfaceType(raw.surface_type ?? raw.surfaceType),
     isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
     createdAt: String(raw.created_at ?? raw.createdAt ?? ''),
     updatedAt: String(raw.updated_at ?? raw.updatedAt ?? ''),

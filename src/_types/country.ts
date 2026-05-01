@@ -1,6 +1,7 @@
 /** @format */
 
 import type { ApiErrorResponse } from '@/_types/api';
+import type { ContinentCode } from '@/_constants/continents';
 
 export type CountrySort =
   | 'name_asc'
@@ -18,7 +19,7 @@ export type Country = Readonly<{
   flagImageUrl: string | null;
   iso2Code: string | null;
   iso3Code: string | null;
-  continentCode: string | null;
+  continentCode: ContinentCode | null;
   isActive: boolean;
   provinceCount?: number;
   cityCount?: number;

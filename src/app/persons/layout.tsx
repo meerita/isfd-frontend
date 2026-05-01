@@ -1,20 +1,16 @@
 /** @format */
 
-import TopBar from '@/_components/layout/TopBar';
 import Grid from '@/_components/layout/Grid';
+import TopBar from '@/_components/layout/TopBar';
 
-type ClubAdminShellProps = Readonly<{
-  username?: string;
-  children: React.ReactNode;
-}>;
-
-export default function ClubAdminShell({
-  username = 'User',
+export default function PersonsLayout({
   children,
-}: ClubAdminShellProps) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <>
-      <TopBar username={username} />
+      <TopBar username='Diego' />
       <Grid padding={32} justifyItems='center'>
         <Grid gap={16} className='width--100 max-width--75'>
           {children}

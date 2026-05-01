@@ -13,6 +13,7 @@ import NAVIGATION from '@/_constants/navigation';
 import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
 import api from '@/_lib/axiosInstance';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
+import type { Gender } from '@/_types/genders';
 import type {
   UserActionState,
   UserCoordinates,
@@ -36,7 +37,7 @@ type UpdateUserProfilePayload = Readonly<{
       birthdate: string | null;
       weight: number;
       height: number;
-      gender: 'MALE' | 'FEMALE' | 'OTHER';
+      gender: Gender;
     }>;
     location: Readonly<{
       continent: UserLocation['continent'];

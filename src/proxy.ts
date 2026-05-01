@@ -1,15 +1,23 @@
 /** @format */
+/**
+ * @file src/proxy.ts
+ * @description Enforces session-based access control and request locale persistence through Next.js proxy.
+ * @layer app
+ * @created Diego Martín Lafuente <diego.lafuente@cognativinc.com>
+ */
 
 'use server';
-
-// File: src/proxy.ts
-// Purpose: Enforce session-based access control using Next.js proxy
-// Author: Diego M. Lafuente
-// Email: dlafuente@gmail.com
 
 import { NextRequest, NextResponse } from 'next/server';
 
 import ENV from '@/_constants/env';
+import {
+  BROWSER_LANGUAGE_IS_ENABLED,
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE_NAME,
+  localeIsSupported,
+  type AppLocale,
+} from '@/_i18n/config';
 import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
@@ -27,6 +35,7 @@ const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   '/forbidden',
   '/clubs/slug',
 ]);
+
 const IGNORED_PREFIXES: ReadonlyArray<string> = [
   '/_next',
   '/favicon',
@@ -34,74 +43,75 @@ const IGNORED_PREFIXES: ReadonlyArray<string> = [
   '/api',
 ];
 
-export async function proxy(request: NextRequest) {
+type RefreshResult = Readonly<{
+  session: NormalizedSession;
+  payload: AccessTokenPayload;
+}>;
+
+type AuthResolution = Readonly<{
+  payload: AccessTokenPayload | null;
+  sessionToPersist: NormalizedSession | null;
+  shouldClearCookies: boolean;
+}>;
+
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const normalizedPath = normalizePathname(request.nextUrl.pathname);
 
   if (shouldBypass(normalizedPath)) {
     return NextResponse.next();
   }
 
-  const requiresAuth = !isPublicPath(normalizedPath);
-  const tokenValue = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
+  const locale = resolveLocaleFromRequest(request);
+  const pathIsPublic = isPublicPath(normalizedPath);
+  const authIsRequired = !pathIsPublic;
 
+  const authResolution = await resolveRequestAuthState(request);
+
+  if (authIsRequired && authPayloadIsMissingOrExpired(authResolution.payload)) {
+    return createRedirectResponse(request, locale, true);
+  }
+
+  if (
+    pathIsPublic &&
+    normalizedPath === '/' &&
+    authPayloadIsActive(authResolution.payload)
+  ) {
+    return createResponseWithUpdates(
+      NextResponse.redirect(new URL('/dashboard', request.url)),
+      locale,
+      authResolution,
+    );
+  }
+
+  return createResponseWithUpdates(NextResponse.next(), locale, authResolution);
+}
+
+async function resolveRequestAuthState(
+  request: NextRequest,
+): Promise<AuthResolution> {
+  const tokenValue = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
   let payload = decodeAccessToken(tokenValue);
   let sessionToPersist: NormalizedSession | null = null;
   let shouldClearCookies = false;
 
   if (!payload || shouldRefreshAccessToken(payload)) {
-    const refreshed = await tryRefreshSession(request);
+    const refreshedSession = await tryRefreshSession(request);
 
-    if (refreshed) {
-      sessionToPersist = refreshed.session;
-      payload = refreshed.payload;
+    if (refreshedSession) {
+      payload = refreshedSession.payload;
+      sessionToPersist = refreshedSession.session;
     } else if (!payload || isTokenExpired(payload)) {
-      if (requiresAuth) {
-        const response = NextResponse.redirect(new URL('/', request.url));
-        clearAuthCookiesFromResponse(response);
-        return response;
-      }
-
       payload = null;
       shouldClearCookies = true;
     }
   }
 
-  if (isPublicPath(normalizedPath)) {
-    if (normalizedPath === '/' && payload && !isTokenExpired(payload)) {
-      return applyCookieUpdates(
-        NextResponse.redirect(new URL('/dashboard', request.url)),
-        sessionToPersist,
-        payload,
-        shouldClearCookies,
-      );
-    }
-
-    return applyCookieUpdates(
-      NextResponse.next(),
-      sessionToPersist,
-      payload,
-      shouldClearCookies,
-    );
-  }
-
-  if (!payload || isTokenExpired(payload)) {
-    const response = NextResponse.redirect(new URL('/', request.url));
-    clearAuthCookiesFromResponse(response);
-    return response;
-  }
-
-  return applyCookieUpdates(
-    NextResponse.next(),
-    sessionToPersist,
+  return {
     payload,
+    sessionToPersist,
     shouldClearCookies,
-  );
+  };
 }
-
-type RefreshResult = Readonly<{
-  session: NormalizedSession;
-  payload: AccessTokenPayload;
-}>;
 
 async function tryRefreshSession(
   request: NextRequest,
@@ -125,21 +135,38 @@ async function tryRefreshSession(
     return null;
   }
 
-  return { session, payload } satisfies RefreshResult;
+  return { session, payload };
 }
 
-function applyCookieUpdates(
+function createResponseWithUpdates(
   response: NextResponse,
-  session: NormalizedSession | null,
-  payload: AccessTokenPayload | null,
-  shouldClear: boolean,
+  locale: AppLocale,
+  authResolution: AuthResolution,
 ): NextResponse {
-  if (session && payload) {
-    persistSessionInResponse(response, session);
+  persistLocaleCookie(response, locale);
+
+  if (authResolution.sessionToPersist && authResolution.payload) {
+    persistSessionInResponse(response, authResolution.sessionToPersist);
     return response;
   }
 
-  if (shouldClear) {
+  if (authResolution.shouldClearCookies) {
+    clearAuthCookiesFromResponse(response);
+  }
+
+  return response;
+}
+
+function createRedirectResponse(
+  request: NextRequest,
+  locale: AppLocale,
+  shouldClearAuthCookies: boolean,
+): NextResponse {
+  const response = NextResponse.redirect(new URL('/', request.url));
+
+  persistLocaleCookie(response, locale);
+
+  if (shouldClearAuthCookies) {
     clearAuthCookiesFromResponse(response);
   }
 
@@ -151,14 +178,12 @@ function persistSessionInResponse(
   session: NormalizedSession,
 ): void {
   const secure = process.env.NODE_ENV === 'production';
-
-  function isoToMaxAge(isoString: string): number {
-    const expiresAt = new Date(isoString).getTime();
-    return Math.max(Math.floor((expiresAt - Date.now()) / 1000), 0);
-  }
-
-  const accessTokenMaxAge = isoToMaxAge(session.accessTokenExpiresAt);
-  const refreshTokenMaxAge = isoToMaxAge(session.refreshTokenExpiresAt);
+  const accessTokenMaxAge = getRemainingMaxAgeInSeconds(
+    session.accessTokenExpiresAt,
+  );
+  const refreshTokenMaxAge = getRemainingMaxAgeInSeconds(
+    session.refreshTokenExpiresAt,
+  );
 
   response.cookies.set({
     name: ACCESS_TOKEN_COOKIE,
@@ -191,10 +216,84 @@ function persistSessionInResponse(
   });
 }
 
+function persistLocaleCookie(response: NextResponse, locale: AppLocale): void {
+  response.cookies.set({
+    name: LOCALE_COOKIE_NAME,
+    value: locale,
+    httpOnly: false,
+    sameSite: 'lax',
+    path: '/',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 365,
+  });
+}
+
 function clearAuthCookiesFromResponse(response: NextResponse): void {
   response.cookies.delete(ACCESS_TOKEN_COOKIE);
   response.cookies.delete(REFRESH_TOKEN_COOKIE);
   response.cookies.delete(SESSION_ID_COOKIE);
+}
+
+function resolveLocaleFromRequest(request: NextRequest): AppLocale {
+  const cookieLocale = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
+
+  if (localeIsSupported(cookieLocale)) {
+    return cookieLocale;
+  }
+
+  if (!BROWSER_LANGUAGE_IS_ENABLED) {
+    return DEFAULT_LOCALE;
+  }
+
+  const acceptLanguageHeader = request.headers.get('accept-language');
+
+  if (!acceptLanguageHeader) {
+    return DEFAULT_LOCALE;
+  }
+
+  const preferredLocales = acceptLanguageHeader.split(',');
+
+  for (const preferredLocale of preferredLocales) {
+    const normalizedLocale = preferredLocale
+      .split(';')[0]
+      ?.trim()
+      .toLowerCase();
+
+    if (!normalizedLocale) {
+      continue;
+    }
+
+    const baseLocale = normalizedLocale.split('-')[0];
+
+    if (localeIsSupported(baseLocale)) {
+      return baseLocale;
+    }
+  }
+
+  return DEFAULT_LOCALE;
+}
+
+function authPayloadIsMissingOrExpired(
+  payload: AccessTokenPayload | null,
+): boolean {
+  if (!payload) {
+    return true;
+  }
+
+  return isTokenExpired(payload);
+}
+
+function authPayloadIsActive(payload: AccessTokenPayload | null): boolean {
+  if (!payload) {
+    return false;
+  }
+
+  return !isTokenExpired(payload);
+}
+
+function getRemainingMaxAgeInSeconds(isoString: string): number {
+  const expiresAt = new Date(isoString).getTime();
+  return Math.max(Math.floor((expiresAt - Date.now()) / 1000), 0);
 }
 
 function isPublicPath(pathname: string): boolean {
@@ -202,7 +301,13 @@ function isPublicPath(pathname: string): boolean {
 }
 
 function shouldBypass(pathname: string): boolean {
-  return IGNORED_PREFIXES.some(prefix => pathname.startsWith(prefix));
+  for (const prefix of IGNORED_PREFIXES) {
+    if (pathname.startsWith(prefix)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function normalizePathname(pathname: string): string {
