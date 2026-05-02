@@ -27,6 +27,12 @@ function toNumberValue(value: unknown, fallback = 0): number {
   return Number.isFinite(Number(value)) ? Number(value) : fallback;
 }
 
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter((item): item is string => typeof item === 'string');
+}
+
 export function mapCompetitionListItem(raw: RawCompetition): CompetitionListItem {
   return {
     id: toStringValue(raw.id),
@@ -35,6 +41,15 @@ export function mapCompetitionListItem(raw: RawCompetition): CompetitionListItem
     ),
     federationId: toNullableString(raw.federation_id ?? raw.federationId),
     countryId: toNullableString(raw.country_id ?? raw.countryId),
+    competitionPyramidId: toNullableString(
+      raw.competition_pyramid_id ?? raw.competitionPyramidId,
+    ),
+    primaryCompetitionTierId: toNullableString(
+      raw.primary_competition_tier_id ?? raw.primaryCompetitionTierId,
+    ),
+    allowedCompetitionTierIds: toStringArray(
+      raw.allowed_competition_tier_ids ?? raw.allowedCompetitionTierIds,
+    ),
     code: toStringValue(raw.code),
     slug: toStringValue(raw.slug),
     name: toStringValue(raw.name),

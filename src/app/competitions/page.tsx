@@ -1,6 +1,8 @@
 /** @format */
 
 import { getAdminCompetitionTypes } from '@/_actions/competitionType/getAdminCompetitionTypes';
+import { getAdminCompetitionPyramids } from '@/_actions/competitionStructure/getAdminCompetitionPyramids';
+import { getAdminCompetitionTiers } from '@/_actions/competitionStructure/getAdminCompetitionTiers';
 import { getAdminCompetitions } from '@/_actions/competition/getAdminCompetitions';
 import { getAdminCompetitionEditions } from '@/_actions/competitionEdition/getAdminCompetitionEditions';
 import { getAdminSeasons } from '@/_actions/season/getAdminSeasons';
@@ -22,6 +24,8 @@ type CompetitionsOverviewSection =
   | 'overview'
   | 'types'
   | 'competitions'
+  | 'pyramids'
+  | 'tiers'
   | 'seasons'
   | 'editions';
 
@@ -39,6 +43,8 @@ function parseSection(value: string | undefined): CompetitionsOverviewSection {
   switch (value) {
     case 'types':
     case 'competitions':
+    case 'pyramids':
+    case 'tiers':
     case 'seasons':
     case 'editions':
       return value;
@@ -56,12 +62,14 @@ function buildCompetitionsHref(section: CompetitionsOverviewSection): string {
 
 function renderSectionContent(
   section: CompetitionsOverviewSection,
-  counts: Readonly<{
-    types: number;
-    competitions: number;
-    seasons: number;
-    editions: number;
-  }>,
+      counts: Readonly<{
+        types: number;
+        competitions: number;
+        pyramids: number;
+        tiers: number;
+        seasons: number;
+        editions: number;
+      }>,
 ): React.JSX.Element {
   if (section === 'overview') {
     return (
@@ -74,7 +82,7 @@ function renderSectionContent(
           </Text>
         </Grid>
 
-        <Grid columns={4} gap={16}>
+        <Grid columns={6} gap={16}>
           <CompetitionOverviewCard
             href={NAVIGATION.COMPETITION_TYPES}
             title='Competition Types'
@@ -86,6 +94,18 @@ function renderSectionContent(
             title='Competitions'
             description='Manage base competitions and their classification.'
             count={`${counts.competitions} total`}
+          />
+          <CompetitionOverviewCard
+            href={NAVIGATION.COMPETITION_PYRAMIDS}
+            title='Competition Pyramids'
+            description='Manage pyramid catalogs used to group competition tiers.'
+            count={`${counts.pyramids} total`}
+          />
+          <CompetitionOverviewCard
+            href={NAVIGATION.COMPETITION_TIERS}
+            title='Competition Tiers'
+            description='Manage tiers, parent relationships, and participant scope.'
+            count={`${counts.tiers} total`}
           />
           <CompetitionOverviewCard
             href={NAVIGATION.COMPETITION_SEASONS}
@@ -112,7 +132,7 @@ function renderSectionContent(
         description: string;
         href: string;
         count: number;
-        ctaLabel: string;
+      ctaLabel: string;
       }>
     >
   > = {
@@ -129,6 +149,20 @@ function renderSectionContent(
       href: NAVIGATION.COMPETITIONS_LIST,
       count: counts.competitions,
       ctaLabel: 'Open competitions',
+    },
+    pyramids: {
+      title: 'Competition Pyramids',
+      description: 'Open the competition pyramids list to manage structural catalogs used by competitions and tiers.',
+      href: NAVIGATION.COMPETITION_PYRAMIDS,
+      count: counts.pyramids,
+      ctaLabel: 'Open competition pyramids',
+    },
+    tiers: {
+      title: 'Competition Tiers',
+      description: 'Open the competition tiers list to manage hierarchy, participant scope, and pyramid membership.',
+      href: NAVIGATION.COMPETITION_TIERS,
+      count: counts.tiers,
+      ctaLabel: 'Open competition tiers',
     },
     seasons: {
       title: 'Seasons',
@@ -173,10 +207,19 @@ export default async function CompetitionsOverviewPage({
 
   const params = await searchParams;
   const section = parseSection(extractSingleValue(params?.section));
-  const [typesResponse, competitionsResponse, seasonsResponse, editionsResponse] =
+  const [
+    typesResponse,
+    competitionsResponse,
+    pyramidsResponse,
+    tiersResponse,
+    seasonsResponse,
+    editionsResponse,
+  ] =
     await Promise.all([
       getAdminCompetitionTypes({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
       getAdminCompetitions({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
+      getAdminCompetitionPyramids({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
+      getAdminCompetitionTiers({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
       getAdminSeasons({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
       getAdminCompetitionEditions({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
     ]);
@@ -193,6 +236,12 @@ export default async function CompetitionsOverviewPage({
           </Button>
           <Button icon='plus' href={NAVIGATION.CREATE_A_COMPETITION}>
             Create competition
+          </Button>
+          <Button icon='plus' href={NAVIGATION.CREATE_A_COMPETITION_PYRAMID}>
+            Create pyramid
+          </Button>
+          <Button icon='plus' href={NAVIGATION.CREATE_A_COMPETITION_TIER}>
+            Create tier
           </Button>
           <Button icon='plus' href={NAVIGATION.CREATE_A_SEASON}>
             Create season
@@ -223,6 +272,16 @@ export default async function CompetitionsOverviewPage({
                 href: buildCompetitionsHref('competitions'),
               },
               {
+                id: 'pyramids',
+                label: 'Competition Pyramids',
+                href: buildCompetitionsHref('pyramids'),
+              },
+              {
+                id: 'tiers',
+                label: 'Competition Tiers',
+                href: buildCompetitionsHref('tiers'),
+              },
+              {
                 id: 'seasons',
                 label: 'Seasons',
                 href: buildCompetitionsHref('seasons'),
@@ -237,6 +296,8 @@ export default async function CompetitionsOverviewPage({
           {renderSectionContent(section, {
             types: typesResponse.metadata.totalItems,
             competitions: competitionsResponse.metadata.totalItems,
+            pyramids: pyramidsResponse.metadata.totalItems,
+            tiers: tiersResponse.metadata.totalItems,
             seasons: seasonsResponse.metadata.totalItems,
             editions: editionsResponse.metadata.totalItems,
           })}

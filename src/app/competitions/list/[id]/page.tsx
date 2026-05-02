@@ -2,6 +2,8 @@
 
 import { getAdminCompetitionById } from '@/_actions/competition/getAdminCompetitionById';
 import { getAdminCompetitionEditions } from '@/_actions/competitionEdition/getAdminCompetitionEditions';
+import { getAllCompetitionPyramids } from '@/_actions/competitionStructure/getAllCompetitionPyramids';
+import { getAllCompetitionTiers } from '@/_actions/competitionStructure/getAllCompetitionTiers';
 import { getAllCompetitionTypes } from '@/_actions/competitionType/getAllCompetitionTypes';
 import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getAllFederations } from '@/_actions/federation/getAllFederations';
@@ -77,11 +79,20 @@ export default async function CompetitionDetailsPage({
     );
   }
 
-  const [response, competitionTypes, federations, countries] = await Promise.all([
+  const [
+    response,
+    competitionTypes,
+    federations,
+    countries,
+    competitionPyramids,
+    competitionTiers,
+  ] = await Promise.all([
     getAdminCompetitionById(competitionId),
     getAllCompetitionTypes(),
     getAllFederations(),
     getAllCountries(),
+    getAllCompetitionPyramids(),
+    getAllCompetitionTiers(),
   ]);
 
   if (!response.data) {
@@ -127,6 +138,15 @@ export default async function CompetitionDetailsPage({
   const countryLabel =
     countries.find(item => item.id === competition.countryId)?.name ??
     competition.countryId;
+  const pyramidLabel =
+    competitionPyramids.find(item => item.id === competition.competitionPyramidId)?.name ??
+    competition.competitionPyramidId;
+  const primaryTierLabel =
+    competitionTiers.find(item => item.id === competition.primaryCompetitionTierId)?.name ??
+    competition.primaryCompetitionTierId;
+  const allowedTierLabels = competition.allowedCompetitionTierIds.map(
+    tierId => competitionTiers.find(item => item.id === tierId)?.name ?? tierId,
+  );
 
   return (
     <Grid gap={16}>
@@ -170,6 +190,17 @@ export default async function CompetitionDetailsPage({
               competitionTypes={competitionTypes.map(item => ({ id: item.id, name: item.name }))}
               federations={federations.map(item => ({ id: item.id, name: item.name }))}
               countries={countries.map(item => ({ id: item.id, name: item.name }))}
+              competitionPyramids={competitionPyramids.map(item => ({
+                id: item.id,
+                name: item.name,
+                countryId: item.countryId,
+                federationId: item.federationId,
+              }))}
+              competitionTiers={competitionTiers.map(item => ({
+                id: item.id,
+                competitionPyramidId: item.competitionPyramidId,
+                name: item.name,
+              }))}
               edit
               cancelHref={detailHref}
               successHref={detailHref}
@@ -207,6 +238,9 @@ export default async function CompetitionDetailsPage({
               competitionTypeLabel={competitionTypeLabel}
               federationLabel={federationLabel}
               countryLabel={countryLabel}
+              pyramidLabel={pyramidLabel}
+              primaryTierLabel={primaryTierLabel}
+              allowedTierLabels={allowedTierLabels}
             />
           )}
         </Grid>

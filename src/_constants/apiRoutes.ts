@@ -22,8 +22,12 @@ const API_ROUTES = {
   FEDERATION_BY_SLUG: (slug: string) => `/federations/${slug}`,
   FEDERATIONS_ADMIN: '/admin/federations',
   FEDERATION_ADMIN_BY_ID: (id: string) => `/admin/federations/${id}`,
+  COMPETITION_TYPES: '/competition-types',
+  COMPETITION_TYPE_BY_SLUG: (slug: string) => `/competition-types/${slug}`,
   COMPETITION_TYPES_ADMIN: '/admin/competition-types',
   COMPETITION_TYPE_ADMIN_BY_ID: (id: string) => `/admin/competition-types/${id}`,
+  COMPETITIONS: '/competitions',
+  COMPETITION_BY_SLUG: (slug: string) => `/competitions/${slug}`,
   COMPETITIONS_ADMIN: '/admin/competitions',
   COMPETITION_ADMIN_BY_ID: (id: string) => `/admin/competitions/${id}`,
   SEASONS_ADMIN: '/admin/seasons',
@@ -31,8 +35,16 @@ const API_ROUTES = {
   COMPETITION_EDITIONS_ADMIN: '/admin/competition-editions',
   COMPETITION_EDITION_ADMIN_BY_ID: (id: string) =>
     `/admin/competition-editions/${id}`,
+  COMPETITION_EDITION_BY_SLUG: (slug: string) => `/competition-editions/${slug}`,
+  COMPETITION_EDITIONS_BY_COMPETITION_SLUG: (competitionSlug: string) =>
+    `/competitions/${competitionSlug}/editions`,
   COMPETITION_EDITION_CODE_ADMIN_BY_ID: (id: string) =>
     `/admin/competition-editions/${id}/code`,
+  COMPETITION_PYRAMIDS_ADMIN: '/admin/competition-pyramids',
+  COMPETITION_PYRAMID_ADMIN_BY_ID: (id: string) =>
+    `/admin/competition-pyramids/${id}`,
+  COMPETITION_TIERS_ADMIN: '/admin/competition-tiers',
+  COMPETITION_TIER_ADMIN_BY_ID: (id: string) => `/admin/competition-tiers/${id}`,
   COUNTRIES: '/countries',
   COUNTRIES_ALL: '/countries/all',
   COUNTRY_BY_ID: (id: string) => `/countries/${id}`,

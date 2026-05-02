@@ -202,7 +202,7 @@ export function buildUpdateCompetitionEditionBody(
     return {
       competitionEditionId,
       error: formError(
-        'COMPETITION_INVALID_DATE_RANGE',
+        'COMPETITION_EDITION_ENDED_ON_BEFORE_STARTED_ON',
         'End date cannot be before the start date.',
       ),
     };

@@ -17,11 +17,14 @@ export type CompetitionSort =
 
 export type CompetitionStatusFilter = 'all' | 'active' | 'inactive';
 
-export type CompetitionListItem = Readonly<{
+export type CompetitionAdmin = Readonly<{
   id: string;
   competitionTypeId: string;
   federationId: string | null;
   countryId: string | null;
+  competitionPyramidId: string | null;
+  primaryCompetitionTierId: string | null;
+  allowedCompetitionTierIds: ReadonlyArray<string>;
   code: string;
   slug: string;
   name: string;
@@ -33,7 +36,29 @@ export type CompetitionListItem = Readonly<{
   updatedAt: string;
 }>;
 
-export type Competition = CompetitionListItem;
+export type CompetitionListItem = CompetitionAdmin;
+export type Competition = CompetitionAdmin;
+
+export type CompetitionPublic = Readonly<{
+  slug: string;
+  name: string;
+  competitionType: Readonly<{
+    slug: string;
+    code: string;
+    name: string;
+  }> | null;
+  federation: Readonly<{
+    slug: string;
+    name: string;
+  }> | null;
+  country: Readonly<{
+    id: string;
+    slug: string;
+    name: string;
+  }> | null;
+  startedOn: string | null;
+  endedOn: string | null;
+}>;
 
 export type CompetitionListMetadata = GeoMetadata &
   Readonly<{
@@ -61,6 +86,9 @@ export type CreateCompetitionRequest = Readonly<{
   competition_type_id: string;
   federation_id: string | null;
   country_id: string | null;
+  competition_pyramid_id: string | null;
+  primary_competition_tier_id: string | null;
+  allowed_competition_tier_ids: ReadonlyArray<string>;
   code: string;
   name: string;
   started_on: string | null;
@@ -70,9 +98,12 @@ export type CreateCompetitionRequest = Readonly<{
 }>;
 
 export type UpdateCompetitionRequest = Readonly<{
-  competition_type_id?: string;
+  competition_type_id?: string | null;
   federation_id?: string | null;
   country_id?: string | null;
+  competition_pyramid_id?: string | null;
+  primary_competition_tier_id?: string | null;
+  allowed_competition_tier_ids?: ReadonlyArray<string> | null;
   code?: string;
   name?: string;
   started_on?: string | null;

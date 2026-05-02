@@ -2,7 +2,14 @@
 
 'use client';
 
-import { useActionState, useCallback, useEffect } from 'react';
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -10,6 +17,7 @@ import { createCompetition } from '@/_actions/competition/createCompetition';
 import { updateCompetition } from '@/_actions/competition/updateCompetition';
 import Button from '@/_components/forms/Button';
 import CheckBoxInput from '@/_components/forms/CheckBoxInput';
+import FieldSet from '@/_components/forms/Fieldset';
 import Form from '@/_components/forms/Form';
 import NumberInput from '@/_components/forms/NumberInput';
 import Select from '@/_components/forms/Select';
@@ -18,6 +26,7 @@ import Card from '@/_components/Card';
 import Grid from '@/_components/layout/Grid';
 import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
+import Text from '@/_components/typography/Text';
 import Title from '@/_components/typography/Title';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
@@ -39,6 +48,17 @@ type CompetitionFormProps = Readonly<{
   competitionTypes: ReadonlyArray<SelectorOption>;
   federations: ReadonlyArray<SelectorOption>;
   countries: ReadonlyArray<SelectorOption>;
+  competitionPyramids: ReadonlyArray<{
+    id: string;
+    name: string;
+    countryId: string;
+    federationId: string | null;
+  }>;
+  competitionTiers: ReadonlyArray<{
+    id: string;
+    competitionPyramidId: string;
+    name: string;
+  }>;
   edit?: boolean;
   cancelHref?: string;
   successHref?: string;
@@ -49,11 +69,22 @@ export default function CompetitionForm({
   competitionTypes,
   federations,
   countries,
+  competitionPyramids,
+  competitionTiers,
   edit = false,
   cancelHref,
   successHref,
 }: CompetitionFormProps): React.JSX.Element {
   const router = useRouter();
+  const [selectedPyramidId, setSelectedPyramidId] = useState(
+    competition?.competitionPyramidId ?? '',
+  );
+  const [selectedPrimaryTierId, setSelectedPrimaryTierId] = useState(
+    competition?.primaryCompetitionTierId ?? '',
+  );
+  const [selectedAllowedTierIds, setSelectedAllowedTierIds] = useState<string[]>(
+    competition?.allowedCompetitionTierIds ? [...competition.allowedCompetitionTierIds] : [],
+  );
   const [editState, editAction, editPending] = useActionState<
     CompetitionActionState,
     FormData
@@ -66,6 +97,17 @@ export default function CompetitionForm({
   const actionState = edit ? editState : createState;
   const formAction = edit ? editAction : createAction;
   const isPending = edit ? editPending : createPending;
+  const visibleTiers = useMemo(
+    () =>
+      competitionTiers.filter(
+        tier => tier.competitionPyramidId === selectedPyramidId,
+      ),
+    [competitionTiers, selectedPyramidId],
+  );
+  const visibleTierIds = useMemo(
+    () => new Set(visibleTiers.map(tier => tier.id)),
+    [visibleTiers],
+  );
 
   useEffect(() => {
     if (actionState.status === 'idle') return;
@@ -112,6 +154,52 @@ export default function CompetitionForm({
     router.push(NAVIGATION.COMPETITIONS_LIST);
   }, [cancelHref, router]);
 
+  const handlePyramidChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const nextPyramidId = event.target.value;
+
+      setSelectedPyramidId(nextPyramidId);
+      setSelectedPrimaryTierId('');
+      setSelectedAllowedTierIds([]);
+    },
+    [],
+  );
+
+  const handlePrimaryTierChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const nextPrimaryTierId = event.target.value;
+
+      setSelectedPrimaryTierId(nextPrimaryTierId);
+      setSelectedAllowedTierIds(previousIds => {
+        if (!nextPrimaryTierId || previousIds.includes(nextPrimaryTierId)) {
+          return previousIds;
+        }
+
+        return [...previousIds, nextPrimaryTierId];
+      });
+    },
+    [],
+  );
+
+  const handleAllowedTierChange = useCallback(
+    (tierId: string, checked: boolean) => {
+      setSelectedAllowedTierIds(previousIds => {
+        if (checked) {
+          return previousIds.includes(tierId)
+            ? previousIds
+            : [...previousIds, tierId];
+        }
+
+        return previousIds.filter(id => id !== tierId);
+      });
+
+      if (!checked && selectedPrimaryTierId === tierId) {
+        setSelectedPrimaryTierId('');
+      }
+    },
+    [selectedPrimaryTierId],
+  );
+
   return (
     <Form action={formAction}>
       {edit && competition ? (
@@ -133,6 +221,21 @@ export default function CompetitionForm({
             type='hidden'
             name='original_countryId'
             value={competition.countryId ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_competitionPyramidId'
+            value={competition.competitionPyramidId ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_primaryCompetitionTierId'
+            value={competition.primaryCompetitionTierId ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_allowedCompetitionTierIds'
+            value={JSON.stringify(competition.allowedCompetitionTierIds)}
           />
           <input
             type='hidden'
@@ -177,6 +280,22 @@ export default function CompetitionForm({
                   </option>
                 ))}
               </Select>
+              <TextInput
+                label='Code'
+                name='code'
+                placeholder='UEFA_CHAMPIONS_LEAGUE'
+                defaultValue={competition?.code ?? ''}
+                required
+                disabled={isPending}
+              />
+              <TextInput
+                label='Name'
+                name='name'
+                placeholder='UEFA Champions League'
+                defaultValue={competition?.name ?? ''}
+                required
+                disabled={isPending}
+              />
               <Select
                 label='Federation'
                 name='federationId'
@@ -203,22 +322,67 @@ export default function CompetitionForm({
                   </option>
                 ))}
               </Select>
-              <TextInput
-                label='Code'
-                name='code'
-                placeholder='UEFA_CHAMPIONS_LEAGUE'
-                defaultValue={competition?.code ?? ''}
-                required
+              <Select
+                label='Competition pyramid'
+                name='competitionPyramidId'
+                value={selectedPyramidId}
+                onChange={handlePyramidChange}
                 disabled={isPending}
-              />
-              <TextInput
-                label='Name'
-                name='name'
-                placeholder='UEFA Champions League'
-                defaultValue={competition?.name ?? ''}
-                required
-                disabled={isPending}
-              />
+              >
+                <option value=''>No competition pyramid</option>
+                {competitionPyramids.map(option => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                label='Primary competition tier'
+                name='primaryCompetitionTierId'
+                value={selectedPrimaryTierId}
+                onChange={handlePrimaryTierChange}
+                disabled={isPending || !selectedPyramidId}
+              >
+                <option value=''>No primary tier</option>
+                {visibleTiers.map(option => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </Select>
+              <FieldSet disabled={isPending || !selectedPyramidId} display='grid' gap={8}>
+                <Text size='small' weight='semibold'>
+                  Allowed competition tiers
+                </Text>
+                {!selectedPyramidId ? (
+                  <Text size='small' color='gray'>
+                    Select a competition pyramid to choose the allowed tiers.
+                  </Text>
+                ) : visibleTiers.length === 0 ? (
+                  <Text size='small' color='gray'>
+                    No tiers are available for the selected competition pyramid.
+                  </Text>
+                ) : (
+                  <Grid gap={8}>
+                    {visibleTiers.map(tier => {
+                      const isChecked = selectedAllowedTierIds.includes(tier.id);
+
+                      return (
+                        <CheckBoxInput
+                          key={`${tier.id}-${isChecked ? 'checked' : 'unchecked'}`}
+                          label={tier.name}
+                          name='allowedCompetitionTierIds'
+                          value={tier.id}
+                          defaultChecked={isChecked}
+                          onChange={event =>
+                            handleAllowedTierChange(tier.id, event.target.checked)
+                          }
+                        />
+                      );
+                    })}
+                  </Grid>
+                )}
+              </FieldSet>
               <TextInput
                 label='Started on'
                 name='startedOn'
@@ -271,6 +435,11 @@ export default function CompetitionForm({
                   readOnly
                   disabled
                 />
+                {selectedPyramidId && !visibleTierIds.has(selectedPrimaryTierId) ? (
+                  <Text size='small' color='gray'>
+                    The selected primary tier no longer belongs to the active pyramid.
+                  </Text>
+                ) : null}
               </Section>
             ) : null}
           </Grid>
