@@ -112,6 +112,105 @@ export interface AppDictionary {
       readonly editionsDescription: string;
       readonly editionsCta: string;
     };
+    readonly list: {
+      readonly title: string;
+      readonly createAction: string;
+      readonly loadErrorTitle: string;
+      readonly emptyState: string;
+      readonly paginationLabel: string;
+      readonly headers: {
+        readonly name: string;
+        readonly competitionType: string;
+        readonly federation: string;
+        readonly country: string;
+        readonly active: string;
+        readonly created: string;
+        readonly updated: string;
+      };
+      readonly filters: {
+        readonly updating: string;
+        readonly sort: string;
+        readonly status: string;
+        readonly competitionType: string;
+        readonly federation: string;
+        readonly country: string;
+        readonly allCompetitionTypes: string;
+        readonly allFederations: string;
+        readonly allCountries: string;
+        readonly updatedDesc: string;
+        readonly updatedAsc: string;
+        readonly createdDesc: string;
+        readonly createdAsc: string;
+        readonly nameAsc: string;
+        readonly nameDesc: string;
+        readonly sortOrderAsc: string;
+        readonly sortOrderDesc: string;
+        readonly activeFirst: string;
+        readonly inactiveFirst: string;
+      };
+    };
+    readonly pyramids: {
+      readonly title: string;
+      readonly createAction: string;
+      readonly loadErrorTitle: string;
+      readonly emptyState: string;
+      readonly paginationLabel: string;
+      readonly headers: {
+        readonly name: string;
+        readonly country: string;
+        readonly federation: string;
+        readonly scope: string;
+        readonly active: string;
+        readonly updated: string;
+      };
+      readonly filters: {
+        readonly updating: string;
+        readonly sort: string;
+        readonly status: string;
+        readonly country: string;
+        readonly federation: string;
+        readonly scope: string;
+        readonly allCountries: string;
+        readonly allFederations: string;
+        readonly allScopes: string;
+        readonly updatedDesc: string;
+        readonly updatedAsc: string;
+        readonly createdDesc: string;
+        readonly createdAsc: string;
+        readonly nameAsc: string;
+        readonly nameDesc: string;
+      };
+    };
+    readonly tiers: {
+      readonly title: string;
+      readonly createAction: string;
+      readonly loadErrorTitle: string;
+      readonly emptyState: string;
+      readonly paginationLabel: string;
+      readonly headers: {
+        readonly name: string;
+        readonly pyramid: string;
+        readonly parentTier: string;
+        readonly scope: string;
+        readonly participantScope: string;
+        readonly level: string;
+        readonly active: string;
+        readonly updated: string;
+      };
+      readonly filters: {
+        readonly updating: string;
+        readonly allPyramids: string;
+        readonly allParentTiers: string;
+        readonly allParticipantScopes: string;
+        readonly allScopes: string;
+        readonly updatedDesc: string;
+        readonly updatedAsc: string;
+        readonly createdDesc: string;
+        readonly createdAsc: string;
+        readonly nameAsc: string;
+        readonly nameDesc: string;
+      };
+    };
     readonly types: {
       readonly title: string;
       readonly createAction: string;

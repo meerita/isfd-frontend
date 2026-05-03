@@ -1,7 +1,11 @@
 /** @format */
 
+'use client';
+
+import { useCallback, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+
 import Button from '@/_components/forms/Button';
-import Form from '@/_components/forms/Form';
 import Select from '@/_components/forms/Select';
 import Grid from '@/_components/layout/Grid';
 import {
@@ -9,6 +13,7 @@ import {
   getCompetitionScopeKindLabel,
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
+import { useI18n } from '@/_i18n/I18nProvider';
 import type {
   CompetitionStructureSort,
   CompetitionStructureStatusFilter,
@@ -30,6 +35,8 @@ type CompetitionPyramidFiltersProps = Readonly<{
   federations: ReadonlyArray<SelectorOption>;
 }>;
 
+const FILTERS_TOAST_ID = 'competition-pyramids-filters-loading';
+
 export default function CompetitionPyramidFilters({
   pageSize,
   sort,
@@ -40,55 +47,133 @@ export default function CompetitionPyramidFilters({
   countries,
   federations,
 }: CompetitionPyramidFiltersProps): React.JSX.Element {
+  const { dictionary, locale } = useI18n();
+  const formRef = useRef<HTMLFormElement>(null);
+  const hasPendingNavigationRef = useRef(false);
+
+  useEffect(
+    function syncFilterToast(): void {
+      if (!hasPendingNavigationRef.current) {
+        return;
+      }
+
+      hasPendingNavigationRef.current = false;
+      toast.dismiss(FILTERS_TOAST_ID);
+    },
+    [countryId, federationId, pageSize, scopeKind, sort, status],
+  );
+
+  const handleSubmit = useCallback(
+    function handleSubmit(): void {
+      hasPendingNavigationRef.current = true;
+      toast.loading(dictionary.competitions.pyramids.filters.updating, {
+        id: FILTERS_TOAST_ID,
+      });
+    },
+    [dictionary.competitions.pyramids.filters.updating],
+  );
+
+  const handleChange = useCallback(
+    function handleChange(): void {
+      handleSubmit();
+      formRef.current?.requestSubmit();
+    },
+    [handleSubmit],
+  );
+
   return (
-    <Form method='GET' action={NAVIGATION.COMPETITION_PYRAMIDS} gap={8}>
+    <form
+      ref={formRef}
+      method='GET'
+      action={NAVIGATION.COMPETITION_PYRAMIDS}
+      onSubmit={handleSubmit}
+    >
       <input type='hidden' name='page' value='1' />
       <input type='hidden' name='page_size' value={String(pageSize)} />
+
       <Grid gap={8} columns={6} alignItems='end'>
-        <Select label='Sort' name='sort' defaultValue={sort}>
-          <option value='updated_at_desc'>Updated ↓</option>
-          <option value='updated_at_asc'>Updated ↑</option>
-          <option value='created_at_desc'>Created ↓</option>
-          <option value='created_at_asc'>Created ↑</option>
-          <option value='name_asc'>Name A-Z</option>
-          <option value='name_desc'>Name Z-A</option>
+        <Select name='sort' defaultValue={sort} onChange={handleChange}>
+          <option value='updated_at_desc'>
+            {dictionary.competitions.pyramids.filters.updatedDesc}
+          </option>
+          <option value='updated_at_asc'>
+            {dictionary.competitions.pyramids.filters.updatedAsc}
+          </option>
+          <option value='created_at_desc'>
+            {dictionary.competitions.pyramids.filters.createdDesc}
+          </option>
+          <option value='created_at_asc'>
+            {dictionary.competitions.pyramids.filters.createdAsc}
+          </option>
+          <option value='name_asc'>
+            {dictionary.competitions.pyramids.filters.nameAsc}
+          </option>
+          <option value='name_desc'>
+            {dictionary.competitions.pyramids.filters.nameDesc}
+          </option>
         </Select>
-        <Select label='Status' name='status' defaultValue={status ?? 'all'}>
-          <option value='all'>All</option>
-          <option value='active'>Active</option>
-          <option value='inactive'>Inactive</option>
+
+        <Select
+          name='status'
+          defaultValue={status ?? 'all'}
+          onChange={handleChange}
+        >
+          <option value='all'>{dictionary.common.all}</option>
+          <option value='active'>{dictionary.common.active}</option>
+          <option value='inactive'>{dictionary.common.inactive}</option>
         </Select>
-        <Select label='Country' name='country_id' defaultValue={countryId ?? ''}>
-          <option value=''>All countries</option>
+
+        <Select
+          name='country_id'
+          defaultValue={countryId ?? ''}
+          onChange={handleChange}
+        >
+          <option value=''>
+            {dictionary.competitions.pyramids.filters.allCountries}
+          </option>
           {countries.map(option => (
             <option key={option.id} value={option.id}>
               {option.name}
             </option>
           ))}
         </Select>
-        <Select label='Federation' name='federation_id' defaultValue={federationId ?? ''}>
-          <option value=''>All federations</option>
+
+        <Select
+          name='federation_id'
+          defaultValue={federationId ?? ''}
+          onChange={handleChange}
+        >
+          <option value=''>
+            {dictionary.competitions.pyramids.filters.allFederations}
+          </option>
           {federations.map(option => (
             <option key={option.id} value={option.id}>
               {option.name}
             </option>
           ))}
         </Select>
-        <Select label='Scope' name='scope_kind' defaultValue={scopeKind ?? ''}>
-          <option value=''>All scopes</option>
+
+        <Select
+          name='scope_kind'
+          defaultValue={scopeKind ?? ''}
+          onChange={handleChange}
+        >
+          <option value=''>
+            {dictionary.competitions.pyramids.filters.allScopes}
+          </option>
           {COMPETITION_SCOPE_KINDS.map(value => (
             <option key={value} value={value}>
-              {getCompetitionScopeKindLabel(value)}
+              {getCompetitionScopeKindLabel(value, locale)}
             </option>
           ))}
         </Select>
+
         <Grid display='flex' gap={8} alignItems='center'>
-          <Button type='submit'>Apply</Button>
           <Button href={NAVIGATION.COMPETITION_PYRAMIDS} variant='borderless'>
-            Reset
+            {dictionary.common.reset}
           </Button>
         </Grid>
       </Grid>
-    </Form>
+    </form>
   );
 }

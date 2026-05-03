@@ -62,12 +62,7 @@ export default function CompetitionTypeFilters({
       <input type='hidden' name='page' value='1' />
       <input type='hidden' name='page_size' value={String(pageSize)} />
       <Grid gap={8} columns={5} alignItems='end'>
-        <Select
-          label={dictionary.competitions.types.filters.sort}
-          name='sort'
-          defaultValue={sort}
-          onChange={handleChange}
-        >
+        <Select name='sort' defaultValue={sort} onChange={handleChange}>
           <option value='updated_at_desc'>
             {dictionary.competitions.types.filters.updatedDesc}
           </option>
@@ -100,7 +95,6 @@ export default function CompetitionTypeFilters({
           </option>
         </Select>
         <Select
-          label={dictionary.competitions.types.filters.status}
           name='status'
           defaultValue={status ?? 'all'}
           onChange={handleChange}
@@ -110,12 +104,13 @@ export default function CompetitionTypeFilters({
           <option value='inactive'>{dictionary.common.inactive}</option>
         </Select>
         <Select
-          label={dictionary.competitions.types.filters.category}
           name='competition_type_category'
           defaultValue={competitionTypeCategory ?? ''}
           onChange={handleChange}
         >
-          <option value=''>{dictionary.competitions.types.filters.allCategories}</option>
+          <option value=''>
+            {dictionary.competitions.types.filters.allCategories}
+          </option>
           {COMPETITION_TYPE_CATEGORIES.map(value => (
             <option key={value} value={value}>
               {getCompetitionTypeCategoryLabel(value, locale)}
@@ -123,12 +118,13 @@ export default function CompetitionTypeFilters({
           ))}
         </Select>
         <Select
-          label={dictionary.competitions.types.filters.participantScope}
           name='participant_scope'
           defaultValue={participantScope ?? ''}
           onChange={handleChange}
         >
-          <option value=''>{dictionary.competitions.types.filters.allScopes}</option>
+          <option value=''>
+            {dictionary.competitions.types.filters.allScopes}
+          </option>
           {PARTICIPANT_SCOPES.map(value => (
             <option key={value} value={value}>
               {getParticipantScopeLabel(value, locale)}

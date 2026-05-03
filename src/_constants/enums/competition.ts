@@ -13,6 +13,16 @@ export const COMPETITION_TYPE_CATEGORIES = [
   'QUALIFICATION',
 ] as const;
 
+export const COMPETITION_TYPE_CODES = [
+  'QUALIFICATION_COMPETITION',
+  'FRIENDLY_COMPETITION',
+  'INTERNATIONAL_NATIONAL_TEAM_COMPETITION',
+  'CONTINENTAL_CLUB_COMPETITION',
+  'SUPER_CUP',
+  'DOMESTIC_CUP',
+  'LEAGUE',
+] as const;
+
 export const PARTICIPANT_SCOPES = ['CLUB', 'NATIONAL_TEAM', 'MIXED'] as const;
 
 export const COMPETITION_PYRAMID_SCOPE_KINDS = [
@@ -46,6 +56,7 @@ export const COMPETITION_EDITION_STATUSES = [
 
 export type CompetitionTypeCategory =
   (typeof COMPETITION_TYPE_CATEGORIES)[number];
+export type CompetitionTypeCode = (typeof COMPETITION_TYPE_CODES)[number];
 export type ParticipantScope = (typeof PARTICIPANT_SCOPES)[number];
 export type CompetitionPyramidScopeKind =
   (typeof COMPETITION_PYRAMID_SCOPE_KINDS)[number];
@@ -133,6 +144,36 @@ export function getCompetitionTypeCategoryLabel(
   };
 
   return labels[locale][value as CompetitionTypeCategory] ?? formatEnumLabel(value);
+}
+
+export function getCompetitionTypeCodeLabel(
+  value: string,
+  locale: AppLocale = 'es',
+): string {
+  const labels: Record<AppLocale, Partial<Record<CompetitionTypeCode, string>>> = {
+    es: {
+      QUALIFICATION_COMPETITION: 'Competición de clasificación',
+      FRIENDLY_COMPETITION: 'Competición amistosa',
+      INTERNATIONAL_NATIONAL_TEAM_COMPETITION:
+        'Competición internacional de selecciones',
+      CONTINENTAL_CLUB_COMPETITION: 'Competición continental de clubes',
+      SUPER_CUP: 'Supercopa',
+      DOMESTIC_CUP: 'Copa nacional',
+      LEAGUE: 'Liga',
+    },
+    en: {
+      QUALIFICATION_COMPETITION: 'Qualification competition',
+      FRIENDLY_COMPETITION: 'Friendly competition',
+      INTERNATIONAL_NATIONAL_TEAM_COMPETITION:
+        'International national team competition',
+      CONTINENTAL_CLUB_COMPETITION: 'Continental club competition',
+      SUPER_CUP: 'Super Cup',
+      DOMESTIC_CUP: 'Domestic cup',
+      LEAGUE: 'League',
+    },
+  };
+
+  return labels[locale][value as CompetitionTypeCode] ?? formatEnumLabel(value);
 }
 
 export function getParticipantScopeLabel(

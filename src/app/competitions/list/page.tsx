@@ -6,7 +6,9 @@ import { getAdminCompetitions } from '@/_actions/competition/getAdminCompetition
 import { getAllCompetitionTypes } from '@/_actions/competitionType/getAllCompetitionTypes';
 import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getAllFederations } from '@/_actions/federation/getAllFederations';
+import Card from '@/_components/Card';
 import Dot from '@/_components/Dot';
+import Icon from '@/_components/Icon';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
@@ -16,20 +18,25 @@ import Row from '@/_components/tables/Row';
 import Table from '@/_components/tables/Table';
 import Tbody from '@/_components/tables/Tbody';
 import Thead from '@/_components/tables/Thead';
-import Icon from '@/_components/Icon';
 import Text from '@/_components/typography/Text';
+import { getCompetitionTypeCodeLabel } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { getDictionary } from '@/_i18n/getDictionary';
+import { resolveRequestLocale } from '@/_i18n/resolveRequestLocale';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
-import type { CompetitionSort, CompetitionStatusFilter } from '@/_types/competition';
-import CompetitionFilters from './_components/CompetitionFilters';
+import type {
+  CompetitionSort,
+  CompetitionStatusFilter,
+} from '@/_types/competition';
 import {
   formatDateOnly,
   parsePositiveInt,
-  parseUuid,
   parseString,
+  parseUuid,
   PLACEHOLDER,
 } from '../_components/utils';
+import CompetitionFilters from './_components/CompetitionFilters';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
@@ -55,15 +62,38 @@ function buildHref(
   countryId?: string,
 ): string {
   const params = new URLSearchParams();
+
   params.set('page', String(page));
   params.set('page_size', String(pageSize));
   params.set('sort', sort);
-  if (status) params.set('status', status);
-  if (competitionTypeId) params.set('competition_type_id', competitionTypeId);
-  if (federationId) params.set('federation_id', federationId);
-  if (countryId) params.set('country_id', countryId);
+
+  if (status) {
+    params.set('status', status);
+  }
+
+  if (competitionTypeId) {
+    params.set('competition_type_id', competitionTypeId);
+  }
+
+  if (federationId) {
+    params.set('federation_id', federationId);
+  }
+
+  if (countryId) {
+    params.set('country_id', countryId);
+  }
 
   return `${NAVIGATION.COMPETITIONS_LIST}?${params.toString()}`;
+}
+
+function formatPaginationLabel(
+  template: string,
+  currentPage: number,
+  totalPages: number,
+): string {
+  return template
+    .replace('{current}', String(currentPage))
+    .replace('{total}', String(totalPages));
 }
 
 export default async function CompetitionsListPage({
@@ -73,189 +103,211 @@ export default async function CompetitionsListPage({
 }>): Promise<React.JSX.Element> {
   await requireAdminAccess();
 
+  const locale = await resolveRequestLocale();
+  const dictionary = getDictionary(locale);
   const params = await searchParams;
   const page = parsePositiveInt(params?.page, DEFAULT_PAGE);
   const pageSize = parsePositiveInt(params?.page_size, DEFAULT_PAGE_SIZE, 100);
   const sort =
     (parseString(params?.sort) as CompetitionSort | undefined) ?? DEFAULT_SORT;
-  const status = parseString(params?.status) as CompetitionStatusFilter | undefined;
+  const status = parseString(params?.status) as
+    | CompetitionStatusFilter
+    | undefined;
   const competitionTypeId = parseUuid(params?.competition_type_id);
   const federationId = parseUuid(params?.federation_id);
   const countryId = parseUuid(params?.country_id);
 
-  const [response, competitionTypes, federations, countries] = await Promise.all([
-    getAdminCompetitions({
-      page,
-      pageSize,
-      sort,
-      status,
-      competitionTypeId,
-      federationId,
-      countryId,
-    }),
-    getAllCompetitionTypes(),
-    getAllFederations(),
-    getAllCountries(),
-  ]);
+  const [response, competitionTypes, federations, countries] =
+    await Promise.all([
+      getAdminCompetitions({
+        page,
+        pageSize,
+        sort,
+        status,
+        competitionTypeId,
+        federationId,
+        countryId,
+      }),
+      getAllCompetitionTypes(),
+      getAllFederations(),
+      getAllCountries(),
+    ]);
 
-  const competitionTypeLabels = new Map(
-    competitionTypes.map(item => [item.id, item.name]),
+  const competitionTypeCodes = new Map(
+    competitionTypes.map(item => [item.id, item.code]),
   );
-  const federationLabels = new Map(federations.map(item => [item.id, item.name]));
+  const federationLabels = new Map(
+    federations.map(item => [item.id, item.name]),
+  );
   const countryLabels = new Map(countries.map(item => [item.id, item.name]));
 
   return (
     <Grid gap={16}>
-      <SectionHeader title='Competitions' icon='trophy'>
+      <SectionHeader title={dictionary.competitions.list.title} icon='trophy'>
         <Button icon='plus' href={NAVIGATION.CREATE_A_COMPETITION}>
-          Create competition
+          {dictionary.competitions.list.createAction}
         </Button>
       </SectionHeader>
 
-      <CompetitionFilters
-        pageSize={pageSize}
-        sort={sort}
-        status={status}
-        competitionTypeId={competitionTypeId}
-        federationId={federationId}
-        countryId={countryId}
-        competitionTypes={competitionTypes.map(item => ({ id: item.id, name: item.name }))}
-        federations={federations.map(item => ({ id: item.id, name: item.name }))}
-        countries={countries.map(item => ({ id: item.id, name: item.name }))}
-      />
+      <Card>
+        <CompetitionFilters
+          pageSize={pageSize}
+          sort={sort}
+          status={status}
+          competitionTypeId={competitionTypeId}
+          federationId={federationId}
+          countryId={countryId}
+          competitionTypes={competitionTypes.map(item => ({
+            id: item.id,
+            name: item.name,
+            code: item.code,
+          }))}
+          federations={federations.map(item => ({
+            id: item.id,
+            name: item.name,
+          }))}
+          countries={countries.map(item => ({ id: item.id, name: item.name }))}
+        />
 
-      {response.error ? (
-        <Main>
-          <Grid gap={8}>
-            <Text weight='bold'>We could not load competitions.</Text>
-            <Text size='small' color='gray'>
-              {resolveCompetitionAdminErrorMessage(response.error)}
-            </Text>
-          </Grid>
-        </Main>
-      ) : (
-        <>
+        {response.error ? (
           <Main>
-            <Table>
-              <Thead>
-                <Row>
-                  <Cell header className='padding-left--16'>
-                    Name
-                  </Cell>
-                  <Cell header className='padding-left--16'>
-                    Slug
-                  </Cell>
-                  <Cell header className='padding-left--16'>
-                    Code
-                  </Cell>
-                  <Cell header className='padding-left--16'>
-                    Competition type
-                  </Cell>
-                  <Cell header className='padding-left--16'>
-                    Federation
-                  </Cell>
-                  <Cell header className='padding-left--16'>
-                    Country
-                  </Cell>
-                  <Cell header align='center'>
-                    Active
-                  </Cell>
-                  <Cell header align='right' className='padding-left--16'>
-                    Created
-                  </Cell>
-                  <Cell header align='right' className='padding-left--16'>
-                    Updated
-                  </Cell>
-                </Row>
-              </Thead>
-              <Tbody>
-                {response.data.length === 0 ? (
-                  <Row>
-                    <Cell>No competitions found for the current filters.</Cell>
-                    {Array.from({ length: 8 }).map((_, index) => (
-                      <Cell key={`empty-${index}`} className='padding-left--16'>
-                        {PLACEHOLDER}
-                      </Cell>
-                    ))}
-                  </Row>
-                ) : (
-                  response.data.map(item => (
-                    <Row key={item.id} href={NAVIGATION.COMPETITION_BY_ID(item.id)}>
-                      <Cell className='padding-left--16'>{item.name}</Cell>
-                      <Cell className='padding-left--16'>{item.slug}</Cell>
-                      <Cell className='padding-left--16'>{item.code}</Cell>
-                      <Cell className='padding-left--16'>
-                        {competitionTypeLabels.get(item.competitionTypeId) ??
-                          item.competitionTypeId}
-                      </Cell>
-                      <Cell className='padding-left--16'>
-                        {item.federationId
-                          ? federationLabels.get(item.federationId) ?? item.federationId
-                          : PLACEHOLDER}
-                      </Cell>
-                      <Cell className='padding-left--16'>
-                        {item.countryId
-                          ? countryLabels.get(item.countryId) ?? item.countryId
-                          : PLACEHOLDER}
-                      </Cell>
-                      <Cell align='center'>
-                        {item.isActive ? <Dot inline active /> : <Dot inline />}
-                      </Cell>
-                      <Cell align='right' className='padding-left--16'>
-                        {formatDateOnly(item.createdAt)}
-                      </Cell>
-                      <Cell align='right' className='padding-left--16'>
-                        {formatDateOnly(item.updatedAt)}
-                      </Cell>
-                    </Row>
-                  ))
-                )}
-              </Tbody>
-            </Table>
-          </Main>
-
-          <Grid justifyItems='center' className='margin-block--16'>
-            <Grid gap={16} display='flex' alignItems='center'>
-              {response.metadata.hasPreviousPage ? (
-                <Link
-                  href={buildHref(
-                    response.metadata.page - 1,
-                    pageSize,
-                    sort,
-                    status,
-                    competitionTypeId,
-                    federationId,
-                    countryId,
-                  )}
-                  aria-label='Previous'
-                >
-                  <Icon name='arrowLeft' size={24} fill='gray' />
-                </Link>
-              ) : null}
-              <Text color='gray' size='small' weight='semibold'>
-                Page {response.metadata.page} of{' '}
-                {Math.max(1, response.metadata.totalPages)}
+            <Grid gap={8}>
+              <Text weight='bold'>
+                {dictionary.competitions.list.loadErrorTitle}
               </Text>
-              {response.metadata.hasNextPage ? (
-                <Link
-                  href={buildHref(
-                    response.metadata.page + 1,
-                    pageSize,
-                    sort,
-                    status,
-                    competitionTypeId,
-                    federationId,
-                    countryId,
-                  )}
-                  aria-label='Next'
-                >
-                  <Icon name='arrowRight' size={24} fill='gray' />
-                </Link>
-              ) : null}
+              <Text size='small' color='gray'>
+                {resolveCompetitionAdminErrorMessage(response.error)}
+              </Text>
             </Grid>
-          </Grid>
-        </>
-      )}
+          </Main>
+        ) : (
+          <>
+            <Main>
+              <Table>
+                <Thead>
+                  <Row>
+                    <Cell header>{dictionary.competitions.list.headers.name}</Cell>
+                    <Cell header>
+                      {dictionary.competitions.list.headers.competitionType}
+                    </Cell>
+                    <Cell header className='padding-left--16'>
+                      {dictionary.competitions.list.headers.federation}
+                    </Cell>
+                    <Cell header className='padding-left--16'>
+                      {dictionary.competitions.list.headers.country}
+                    </Cell>
+                    <Cell header align='center'>
+                      {dictionary.competitions.list.headers.active}
+                    </Cell>
+                    <Cell header align='right' className='padding-left--16'>
+                      {dictionary.competitions.list.headers.created}
+                    </Cell>
+                    <Cell header align='right' className='padding-left--16'>
+                      {dictionary.competitions.list.headers.updated}
+                    </Cell>
+                  </Row>
+                </Thead>
+                <Tbody>
+                  {response.data.length === 0 ? (
+                    <Row>
+                      <Cell>{dictionary.competitions.list.emptyState}</Cell>
+                      {Array.from({ length: 6 }).map((_, index) => (
+                        <Cell
+                          key={`empty-${index}`}
+                          className='padding-left--16'
+                        >
+                          {PLACEHOLDER}
+                        </Cell>
+                      ))}
+                    </Row>
+                  ) : (
+                    response.data.map(item => (
+                      <Row
+                        key={item.id}
+                        href={NAVIGATION.COMPETITION_BY_ID(item.id)}
+                      >
+                        <Cell>{item.name}</Cell>
+                        <Cell>
+                          {getCompetitionTypeCodeLabel(
+                            competitionTypeCodes.get(item.competitionTypeId) ??
+                              item.competitionTypeId,
+                            locale,
+                          )}
+                        </Cell>
+                        <Cell className='padding-left--16'>
+                          {item.federationId
+                            ? (federationLabels.get(item.federationId) ??
+                              item.federationId)
+                            : PLACEHOLDER}
+                        </Cell>
+                        <Cell className='padding-left--16'>
+                          {item.countryId
+                            ? (countryLabels.get(item.countryId) ??
+                              item.countryId)
+                            : PLACEHOLDER}
+                        </Cell>
+                        <Cell align='center'>
+                          <Dot inline active={item.isActive} />
+                        </Cell>
+                        <Cell align='right' className='padding-left--16'>
+                          {formatDateOnly(item.createdAt)}
+                        </Cell>
+                        <Cell align='right' className='padding-left--16'>
+                          {formatDateOnly(item.updatedAt)}
+                        </Cell>
+                      </Row>
+                    ))
+                  )}
+                </Tbody>
+              </Table>
+            </Main>
+
+            <Grid justifyItems='center' className='margin-block--16'>
+              <Grid gap={16} display='flex' alignItems='center'>
+                {response.metadata.hasPreviousPage ? (
+                  <Link
+                    href={buildHref(
+                      response.metadata.page - 1,
+                      pageSize,
+                      sort,
+                      status,
+                      competitionTypeId,
+                      federationId,
+                      countryId,
+                    )}
+                    aria-label={dictionary.common.previous}
+                  >
+                    <Icon name='arrowLeft' size={24} fill='gray' />
+                  </Link>
+                ) : null}
+                <Text color='gray' size='small' weight='semibold'>
+                  {formatPaginationLabel(
+                    dictionary.competitions.list.paginationLabel,
+                    response.metadata.page,
+                    Math.max(1, response.metadata.totalPages),
+                  )}
+                </Text>
+                {response.metadata.hasNextPage ? (
+                  <Link
+                    href={buildHref(
+                      response.metadata.page + 1,
+                      pageSize,
+                      sort,
+                      status,
+                      competitionTypeId,
+                      federationId,
+                      countryId,
+                    )}
+                    aria-label={dictionary.common.next}
+                  >
+                    <Icon name='arrowRight' size={24} fill='gray' />
+                  </Link>
+                ) : null}
+              </Grid>
+            </Grid>
+          </>
+        )}
+      </Card>
     </Grid>
   );
 }
