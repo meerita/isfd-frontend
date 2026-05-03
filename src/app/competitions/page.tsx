@@ -45,6 +45,7 @@ import {
   parseString,
   PLACEHOLDER,
 } from './_components/utils';
+import Dot from '@/_components/Dot';
 
 type CompetitionsOverviewSection =
   | 'overview'
@@ -167,7 +168,9 @@ function renderSectionContent(
             <CompetitionOverviewCard
               href={NAVIGATION.COMPETITIONS_LIST}
               title={dictionary.competitions.cards.competitionsTitle}
-              description={dictionary.competitions.cards.competitionsDescription}
+              description={
+                dictionary.competitions.cards.competitionsDescription
+              }
               count={`${counts.competitions} ${dictionary.competitions.totalSuffix}`}
             />
             <CompetitionOverviewCard
@@ -203,7 +206,10 @@ function renderSectionContent(
   if (section === 'types') {
     return (
       <Grid gap={16}>
-        <SectionHeader title={dictionary.competitions.types.title} icon='library'>
+        <SectionHeader
+          title={dictionary.competitions.types.title}
+          icon='library'
+        >
           <Button icon='plus' href={NAVIGATION.CREATE_A_COMPETITION_TYPE}>
             {dictionary.competitions.types.createAction}
           </Button>
@@ -236,28 +242,22 @@ function renderSectionContent(
                 <Table>
                   <Thead>
                     <Row>
-                      <Cell header className='padding-left--16'>
+                      <Cell header>
                         {dictionary.competitions.types.headers.name}
                       </Cell>
-                      <Cell header className='padding-left--16'>
-                        {dictionary.competitions.types.headers.slug}
-                      </Cell>
-                      <Cell header className='padding-left--16'>
-                        {dictionary.competitions.types.headers.code}
-                      </Cell>
-                      <Cell header className='padding-left--16'>
+                      <Cell header>
                         {dictionary.competitions.types.headers.category}
                       </Cell>
-                      <Cell header className='padding-left--16'>
+                      <Cell header>
                         {dictionary.competitions.types.headers.participantScope}
                       </Cell>
                       <Cell header align='center'>
                         {dictionary.competitions.types.headers.active}
                       </Cell>
-                      <Cell header align='right' className='padding-left--16'>
+                      <Cell header align='right' className='padding-right--16'>
                         {dictionary.competitions.types.headers.created}
                       </Cell>
-                      <Cell header align='right' className='padding-left--16'>
+                      <Cell header align='right' className='padding-right--16'>
                         {dictionary.competitions.types.headers.updated}
                       </Cell>
                     </Row>
@@ -281,38 +281,26 @@ function renderSectionContent(
                           key={item.id}
                           href={NAVIGATION.COMPETITION_TYPE_BY_ID(item.id)}
                         >
-                          <Cell className='padding-left--16'>{item.name}</Cell>
-                          <Cell className='padding-left--16'>{item.slug}</Cell>
-                          <Cell className='padding-left--16'>{item.code}</Cell>
-                          <Cell className='padding-left--16'>
+                          <Cell>{item.name}</Cell>
+                          <Cell>
                             {getCompetitionTypeCategoryLabel(
                               item.competitionTypeCategory,
                               locale,
                             )}
                           </Cell>
-                          <Cell className='padding-left--16'>
+                          <Cell>
                             {getParticipantScopeLabel(
                               item.participantScope,
                               locale,
                             )}
                           </Cell>
                           <Cell align='center'>
-                            <span
-                              aria-label={
-                                item.isActive
-                                  ? dictionary.common.active
-                                  : dictionary.common.inactive
-                              }
-                            >
-                              {item.isActive
-                                ? dictionary.competitions.types.yes
-                                : dictionary.competitions.types.no}
-                            </span>
+                            <Dot inline active={item.isActive} />
                           </Cell>
-                          <Cell align='right' className='padding-left--16'>
+                          <Cell align='right' className='padding-right--16'>
                             {formatDateOnly(item.createdAt)}
                           </Cell>
-                          <Cell align='right' className='padding-left--16'>
+                          <Cell align='right' className='padding-right--16'>
                             {formatDateOnly(item.updatedAt)}
                           </Cell>
                         </Row>
@@ -349,7 +337,8 @@ function renderSectionContent(
                           String(
                             Math.max(
                               1,
-                              competitionTypesState.response.metadata.totalPages,
+                              competitionTypesState.response.metadata
+                                .totalPages,
                             ),
                           ),
                         )}

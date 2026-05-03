@@ -134,7 +134,7 @@ const es = {
         slug: 'Slug',
         code: 'Código',
         category: 'Categoría',
-        participantScope: 'Ámbito de participantes',
+        participantScope: 'Ámbito',
         active: 'Activo',
         created: 'Creado',
         updated: 'Actualizado',
@@ -193,8 +193,7 @@ const es = {
     },
     errors: {
       INVALID_REQUEST: 'La solicitud de marca no es válida.',
-      INTERNAL_SERVER_ERROR:
-        'La solicitud de marca ha fallado en el servidor.',
+      INTERNAL_SERVER_ERROR: 'La solicitud de marca ha fallado en el servidor.',
       BRAND_NOT_FOUND: 'No se ha encontrado esta marca.',
       BRAND_NAME_REQUIRED: 'El nombre de la marca es obligatorio.',
       BRAND_NAME_TOO_LONG: 'El nombre de la marca es demasiado largo.',
@@ -467,8 +466,7 @@ const es = {
     },
     errors: {
       INVALID_REQUEST: 'La solicitud de club no es válida.',
-      INTERNAL_SERVER_ERROR:
-        'La solicitud de club ha fallado en el servidor.',
+      INTERNAL_SERVER_ERROR: 'La solicitud de club ha fallado en el servidor.',
       CLUB_NOT_FOUND: 'No se ha encontrado este club.',
       CLUB_ID_REQUIRED: 'El identificador del club es obligatorio.',
       CLUB_SLUG_REQUIRED: 'El slug del club es obligatorio.',
@@ -480,7 +478,8 @@ const es = {
       CLUB_FOUNDED_AS_TOO_LONG: 'El nombre fundacional es demasiado largo.',
       CLUB_INVALID_COUNTRY_ID: 'Selecciona un país válido.',
       CLUB_INVALID_CITY_ID: 'Selecciona una ciudad válida.',
-      CLUB_INVALID_PRIMARY_STADIUM_ID: 'Selecciona un estadio principal válido.',
+      CLUB_INVALID_PRIMARY_STADIUM_ID:
+        'Selecciona un estadio principal válido.',
       CLUB_CITY_REQUIRES_COUNTRY:
         'Selecciona un país antes de seleccionar una ciudad.',
       CLUB_FOUNDED_AT_IN_FUTURE:
@@ -559,8 +558,7 @@ const es = {
         'Selecciona un país antes de seleccionar una ciudad.',
       STADIUM_INVALID_IMAGE_URL: 'Introduce una URL de imagen válida.',
       STADIUM_INVALID_SEAT_COUNT: 'Introduce un aforo válido.',
-      STADIUM_INVALID_SURFACE_TYPE:
-        'Selecciona un tipo de superficie válido.',
+      STADIUM_INVALID_SURFACE_TYPE: 'Selecciona un tipo de superficie válido.',
       STADIUM_SURFACE_TYPE_TOO_LONG:
         'El tipo de superficie es demasiado largo.',
       STADIUM_SLUG_GENERATION_FAILED:

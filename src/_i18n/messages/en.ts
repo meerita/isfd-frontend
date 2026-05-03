@@ -92,8 +92,7 @@ const en = {
       tiersDescription:
         'Manage tiers, parent relationships, and participant scopes.',
       seasonsTitle: 'Seasons',
-      seasonsDescription:
-        'Keep yearly season catalogs aligned with editions.',
+      seasonsDescription: 'Keep yearly season catalogs aligned with editions.',
       editionsTitle: 'Competition editions',
       editionsDescription:
         'Manage concrete editions, timing, code, and lifecycle status.',
@@ -133,7 +132,7 @@ const en = {
         slug: 'Slug',
         code: 'Code',
         category: 'Category',
-        participantScope: 'Participant scope',
+        participantScope: 'Scope',
         active: 'Active',
         created: 'Created',
         updated: 'Updated',
@@ -200,7 +199,8 @@ const en = {
       BRAND_INVALID_WEBSITE_URL: 'Enter a valid website URL.',
       BRAND_INVALID_ICON_IMAGE_URL: 'Enter a valid icon image URL.',
       BRAND_INVALID_DETAIL_IMAGE_URL: 'Enter a valid detail image URL.',
-      BRAND_SLUG_GENERATION_FAILED: 'The backend could not generate a brand slug.',
+      BRAND_SLUG_GENERATION_FAILED:
+        'The backend could not generate a brand slug.',
       BRAND_HAS_REFERENCES:
         'This brand cannot be deleted because it is linked to other records.',
       FORM_VALIDATION_ERROR: 'Review the brand form values and try again.',
@@ -369,8 +369,7 @@ const en = {
       PERSON_INVALID_GENDER: 'Enter a valid gender.',
       PERSON_INVALID_BIRTH_LOCATION_ID:
         'Enter a valid birth location identifier.',
-      PERSON_INVALID_CURRENT_CITY_ID:
-        'Enter a valid current city identifier.',
+      PERSON_INVALID_CURRENT_CITY_ID: 'Enter a valid current city identifier.',
       PERSON_INVALID_PRIMARY_NATIONALITY_COUNTRY_ID:
         'Select a valid primary nationality country.',
       PERSON_INVALID_HAIR_COLOR: 'Enter a valid hair color.',
@@ -415,7 +414,8 @@ const en = {
       location: 'Location',
       metadata: 'Metadata',
       representativeImage: 'Representative image',
-      sectionsPending: 'This section is currently mocked and will connect to the API next.',
+      sectionsPending:
+        'This section is currently mocked and will connect to the API next.',
       noRepresentativeImage: 'No representative image available.',
       notAvailableTitle: 'Club unavailable',
       backToClubs: 'Back to clubs',
@@ -474,7 +474,8 @@ const en = {
       CLUB_INVALID_OFFICIAL_WEBSITE_URL: 'Enter a valid official website URL.',
       CLUB_INVALID_LOGO_URL: 'Enter a valid logo URL.',
       CLUB_INVALID_HERO_IMAGE_URL: 'Enter a valid hero image URL.',
-      CLUB_SLUG_GENERATION_FAILED: 'The backend could not generate a club slug.',
+      CLUB_SLUG_GENERATION_FAILED:
+        'The backend could not generate a club slug.',
       CLUB_HAS_REFERENCES:
         'This club cannot be deleted because it is linked to other records.',
       FORM_VALIDATION_ERROR: 'Review the club form values and try again.',
@@ -552,7 +553,8 @@ const en = {
       location: 'Location',
       metadata: 'Metadata',
       representativeImage: 'Representative image',
-      sectionsPending: 'This section is currently mocked and will connect to the API next.',
+      sectionsPending:
+        'This section is currently mocked and will connect to the API next.',
       noRepresentativeImage: 'No representative image available.',
       notAvailableTitle: 'Federation unavailable',
       backToFederations: 'Back to federations',
