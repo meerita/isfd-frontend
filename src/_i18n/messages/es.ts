@@ -71,7 +71,7 @@ const es = {
     },
     sidebar: {
       overview: 'Resumen',
-      types: 'Tipos de competición',
+      types: 'Tipos',
       competitions: 'Competiciones',
       pyramids: 'Pirámides',
       tiers: 'Niveles',
@@ -79,7 +79,7 @@ const es = {
       editions: 'Ediciones',
     },
     cards: {
-      typesTitle: 'Tipos de competición',
+      typesTitle: 'Tipos',
       typesDescription:
         'Configura las reglas de clasificación y los ámbitos de participantes.',
       competitionsTitle: 'Competiciones',
