@@ -107,13 +107,7 @@ export default async function CompetitionPyramidsPage({
 
   return (
     <Grid gap={16}>
-      <SectionHeader
-        navigation={[
-          { label: 'Competitions', href: NAVIGATION.COMPETITIONS },
-          { label: 'Competition Pyramids' },
-        ]}
-        icon='trophy'
-      >
+      <SectionHeader title='Competition pyramids' icon='group'>
         <Button icon='plus' href={NAVIGATION.CREATE_A_COMPETITION_PYRAMID}>
           Create competition pyramid
         </Button>

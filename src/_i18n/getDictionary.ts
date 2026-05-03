@@ -62,6 +62,95 @@ export interface AppDictionary {
     readonly stadiums: string;
     readonly users: string;
   };
+  readonly competitions: {
+    readonly overviewIntro: string;
+    readonly totalSuffix: string;
+    readonly actions: {
+      readonly createCompetition: string;
+      readonly createPyramid: string;
+      readonly createTier: string;
+      readonly createSeason: string;
+      readonly createEdition: string;
+    };
+    readonly sidebar: {
+      readonly overview: string;
+      readonly types: string;
+      readonly competitions: string;
+      readonly pyramids: string;
+      readonly tiers: string;
+      readonly seasons: string;
+      readonly editions: string;
+    };
+    readonly cards: {
+      readonly typesTitle: string;
+      readonly typesDescription: string;
+      readonly competitionsTitle: string;
+      readonly competitionsDescription: string;
+      readonly pyramidsTitle: string;
+      readonly pyramidsDescription: string;
+      readonly tiersTitle: string;
+      readonly tiersDescription: string;
+      readonly seasonsTitle: string;
+      readonly seasonsDescription: string;
+      readonly editionsTitle: string;
+      readonly editionsDescription: string;
+    };
+    readonly sections: {
+      readonly competitionsTitle: string;
+      readonly competitionsDescription: string;
+      readonly competitionsCta: string;
+      readonly pyramidsTitle: string;
+      readonly pyramidsDescription: string;
+      readonly pyramidsCta: string;
+      readonly tiersTitle: string;
+      readonly tiersDescription: string;
+      readonly tiersCta: string;
+      readonly seasonsTitle: string;
+      readonly seasonsDescription: string;
+      readonly seasonsCta: string;
+      readonly editionsTitle: string;
+      readonly editionsDescription: string;
+      readonly editionsCta: string;
+    };
+    readonly types: {
+      readonly title: string;
+      readonly createAction: string;
+      readonly loadErrorTitle: string;
+      readonly emptyState: string;
+      readonly paginationLabel: string;
+      readonly yes: string;
+      readonly no: string;
+      readonly headers: {
+        readonly name: string;
+        readonly slug: string;
+        readonly code: string;
+        readonly category: string;
+        readonly participantScope: string;
+        readonly active: string;
+        readonly created: string;
+        readonly updated: string;
+      };
+      readonly filters: {
+        readonly updating: string;
+        readonly sort: string;
+        readonly status: string;
+        readonly category: string;
+        readonly participantScope: string;
+        readonly allCategories: string;
+        readonly allScopes: string;
+        readonly updatedDesc: string;
+        readonly updatedAsc: string;
+        readonly createdDesc: string;
+        readonly createdAsc: string;
+        readonly nameAsc: string;
+        readonly nameDesc: string;
+        readonly sortOrderAsc: string;
+        readonly sortOrderDesc: string;
+        readonly activeFirst: string;
+        readonly inactiveFirst: string;
+      };
+    };
+  };
   readonly brands: {
     readonly detail: {
       readonly profile: string;

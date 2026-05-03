@@ -58,6 +58,107 @@ const en = {
     stadiums: 'Stadiums',
     users: 'Users',
   },
+  competitions: {
+    overviewIntro:
+      'Manage competition types, competitions, seasons, and editions from a single section.',
+    totalSuffix: 'total',
+    actions: {
+      createCompetition: 'Create competition',
+      createPyramid: 'Create pyramid',
+      createTier: 'Create tier',
+      createSeason: 'Create season',
+      createEdition: 'Create edition',
+    },
+    sidebar: {
+      overview: 'Overview',
+      types: 'Competition types',
+      competitions: 'Competitions',
+      pyramids: 'Competition pyramids',
+      tiers: 'Competition tiers',
+      seasons: 'Seasons',
+      editions: 'Competition editions',
+    },
+    cards: {
+      typesTitle: 'Competition types',
+      typesDescription:
+        'Configure classification rules and participant scopes.',
+      competitionsTitle: 'Competitions',
+      competitionsDescription:
+        'Manage base competitions and their classification.',
+      pyramidsTitle: 'Competition pyramids',
+      pyramidsDescription:
+        'Manage pyramid catalogs used to group competition tiers.',
+      tiersTitle: 'Competition tiers',
+      tiersDescription:
+        'Manage tiers, parent relationships, and participant scopes.',
+      seasonsTitle: 'Seasons',
+      seasonsDescription:
+        'Keep yearly season catalogs aligned with editions.',
+      editionsTitle: 'Competition editions',
+      editionsDescription:
+        'Manage concrete editions, timing, code, and lifecycle status.',
+    },
+    sections: {
+      competitionsTitle: 'Competitions',
+      competitionsDescription:
+        'Open the competitions list to manage base competitions, relations, and edition links.',
+      competitionsCta: 'Open competitions',
+      pyramidsTitle: 'Competition pyramids',
+      pyramidsDescription:
+        'Open the competition pyramids list to manage structural catalogs used by competitions and tiers.',
+      pyramidsCta: 'Open pyramids',
+      tiersTitle: 'Competition tiers',
+      tiersDescription:
+        'Open the competition tiers list to manage hierarchy, participant scope, and pyramid membership.',
+      tiersCta: 'Open tiers',
+      seasonsTitle: 'Seasons',
+      seasonsDescription:
+        'Open the seasons list to manage the catalog and its details.',
+      seasonsCta: 'Open seasons',
+      editionsTitle: 'Competition editions',
+      editionsDescription:
+        'Open the editions list to manage relations, lifecycle status, and code updates.',
+      editionsCta: 'Open editions',
+    },
+    types: {
+      title: 'Competition types',
+      createAction: 'Create competition type',
+      loadErrorTitle: 'We could not load competition types.',
+      emptyState: 'No competition types found for the current filters.',
+      paginationLabel: 'Page {current} of {total}',
+      yes: 'Yes',
+      no: 'No',
+      headers: {
+        name: 'Name',
+        slug: 'Slug',
+        code: 'Code',
+        category: 'Category',
+        participantScope: 'Participant scope',
+        active: 'Active',
+        created: 'Created',
+        updated: 'Updated',
+      },
+      filters: {
+        updating: 'Updating filters...',
+        sort: 'Sort',
+        status: 'Status',
+        category: 'Category',
+        participantScope: 'Participant scope',
+        allCategories: 'All categories',
+        allScopes: 'All scopes',
+        updatedDesc: 'Updated ↓',
+        updatedAsc: 'Updated ↑',
+        createdDesc: 'Created ↓',
+        createdAsc: 'Created ↑',
+        nameAsc: 'Name A-Z',
+        nameDesc: 'Name Z-A',
+        sortOrderAsc: 'Sort order ↑',
+        sortOrderDesc: 'Sort order ↓',
+        activeFirst: 'Active first',
+        inactiveFirst: 'Inactive first',
+      },
+    },
+  },
   brands: {
     detail: {
       profile: 'Profile',

@@ -1,5 +1,7 @@
 /** @format */
 
+import type { AppLocale } from '@/_i18n/config';
+
 import { parseOptionalEnum } from './helpers';
 
 export const COMPETITION_TYPE_CATEGORIES = [
@@ -107,28 +109,97 @@ function formatEnumLabel(value: string): string {
     .join(' ');
 }
 
-export function getCompetitionTypeCategoryLabel(value: string): string {
-  if (value === 'SUPER_CUP') {
-    return 'Super Cup';
-  }
+export function getCompetitionTypeCategoryLabel(
+  value: string,
+  locale: AppLocale = 'es',
+): string {
+  const labels: Record<AppLocale, Partial<Record<CompetitionTypeCategory, string>>> = {
+    es: {
+      LEAGUE: 'Liga',
+      CUP: 'Copa',
+      SUPER_CUP: 'Supercopa',
+      TOURNAMENT: 'Torneo',
+      FRIENDLY: 'Amistoso',
+      QUALIFICATION: 'Clasificación',
+    },
+    en: {
+      LEAGUE: 'League',
+      CUP: 'Cup',
+      SUPER_CUP: 'Super Cup',
+      TOURNAMENT: 'Tournament',
+      FRIENDLY: 'Friendly',
+      QUALIFICATION: 'Qualification',
+    },
+  };
 
-  return formatEnumLabel(value);
+  return labels[locale][value as CompetitionTypeCategory] ?? formatEnumLabel(value);
 }
 
-export function getParticipantScopeLabel(value: string): string {
-  if (value === 'NATIONAL_TEAM') {
-    return 'National team';
-  }
+export function getParticipantScopeLabel(
+  value: string,
+  locale: AppLocale = 'es',
+): string {
+  const labels: Record<AppLocale, Partial<Record<ParticipantScope, string>>> = {
+    es: {
+      CLUB: 'Club',
+      NATIONAL_TEAM: 'Selección nacional',
+      MIXED: 'Mixto',
+    },
+    en: {
+      CLUB: 'Club',
+      NATIONAL_TEAM: 'National team',
+      MIXED: 'Mixed',
+    },
+  };
 
-  return formatEnumLabel(value);
+  return labels[locale][value as ParticipantScope] ?? formatEnumLabel(value);
 }
 
-export function getCompetitionPyramidScopeKindLabel(value: string): string {
-  return formatEnumLabel(value);
+export function getCompetitionPyramidScopeKindLabel(
+  value: string,
+  locale: AppLocale = 'es',
+): string {
+  const labels: Record<
+    AppLocale,
+    Partial<Record<CompetitionPyramidScopeKind, string>>
+  > = {
+    es: {
+      NATIONAL: 'Nacional',
+      REGIONAL: 'Regional',
+      MIXED: 'Mixto',
+    },
+    en: {
+      NATIONAL: 'National',
+      REGIONAL: 'Regional',
+      MIXED: 'Mixed',
+    },
+  };
+
+  return (
+    labels[locale][value as CompetitionPyramidScopeKind] ?? formatEnumLabel(value)
+  );
 }
 
-export function getCompetitionTierScopeKindLabel(value: string): string {
-  return formatEnumLabel(value);
+export function getCompetitionTierScopeKindLabel(
+  value: string,
+  locale: AppLocale = 'es',
+): string {
+  const labels: Record<AppLocale, Partial<Record<CompetitionTierScopeKind, string>>> = {
+    es: {
+      NATIONAL: 'Nacional',
+      REGIONAL: 'Regional',
+      METROPOLITAN: 'Metropolitano',
+      MIXED: 'Mixto',
+    },
+    en: {
+      NATIONAL: 'National',
+      REGIONAL: 'Regional',
+      METROPOLITAN: 'Metropolitan',
+      MIXED: 'Mixed',
+    },
+  };
+
+  return labels[locale][value as CompetitionTierScopeKind] ?? formatEnumLabel(value);
 }
 
 /**
@@ -136,14 +207,37 @@ export function getCompetitionTierScopeKindLabel(value: string): string {
  * Prefer getCompetitionPyramidScopeKindLabel or getCompetitionTierScopeKindLabel
  * in new code.
  */
-export function getCompetitionScopeKindLabel(value: string): string {
+export function getCompetitionScopeKindLabel(
+  value: string,
+  locale: AppLocale = 'es',
+): string {
   if (value === 'METROPOLITAN') {
-    return getCompetitionTierScopeKindLabel(value);
+    return getCompetitionTierScopeKindLabel(value, locale);
   }
 
-  return getCompetitionPyramidScopeKindLabel(value);
+  return getCompetitionPyramidScopeKindLabel(value, locale);
 }
 
-export function getCompetitionEditionStatusLabel(value: string): string {
-  return formatEnumLabel(value);
+export function getCompetitionEditionStatusLabel(
+  value: string,
+  locale: AppLocale = 'es',
+): string {
+  const labels: Record<AppLocale, Partial<Record<CompetitionEditionStatus, string>>> = {
+    es: {
+      DRAFT: 'Borrador',
+      SCHEDULED: 'Programada',
+      ACTIVE: 'Activa',
+      FINISHED: 'Finalizada',
+      ARCHIVED: 'Archivada',
+    },
+    en: {
+      DRAFT: 'Draft',
+      SCHEDULED: 'Scheduled',
+      ACTIVE: 'Active',
+      FINISHED: 'Finished',
+      ARCHIVED: 'Archived',
+    },
+  };
+
+  return labels[locale][value as CompetitionEditionStatus] ?? formatEnumLabel(value);
 }

@@ -35,7 +35,7 @@ export async function createCompetitionType(
 ): Promise<CompetitionTypeActionState> {
   const { body, error } = buildCreateCompetitionTypeBody(formData);
   if (error || !body) {
-    const result = error ?? { status: 'error' };
+    const result = error ?? { status: 'error' as const };
     logCompetitionDebug('competitionType.create', 'validation', { body, result });
     return result;
   }
@@ -61,7 +61,7 @@ export async function createCompetitionType(
       result,
     });
 
-    revalidatePath(NAVIGATION.COMPETITION_TYPES);
+    revalidatePath(NAVIGATION.COMPETITIONS);
     revalidatePath(NAVIGATION.CREATE_A_COMPETITION_TYPE);
     if (competitionType) {
       revalidatePath(NAVIGATION.COMPETITION_TYPE_BY_ID(competitionType.id));
@@ -72,7 +72,7 @@ export async function createCompetitionType(
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
     const result = {
-      status: 'error',
+      status: 'error' as const,
       error: normalized.data,
     };
     logCompetitionDebug('competitionType.create', 'error', {

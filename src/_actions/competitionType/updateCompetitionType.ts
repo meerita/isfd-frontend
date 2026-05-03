@@ -21,7 +21,7 @@ export async function updateCompetitionType(
   if (error || !competitionTypeId || !body) {
     const result =
       error ?? {
-        status: 'error',
+        status: 'error' as const,
         error: {
           reason: 'COMPETITION_TYPE_ID_REQUIRED',
           message: 'Missing competition type identifier.',
@@ -38,7 +38,7 @@ export async function updateCompetitionType(
 
   if (Object.keys(body).length === 0) {
     const result = {
-      status: 'success',
+      status: 'success' as const,
       competitionTypeId,
     };
     logCompetitionDebug('competitionType.update', 'skipped', {
@@ -61,11 +61,11 @@ export async function updateCompetitionType(
       body,
     );
 
-    revalidatePath(NAVIGATION.COMPETITION_TYPES);
+    revalidatePath(NAVIGATION.COMPETITIONS);
     revalidatePath(NAVIGATION.COMPETITION_TYPE_BY_ID(competitionTypeId));
 
     const result = {
-      status: 'success',
+      status: 'success' as const,
       competitionTypeId,
     };
     logCompetitionDebug('competitionType.update', 'response', {
@@ -79,7 +79,7 @@ export async function updateCompetitionType(
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
     const result = {
-      status: 'error',
+      status: 'error' as const,
       error: normalized.data,
     };
     logCompetitionDebug('competitionType.update', 'error', {

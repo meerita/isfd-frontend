@@ -120,13 +120,7 @@ export default async function CompetitionTiersPage({
 
   return (
     <Grid gap={16}>
-      <SectionHeader
-        navigation={[
-          { label: 'Competitions', href: NAVIGATION.COMPETITIONS },
-          { label: 'Competition Tiers' },
-        ]}
-        icon='trophy'
-      >
+      <SectionHeader title='Competition tiers' icon='analytics'>
         <Button icon='plus' href={NAVIGATION.CREATE_A_COMPETITION_TIER}>
           Create competition tier
         </Button>

@@ -58,6 +58,108 @@ const es = {
     stadiums: 'Estadios',
     users: 'Usuarios',
   },
+  competitions: {
+    overviewIntro:
+      'Gestiona tipos de competición, competiciones, temporadas y ediciones desde una sola sección.',
+    totalSuffix: 'en total',
+    actions: {
+      createCompetition: 'Crear competición',
+      createPyramid: 'Crear pirámide',
+      createTier: 'Crear nivel',
+      createSeason: 'Crear temporada',
+      createEdition: 'Crear edición',
+    },
+    sidebar: {
+      overview: 'Resumen',
+      types: 'Tipos de competición',
+      competitions: 'Competiciones',
+      pyramids: 'Pirámides de competición',
+      tiers: 'Niveles de competición',
+      seasons: 'Temporadas',
+      editions: 'Ediciones de competición',
+    },
+    cards: {
+      typesTitle: 'Tipos de competición',
+      typesDescription:
+        'Configura las reglas de clasificación y los ámbitos de participantes.',
+      competitionsTitle: 'Competiciones',
+      competitionsDescription:
+        'Gestiona las competiciones base y su clasificación.',
+      pyramidsTitle: 'Pirámides de competición',
+      pyramidsDescription:
+        'Gestiona los catálogos de pirámides usados para agrupar niveles.',
+      tiersTitle: 'Niveles de competición',
+      tiersDescription:
+        'Gestiona niveles, relaciones jerárquicas y ámbitos de participantes.',
+      seasonsTitle: 'Temporadas',
+      seasonsDescription:
+        'Mantén alineados los catálogos anuales de temporadas con las ediciones.',
+      editionsTitle: 'Ediciones de competición',
+      editionsDescription:
+        'Gestiona las ediciones concretas, su calendario, código y ciclo de vida.',
+    },
+    sections: {
+      competitionsTitle: 'Competiciones',
+      competitionsDescription:
+        'Abre el listado de competiciones para gestionar competiciones base, relaciones y vínculos con ediciones.',
+      competitionsCta: 'Abrir competiciones',
+      pyramidsTitle: 'Pirámides de competición',
+      pyramidsDescription:
+        'Abre el listado de pirámides para gestionar los catálogos estructurales usados por competiciones y niveles.',
+      pyramidsCta: 'Abrir pirámides',
+      tiersTitle: 'Niveles de competición',
+      tiersDescription:
+        'Abre el listado de niveles para gestionar la jerarquía, el ámbito de participantes y la pertenencia a una pirámide.',
+      tiersCta: 'Abrir niveles',
+      seasonsTitle: 'Temporadas',
+      seasonsDescription:
+        'Abre el listado de temporadas para gestionar el catálogo y sus detalles.',
+      seasonsCta: 'Abrir temporadas',
+      editionsTitle: 'Ediciones de competición',
+      editionsDescription:
+        'Abre el listado de ediciones para gestionar relaciones, estado del ciclo de vida y actualizaciones de código.',
+      editionsCta: 'Abrir ediciones',
+    },
+    types: {
+      title: 'Tipos de competición',
+      createAction: 'Crear tipo de competición',
+      loadErrorTitle: 'No hemos podido cargar los tipos de competición.',
+      emptyState:
+        'No se han encontrado tipos de competición con los filtros actuales.',
+      paginationLabel: 'Página {current} de {total}',
+      yes: 'Sí',
+      no: 'No',
+      headers: {
+        name: 'Nombre',
+        slug: 'Slug',
+        code: 'Código',
+        category: 'Categoría',
+        participantScope: 'Ámbito de participantes',
+        active: 'Activo',
+        created: 'Creado',
+        updated: 'Actualizado',
+      },
+      filters: {
+        updating: 'Actualizando filtros...',
+        sort: 'Orden',
+        status: 'Estado',
+        category: 'Categoría',
+        participantScope: 'Ámbito de participantes',
+        allCategories: 'Todas las categorías',
+        allScopes: 'Todos los ámbitos',
+        updatedDesc: 'Actualizado ↓',
+        updatedAsc: 'Actualizado ↑',
+        createdDesc: 'Creado ↓',
+        createdAsc: 'Creado ↑',
+        nameAsc: 'Nombre A-Z',
+        nameDesc: 'Nombre Z-A',
+        sortOrderAsc: 'Orden ↑',
+        sortOrderDesc: 'Orden ↓',
+        activeFirst: 'Activos primero',
+        inactiveFirst: 'Inactivos primero',
+      },
+    },
+  },
   brands: {
     detail: {
       profile: 'Perfil',

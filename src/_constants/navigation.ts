@@ -44,7 +44,7 @@ const NAVIGATION = {
   COMPETITION_EDITION_BY_ID: (id: string) => `/competitions/editions/${id}`,
   COMPETITION_PYRAMID_BY_ID: (id: string) => `/competitions/structures/pyramids/${id}`,
   COMPETITION_TIER_BY_ID: (id: string) => `/competitions/structures/tiers/${id}`,
-  COMPETITION_TYPES: '/competitions/types',
+  COMPETITION_TYPES: '/competitions?section=types',
   COMPETITIONS_LIST: '/competitions/list',
   COMPETITION_SEASONS: '/competitions/seasons',
   COMPETITION_EDITIONS: '/competitions/editions',

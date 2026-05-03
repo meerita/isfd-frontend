@@ -36,7 +36,7 @@ export async function deleteCompetitionType(
     const { data } = await client.delete<unknown>(
       API_ROUTES.COMPETITION_TYPE_ADMIN_BY_ID(competitionTypeId),
     );
-    revalidatePath(NAVIGATION.COMPETITION_TYPES);
+    revalidatePath(NAVIGATION.COMPETITIONS);
     revalidatePath(NAVIGATION.COMPETITION_TYPE_BY_ID(competitionTypeId));
     const result = { success: true };
     logCompetitionDebug('competitionType.delete', 'response', {

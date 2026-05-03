@@ -71,13 +71,7 @@ export default async function SeasonsPage({
 
   return (
     <Grid gap={16}>
-      <SectionHeader
-        navigation={[
-          { label: 'Competitions', href: NAVIGATION.COMPETITIONS },
-          { label: 'Seasons' },
-        ]}
-        icon='trophy'
-      >
+      <SectionHeader title='Seasons' icon='eventUpcoming'>
         <Button icon='plus' href={NAVIGATION.CREATE_A_SEASON}>
           Create season
         </Button>
