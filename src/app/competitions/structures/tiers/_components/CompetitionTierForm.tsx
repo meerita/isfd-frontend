@@ -27,13 +27,14 @@ import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import Title from '@/_components/typography/Title';
 import {
-  COMPETITION_SCOPE_KINDS,
+  COMPETITION_TIER_SCOPE_KINDS,
   PARTICIPANT_SCOPES,
-  getCompetitionScopeKindLabel,
+  getCompetitionTierScopeKindLabel,
   getParticipantScopeLabel,
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import type {
   CompetitionTier,
   CompetitionTierActionState,
@@ -71,16 +72,21 @@ export default function CompetitionTierForm({
   successHref,
 }: CompetitionTierFormProps): React.JSX.Element {
   const router = useRouter();
+
+  const currentCompetitionTier = competitionTier ?? null;
+
   const [selectedPyramidId, setSelectedPyramidId] = useState(
-    competitionTier?.competitionPyramidId ?? '',
+    currentCompetitionTier?.competitionPyramidId ?? '',
   );
   const [selectedParentTierId, setSelectedParentTierId] = useState(
-    competitionTier?.parentTierId ?? '',
+    currentCompetitionTier?.parentTierId ?? '',
   );
+
   const [editState, editAction, editPending] = useActionState<
     CompetitionTierActionState,
     FormData
   >(updateCompetitionTier, INITIAL_STATE);
+
   const [createState, createAction, createPending] = useActionState<
     CompetitionTierActionState,
     FormData
@@ -89,18 +95,26 @@ export default function CompetitionTierForm({
   const actionState = edit ? editState : createState;
   const formAction = edit ? editAction : createAction;
   const isPending = edit ? editPending : createPending;
+
   const parentTierOptions = useMemo(
     () =>
       competitionTiers.filter(
         item =>
           item.competitionPyramidId === selectedPyramidId &&
-          item.id !== competitionTier?.id,
+          item.id !== currentCompetitionTier?.id,
       ),
-    [competitionTier?.id, competitionTiers, selectedPyramidId],
+    [competitionTiers, currentCompetitionTier?.id, selectedPyramidId],
   );
 
   useEffect(() => {
     if (actionState.status === 'idle') return;
+
+    logCompetitionDebug('CompetitionTierForm', 'actionState', {
+      mode: edit ? 'edit' : 'create',
+      status: actionState.status,
+      error: actionState.error,
+      competitionTierId: actionState.competitionTierId,
+    });
 
     if (actionState.status === 'error') {
       toast.error(resolveCompetitionAdminErrorMessage(actionState.error));
@@ -114,13 +128,18 @@ export default function CompetitionTierForm({
     );
 
     if (edit) {
-      router.push(successHref ?? NAVIGATION.COMPETITION_TIER_BY_ID(competitionTier?.id ?? ''));
+      router.push(
+        successHref ??
+          NAVIGATION.COMPETITION_TIER_BY_ID(currentCompetitionTier?.id ?? ''),
+      );
       router.refresh();
       return;
     }
 
     if (actionState.competitionTierId) {
-      router.push(NAVIGATION.COMPETITION_TIER_BY_ID(actionState.competitionTierId));
+      router.push(
+        NAVIGATION.COMPETITION_TIER_BY_ID(actionState.competitionTierId),
+      );
       router.refresh();
       return;
     }
@@ -131,7 +150,7 @@ export default function CompetitionTierForm({
     actionState.competitionTierId,
     actionState.error,
     actionState.status,
-    competitionTier?.id,
+    currentCompetitionTier?.id,
     edit,
     router,
     successHref,
@@ -146,52 +165,76 @@ export default function CompetitionTierForm({
     router.push(NAVIGATION.COMPETITION_TIERS);
   }, [cancelHref, router]);
 
-  const handlePyramidChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedPyramidId(event.target.value);
-    setSelectedParentTierId('');
-  }, []);
+  const handlePyramidChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      setSelectedPyramidId(event.target.value);
+      setSelectedParentTierId('');
+    },
+    [],
+  );
+
+  const levelOrderDefaultValue =
+    currentCompetitionTier?.levelOrder == null
+      ? ''
+      : String(currentCompetitionTier.levelOrder);
 
   return (
     <Form action={formAction}>
-      {edit && competitionTier ? (
+      {edit && currentCompetitionTier ? (
         <>
-          <input type='hidden' name='competitionTierId' value={competitionTier.id} />
+          <input
+            type='hidden'
+            name='competitionTierId'
+            value={currentCompetitionTier.id}
+          />
           <input
             type='hidden'
             name='original_competitionPyramidId'
-            value={competitionTier.competitionPyramidId}
+            value={currentCompetitionTier.competitionPyramidId}
           />
           <input
             type='hidden'
             name='original_parentTierId'
-            value={competitionTier.parentTierId ?? ''}
+            value={currentCompetitionTier.parentTierId ?? ''}
           />
-          <input type='hidden' name='original_code' value={competitionTier.code} />
-          <input type='hidden' name='original_name' value={competitionTier.name} />
+          <input
+            type='hidden'
+            name='original_code'
+            value={currentCompetitionTier.code}
+          />
+          <input
+            type='hidden'
+            name='original_name'
+            value={currentCompetitionTier.name}
+          />
           <input
             type='hidden'
             name='original_shortName'
-            value={competitionTier.shortName ?? ''}
+            value={currentCompetitionTier.shortName ?? ''}
           />
           <input
             type='hidden'
             name='original_levelOrder'
-            value={competitionTier.levelOrder === null ? '' : String(competitionTier.levelOrder)}
+            value={
+              currentCompetitionTier.levelOrder == null
+                ? ''
+                : String(currentCompetitionTier.levelOrder)
+            }
           />
           <input
             type='hidden'
             name='original_scopeKind'
-            value={competitionTier.scopeKind}
+            value={currentCompetitionTier.scopeKind}
           />
           <input
             type='hidden'
             name='original_participantScope'
-            value={competitionTier.participantScope}
+            value={currentCompetitionTier.participantScope}
           />
           <input
             type='hidden'
             name='original_isActive'
-            value={competitionTier.isActive ? 'true' : 'false'}
+            value={currentCompetitionTier.isActive ? 'true' : 'false'}
           />
         </>
       ) : null}
@@ -199,8 +242,11 @@ export default function CompetitionTierForm({
       <Card>
         <Grid gap={24}>
           <Title size='small'>
-            {edit ? 'Competition tier configuration' : 'Create competition tier'}
+            {edit
+              ? 'Competition tier configuration'
+              : 'Create competition tier'}
           </Title>
+
           <Grid gap={16} columns={2}>
             <Section gap={16}>
               <Select
@@ -217,6 +263,7 @@ export default function CompetitionTierForm({
                   </option>
                 ))}
               </Select>
+
               <Select
                 label='Parent tier'
                 name='parentTierId'
@@ -231,56 +278,60 @@ export default function CompetitionTierForm({
                   </option>
                 ))}
               </Select>
+
               <TextInput
                 label='Code'
                 name='code'
                 placeholder='TIER_1'
-                defaultValue={competitionTier?.code ?? ''}
+                defaultValue={currentCompetitionTier?.code ?? ''}
                 required
                 disabled={isPending}
               />
+
               <TextInput
                 label='Name'
                 name='name'
                 placeholder='Primera Division'
-                defaultValue={competitionTier?.name ?? ''}
+                defaultValue={currentCompetitionTier?.name ?? ''}
                 required
                 disabled={isPending}
               />
+
               <TextInput
                 label='Short name'
                 name='shortName'
-                defaultValue={competitionTier?.shortName ?? ''}
+                defaultValue={currentCompetitionTier?.shortName ?? ''}
                 disabled={isPending}
               />
+
               <NumberInput
                 label='Level order'
                 name='levelOrder'
                 type='number'
                 min='0'
-                defaultValue={
-                  competitionTier?.levelOrder === null
-                    ? ''
-                    : String(competitionTier?.levelOrder)
-                }
+                defaultValue={levelOrderDefaultValue}
                 disabled={isPending}
               />
+
               <Select
                 label='Scope'
                 name='scopeKind'
-                defaultValue={competitionTier?.scopeKind ?? 'MEN'}
+                defaultValue={currentCompetitionTier?.scopeKind ?? 'NATIONAL'}
                 disabled={isPending}
               >
-                {COMPETITION_SCOPE_KINDS.map(value => (
+                {COMPETITION_TIER_SCOPE_KINDS.map(value => (
                   <option key={value} value={value}>
-                    {getCompetitionScopeKindLabel(value)}
+                    {getCompetitionTierScopeKindLabel(value)}
                   </option>
                 ))}
               </Select>
+
               <Select
                 label='Participant scope'
                 name='participantScope'
-                defaultValue={competitionTier?.participantScope ?? 'CLUB'}
+                defaultValue={
+                  currentCompetitionTier?.participantScope ?? 'CLUB'
+                }
                 disabled={isPending}
               >
                 {PARTICIPANT_SCOPES.map(value => (
@@ -289,33 +340,43 @@ export default function CompetitionTierForm({
                   </option>
                 ))}
               </Select>
+
               <CheckBoxInput
                 label='Active'
                 name='isActive'
                 value='true'
-                defaultChecked={competitionTier?.isActive ?? true}
+                defaultChecked={currentCompetitionTier?.isActive ?? true}
                 disabled={isPending}
               />
             </Section>
 
-            {edit && competitionTier ? (
+            {edit && currentCompetitionTier ? (
               <Section gap={16}>
-                <TextInput label='ID' defaultValue={competitionTier.id} readOnly disabled />
+                <TextInput
+                  label='ID'
+                  defaultValue={currentCompetitionTier.id}
+                  readOnly
+                  disabled
+                />
                 <TextInput
                   label='Slug'
-                  defaultValue={competitionTier.slug}
+                  defaultValue={currentCompetitionTier.slug}
                   readOnly
                   disabled
                 />
                 <TextInput
                   label='Created at'
-                  defaultValue={formatDateTime(competitionTier.createdAt)}
+                  defaultValue={formatDateTime(
+                    currentCompetitionTier.createdAt,
+                  )}
                   readOnly
                   disabled
                 />
                 <TextInput
                   label='Updated at'
-                  defaultValue={formatDateTime(competitionTier.updatedAt)}
+                  defaultValue={formatDateTime(
+                    currentCompetitionTier.updatedAt,
+                  )}
                   readOnly
                   disabled
                 />
@@ -333,6 +394,7 @@ export default function CompetitionTierForm({
                   ? 'Update competition tier'
                   : 'Create competition tier'}
             </Button>
+
             <Button
               type='button'
               onClick={handleCancel}

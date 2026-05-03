@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { CompetitionTypeActionState } from '@/_types/competitionType';
@@ -33,9 +34,14 @@ export async function createCompetitionType(
   formData: FormData,
 ): Promise<CompetitionTypeActionState> {
   const { body, error } = buildCreateCompetitionTypeBody(formData);
-  if (error || !body) return error ?? { status: 'error' };
+  if (error || !body) {
+    const result = error ?? { status: 'error' };
+    logCompetitionDebug('competitionType.create', 'validation', { body, result });
+    return result;
+  }
 
   const client = await getServerAxios();
+  logCompetitionDebug('competitionType.create', 'request', body);
 
   try {
     const { data } = await client.post<unknown>(
@@ -44,6 +50,16 @@ export async function createCompetitionType(
     );
     const raw = extractRaw(data);
     const competitionType = raw ? mapCompetitionType(raw) : null;
+    const result = {
+      status: 'success' as const,
+      competitionTypeId: competitionType?.id,
+    };
+
+    logCompetitionDebug('competitionType.create', 'response', {
+      data,
+      competitionType,
+      result,
+    });
 
     revalidatePath(NAVIGATION.COMPETITION_TYPES);
     revalidatePath(NAVIGATION.CREATE_A_COMPETITION_TYPE);
@@ -51,16 +67,18 @@ export async function createCompetitionType(
       revalidatePath(NAVIGATION.COMPETITION_TYPE_BY_ID(competitionType.id));
     }
 
-    return {
-      status: 'success',
-      competitionTypeId: competitionType?.id,
-    };
+    return result;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    return {
+    const result = {
       status: 'error',
       error: normalized.data,
     };
+    logCompetitionDebug('competitionType.create', 'error', {
+      payload: body,
+      result,
+    });
+    return result;
   }
 }

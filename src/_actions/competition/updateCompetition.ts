@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { CompetitionActionState } from '@/_types/competition';
@@ -17,7 +18,7 @@ export async function updateCompetition(
 ): Promise<CompetitionActionState> {
   const { body, error, competitionId } = buildUpdateCompetitionBody(formData);
   if (error || !competitionId || !body) {
-    return (
+    const result =
       error ?? {
         status: 'error',
         error: {
@@ -25,35 +26,63 @@ export async function updateCompetition(
           message: 'Missing competition identifier.',
           error: 'Competition identifier is required to update the record.',
         },
-      }
-    );
+      };
+    logCompetitionDebug('competition.update', 'validation', {
+      competitionId,
+      body,
+      result,
+    });
+    return result;
   }
 
   if (Object.keys(body).length === 0) {
-    return {
+    const result = {
       status: 'success',
       competitionId,
     };
+    logCompetitionDebug('competition.update', 'skipped', {
+      competitionId,
+      payload: body,
+      result,
+    });
+    return result;
   }
 
   const client = await getServerAxios();
+  logCompetitionDebug('competition.update', 'request', { competitionId, payload: body });
 
   try {
-    await client.patch(API_ROUTES.COMPETITION_ADMIN_BY_ID(competitionId), body);
+    const { data } = await client.patch<unknown>(
+      API_ROUTES.COMPETITION_ADMIN_BY_ID(competitionId),
+      body,
+    );
 
     revalidatePath(NAVIGATION.COMPETITIONS_LIST);
     revalidatePath(NAVIGATION.COMPETITION_BY_ID(competitionId));
 
-    return {
+    const result = {
       status: 'success',
       competitionId,
     };
+    logCompetitionDebug('competition.update', 'response', {
+      competitionId,
+      payload: body,
+      data,
+      result,
+    });
+    return result;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    return {
+    const result = {
       status: 'error',
       error: normalized.data,
     };
+    logCompetitionDebug('competition.update', 'error', {
+      competitionId,
+      payload: body,
+      result,
+    });
+    return result;
   }
 }

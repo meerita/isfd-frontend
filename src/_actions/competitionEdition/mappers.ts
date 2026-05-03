@@ -15,7 +15,10 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 
 function toStringValue(value: unknown): string {
-  return typeof value === 'string' ? value : String(value ?? '');
+  if (typeof value === 'string') return value;
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value ?? '');
 }
 
 function toNullableString(value: unknown): string | null {
@@ -32,7 +35,9 @@ function toNumberValue(value: unknown, fallback = 0): number {
   return Number.isFinite(Number(value)) ? Number(value) : fallback;
 }
 
-export function mapCompetitionEdition(raw: RawCompetitionEdition): CompetitionEdition {
+export function mapCompetitionEdition(
+  raw: RawCompetitionEdition,
+): CompetitionEdition {
   return {
     id: toStringValue(raw.id),
     competitionId: toNullableString(raw.competition_id ?? raw.competitionId),
@@ -45,8 +50,7 @@ export function mapCompetitionEdition(raw: RawCompetitionEdition): CompetitionEd
     year: toNullableNumber(raw.year),
     startedOn: toNullableString(raw.started_on ?? raw.startedOn),
     endedOn: toNullableString(raw.ended_on ?? raw.endedOn),
-    status:
-      parseCompetitionEditionStatus(toStringValue(raw.status)) ?? 'DRAFT',
+    status: parseCompetitionEditionStatus(toStringValue(raw.status)) ?? 'DRAFT',
     sortOrder: toNumberValue(raw.sort_order ?? raw.sortOrder),
     isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
     createdAt: toStringValue(raw.created_at ?? raw.createdAt),
@@ -97,10 +101,7 @@ export function mapCompetitionEditionMetadata(
             Number.isFinite(Number(filters.year)) && filters.year !== null
               ? Number(filters.year)
               : null,
-          q:
-            typeof filters.q === 'string'
-              ? filters.q
-              : undefined,
+          q: typeof filters.q === 'string' ? filters.q : undefined,
         }
       : undefined,
   };

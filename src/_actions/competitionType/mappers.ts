@@ -35,7 +35,9 @@ export function mapCompetitionTypeListItem(
     name: toStringValue(raw.name),
     competitionTypeCategory:
       parseCompetitionTypeCategory(
-        toStringValue(raw.competition_type_category ?? raw.competitionTypeCategory),
+        toStringValue(
+          raw.competition_type_category ?? raw.competitionTypeCategory,
+        ),
       ) ?? 'LEAGUE',
     participantScope:
       parseParticipantScope(

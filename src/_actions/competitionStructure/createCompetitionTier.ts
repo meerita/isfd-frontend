@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { CompetitionTierActionState } from '@/_types/competitionStructure';
@@ -30,14 +31,29 @@ export async function createCompetitionTier(
   formData: FormData,
 ): Promise<CompetitionTierActionState> {
   const { body, error } = buildCreateCompetitionTierBody(formData);
-  if (error || !body) return error ?? { status: 'error' };
+  if (error || !body) {
+    const result = error ?? { status: 'error' };
+    logCompetitionDebug('competitionTier.create', 'validation', { body, result });
+    return result;
+  }
 
   const client = await getServerAxios();
+  logCompetitionDebug('competitionTier.create', 'request', body);
 
   try {
     const { data } = await client.post<unknown>(API_ROUTES.COMPETITION_TIERS_ADMIN, body);
     const raw = extractRaw(data);
     const competitionTier = raw ? mapCompetitionTier(raw) : null;
+    const result = {
+      status: 'success' as const,
+      competitionTierId: competitionTier?.id,
+    };
+
+    logCompetitionDebug('competitionTier.create', 'response', {
+      data,
+      competitionTier,
+      result,
+    });
 
     revalidatePath(NAVIGATION.COMPETITION_TIERS);
     revalidatePath(NAVIGATION.CREATE_A_COMPETITION_TIER);
@@ -45,16 +61,18 @@ export async function createCompetitionTier(
       revalidatePath(NAVIGATION.COMPETITION_TIER_BY_ID(competitionTier.id));
     }
 
-    return {
-      status: 'success',
-      competitionTierId: competitionTier?.id,
-    };
+    return result;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    return {
+    const result = {
       status: 'error',
       error: normalized.data,
     };
+    logCompetitionDebug('competitionTier.create', 'error', {
+      payload: body,
+      result,
+    });
+    return result;
   }
 }

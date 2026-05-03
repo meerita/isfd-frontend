@@ -68,7 +68,12 @@ export default function SectionHeader({
         border ? ' border-dp' : ''
       }`}
     >
-      <Grid columns={2} gap={8} alignItems='center'>
+      <Grid
+        display='flex'
+        gap={8}
+        alignItems='center'
+        className='justify-content--space-between'
+      >
         {/* LEFT */}
         <Grid>
           <Box
@@ -124,10 +129,8 @@ export default function SectionHeader({
             )}
           </Box>
         </Grid>
-
-        {/* RIGHT */}
         <Grid>
-          {children && <Nav className='justify-self--end'>{children}</Nav>}
+          {children && <Nav className='justify-self--flex-end'>{children}</Nav>}
         </Grid>
       </Grid>
     </Header>

@@ -1,5 +1,10 @@
 /** @format */
 
+import {
+  parseCompetitionPyramidScopeKind,
+  parseCompetitionTierScopeKind,
+  parseParticipantScope,
+} from '@/_constants/enums/competition';
 import type {
   CompetitionPyramid,
   CompetitionPyramidListMetadata,
@@ -8,10 +13,6 @@ import type {
   CompetitionTier,
   CompetitionTierListMetadata,
 } from '@/_types/competitionStructure';
-import {
-  parseCompetitionScopeKind,
-  parseParticipantScope,
-} from '@/_constants/enums/competition';
 
 type Raw = Record<string, unknown>;
 
@@ -46,7 +47,7 @@ export function mapCompetitionPyramid(raw: Raw): CompetitionPyramid {
     slug: toStringValue(raw.slug),
     name: toStringValue(raw.name),
     scopeKind:
-      parseCompetitionScopeKind(
+      parseCompetitionPyramidScopeKind(
         toStringValue(raw.scope_kind ?? raw.scopeKind),
       ) ?? 'MIXED',
     isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
@@ -68,7 +69,7 @@ export function mapCompetitionTier(raw: Raw): CompetitionTier {
     shortName: toNullableString(raw.short_name ?? raw.shortName),
     levelOrder: toNullableNumber(raw.level_order ?? raw.levelOrder),
     scopeKind:
-      parseCompetitionScopeKind(
+      parseCompetitionTierScopeKind(
         toStringValue(raw.scope_kind ?? raw.scopeKind),
       ) ?? 'MIXED',
     participantScope:
@@ -121,7 +122,7 @@ export function mapCompetitionPyramidMetadata(
                 ? filters.federationId
                 : undefined,
           scopeKind:
-            parseCompetitionScopeKind(
+            parseCompetitionPyramidScopeKind(
               toNullableString(filters.scope_kind ?? filters.scopeKind),
             ) ?? undefined,
         }
@@ -175,7 +176,7 @@ export function mapCompetitionTierMetadata(
               ),
             ) ?? undefined,
           scopeKind:
-            parseCompetitionScopeKind(
+            parseCompetitionTierScopeKind(
               toNullableString(filters.scope_kind ?? filters.scopeKind),
             ) ?? undefined,
         }

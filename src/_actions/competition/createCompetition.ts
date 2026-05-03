@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { CompetitionActionState } from '@/_types/competition';
@@ -30,14 +31,29 @@ export async function createCompetition(
   formData: FormData,
 ): Promise<CompetitionActionState> {
   const { body, error } = buildCreateCompetitionBody(formData);
-  if (error || !body) return error ?? { status: 'error' };
+  if (error || !body) {
+    const result = error ?? { status: 'error' };
+    logCompetitionDebug('competition.create', 'validation', { body, result });
+    return result;
+  }
 
   const client = await getServerAxios();
+  logCompetitionDebug('competition.create', 'request', body);
 
   try {
     const { data } = await client.post<unknown>(API_ROUTES.COMPETITIONS_ADMIN, body);
     const raw = extractRaw(data);
     const competition = raw ? mapCompetition(raw) : null;
+    const result = {
+      status: 'success' as const,
+      competitionId: competition?.id,
+    };
+
+    logCompetitionDebug('competition.create', 'response', {
+      data,
+      competition,
+      result,
+    });
 
     revalidatePath(NAVIGATION.COMPETITIONS_LIST);
     revalidatePath(NAVIGATION.CREATE_A_COMPETITION);
@@ -45,16 +61,15 @@ export async function createCompetition(
       revalidatePath(NAVIGATION.COMPETITION_BY_ID(competition.id));
     }
 
-    return {
-      status: 'success',
-      competitionId: competition?.id,
-    };
+    return result;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    return {
+    const result = {
       status: 'error',
       error: normalized.data,
     };
+    logCompetitionDebug('competition.create', 'error', { payload: body, result });
+    return result;
   }
 }

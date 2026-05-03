@@ -20,6 +20,7 @@ import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import Title from '@/_components/typography/Title';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import type { Season, SeasonActionState } from '@/_types/season';
 import { formatDateTime } from '../../_components/utils';
 
@@ -54,6 +55,13 @@ export default function SeasonForm({
 
   useEffect(() => {
     if (actionState.status === 'idle') return;
+
+    logCompetitionDebug('SeasonForm', 'actionState', {
+      mode: edit ? 'edit' : 'create',
+      status: actionState.status,
+      error: actionState.error,
+      seasonId: actionState.seasonId,
+    });
 
     if (actionState.status === 'error') {
       toast.error(resolveCompetitionAdminErrorMessage(actionState.error));

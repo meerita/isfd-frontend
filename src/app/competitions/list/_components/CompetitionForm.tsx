@@ -30,6 +30,7 @@ import Text from '@/_components/typography/Text';
 import Title from '@/_components/typography/Title';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import type { Competition, CompetitionActionState } from '@/_types/competition';
 import {
   formatDateForInput,
@@ -111,6 +112,13 @@ export default function CompetitionForm({
 
   useEffect(() => {
     if (actionState.status === 'idle') return;
+
+    logCompetitionDebug('CompetitionForm', 'actionState', {
+      mode: edit ? 'edit' : 'create',
+      status: actionState.status,
+      error: actionState.error,
+      competitionId: actionState.competitionId,
+    });
 
     if (actionState.status === 'error') {
       toast.error(resolveCompetitionAdminErrorMessage(actionState.error));

@@ -27,6 +27,7 @@ import {
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import type {
   CompetitionType,
   CompetitionTypeActionState,
@@ -64,6 +65,13 @@ export default function CompetitionTypeForm({
 
   useEffect(() => {
     if (actionState.status === 'idle') return;
+
+    logCompetitionDebug('CompetitionTypeForm', 'actionState', {
+      mode: edit ? 'edit' : 'create',
+      status: actionState.status,
+      error: actionState.error,
+      competitionTypeId: actionState.competitionTypeId,
+    });
 
     if (actionState.status === 'error') {
       toast.error(resolveCompetitionAdminErrorMessage(actionState.error));

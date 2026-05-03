@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { CompetitionEditionActionState } from '@/_types/competitionEdition';
@@ -33,9 +34,17 @@ export async function createCompetitionEdition(
   formData: FormData,
 ): Promise<CompetitionEditionActionState> {
   const { body, error } = buildCreateCompetitionEditionBody(formData);
-  if (error || !body) return error ?? { status: 'error' };
+  if (error || !body) {
+    const result = error ?? { status: 'error' };
+    logCompetitionDebug('competitionEdition.create', 'validation', {
+      body,
+      result,
+    });
+    return result;
+  }
 
   const client = await getServerAxios();
+  logCompetitionDebug('competitionEdition.create', 'request', body);
 
   try {
     const { data } = await client.post<unknown>(
@@ -44,6 +53,16 @@ export async function createCompetitionEdition(
     );
     const raw = extractRaw(data);
     const competitionEdition = raw ? mapCompetitionEdition(raw) : null;
+    const result = {
+      status: 'success' as const,
+      competitionEditionId: competitionEdition?.id,
+    };
+
+    logCompetitionDebug('competitionEdition.create', 'response', {
+      data,
+      competitionEdition,
+      result,
+    });
 
     revalidatePath(NAVIGATION.COMPETITION_EDITIONS);
     revalidatePath(NAVIGATION.CREATE_A_COMPETITION_EDITION);
@@ -51,16 +70,18 @@ export async function createCompetitionEdition(
       revalidatePath(NAVIGATION.COMPETITION_EDITION_BY_ID(competitionEdition.id));
     }
 
-    return {
-      status: 'success',
-      competitionEditionId: competitionEdition?.id,
-    };
+    return result;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    return {
+    const result = {
       status: 'error',
       error: normalized.data,
     };
+    logCompetitionDebug('competitionEdition.create', 'error', {
+      payload: body,
+      result,
+    });
+    return result;
   }
 }

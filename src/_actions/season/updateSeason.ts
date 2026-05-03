@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { SeasonActionState } from '@/_types/season';
@@ -17,7 +18,7 @@ export async function updateSeason(
 ): Promise<SeasonActionState> {
   const { body, error, seasonId } = buildUpdateSeasonBody(formData);
   if (error || !seasonId || !body) {
-    return (
+    const result =
       error ?? {
         status: 'error',
         error: {
@@ -25,35 +26,55 @@ export async function updateSeason(
           message: 'Missing season identifier.',
           error: 'Season identifier is required to update the record.',
         },
-      }
-    );
+      };
+    logCompetitionDebug('season.update', 'validation', { seasonId, body, result });
+    return result;
   }
 
   if (Object.keys(body).length === 0) {
-    return {
+    const result = {
       status: 'success',
       seasonId,
     };
+    logCompetitionDebug('season.update', 'skipped', {
+      seasonId,
+      payload: body,
+      result,
+    });
+    return result;
   }
 
   const client = await getServerAxios();
+  logCompetitionDebug('season.update', 'request', { seasonId, payload: body });
 
   try {
-    await client.patch(API_ROUTES.SEASON_ADMIN_BY_ID(seasonId), body);
+    const { data } = await client.patch<unknown>(
+      API_ROUTES.SEASON_ADMIN_BY_ID(seasonId),
+      body,
+    );
 
     revalidatePath(NAVIGATION.COMPETITION_SEASONS);
     revalidatePath(NAVIGATION.SEASON_BY_ID(seasonId));
 
-    return {
+    const result = {
       status: 'success',
       seasonId,
     };
+    logCompetitionDebug('season.update', 'response', {
+      seasonId,
+      payload: body,
+      data,
+      result,
+    });
+    return result;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    return {
+    const result = {
       status: 'error',
       error: normalized.data,
     };
+    logCompetitionDebug('season.update', 'error', { seasonId, payload: body, result });
+    return result;
   }
 }

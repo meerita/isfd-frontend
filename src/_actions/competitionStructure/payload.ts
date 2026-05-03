@@ -1,7 +1,8 @@
 /** @format */
 
 import {
-  parseCompetitionScopeKind,
+  parseCompetitionPyramidScopeKind,
+  parseCompetitionTierScopeKind,
   parseParticipantScope,
 } from '@/_constants/enums/competition';
 import type {
@@ -74,7 +75,10 @@ function validateNullableUuid<TState>(
   return buildError(reason, message);
 }
 
-function partialRequired(value: string, original: string): string | typeof UNSET {
+function partialRequired(
+  value: string,
+  original: string,
+): string | typeof UNSET {
   return value === original ? UNSET : value;
 }
 
@@ -92,9 +96,7 @@ function partialNullableNumber(
   return value === original ? UNSET : value;
 }
 
-export function buildCreateCompetitionPyramidBody(
-  formData: FormData,
-): {
+export function buildCreateCompetitionPyramidBody(formData: FormData): {
   body?: Record<string, unknown>;
   error?: CompetitionPyramidActionState;
 } {
@@ -102,7 +104,9 @@ export function buildCreateCompetitionPyramidBody(
   const federationId = optionalString(str(formData, 'federationId'));
   const code = str(formData, 'code');
   const name = str(formData, 'name');
-  const scopeKind = parseCompetitionScopeKind(str(formData, 'scopeKind'));
+  const scopeKind = parseCompetitionPyramidScopeKind(
+    str(formData, 'scopeKind'),
+  );
 
   if (!countryId) {
     return {
@@ -180,9 +184,7 @@ export function buildCreateCompetitionPyramidBody(
   };
 }
 
-export function buildUpdateCompetitionPyramidBody(
-  formData: FormData,
-): {
+export function buildUpdateCompetitionPyramidBody(formData: FormData): {
   body?: Record<string, unknown>;
   error?: CompetitionPyramidActionState;
   competitionPyramidId?: string;
@@ -201,7 +203,9 @@ export function buildUpdateCompetitionPyramidBody(
   const federationId = optionalString(str(formData, 'federationId'));
   const code = str(formData, 'code');
   const name = str(formData, 'name');
-  const scopeKind = parseCompetitionScopeKind(str(formData, 'scopeKind'));
+  const scopeKind = parseCompetitionPyramidScopeKind(
+    str(formData, 'scopeKind'),
+  );
 
   if (!countryId) {
     return {
@@ -273,14 +277,20 @@ export function buildUpdateCompetitionPyramidBody(
   }
 
   const body: Record<string, unknown> = {};
-  const countryResult = partialRequired(countryId, str(formData, 'original_countryId'));
+  const countryResult = partialRequired(
+    countryId,
+    str(formData, 'original_countryId'),
+  );
   const federationResult = partialNullable(
     federationId,
     optionalString(str(formData, 'original_federationId')),
   );
   const codeResult = partialRequired(code, str(formData, 'original_code'));
   const nameResult = partialRequired(name, str(formData, 'original_name'));
-  const scopeKindResult = partialRequired(scopeKind, str(formData, 'original_scopeKind'));
+  const scopeKindResult = partialRequired(
+    scopeKind,
+    str(formData, 'original_scopeKind'),
+  );
 
   if (countryResult !== UNSET) body.country_id = countryResult;
   if (federationResult !== UNSET) body.federation_id = federationResult;
@@ -297,9 +307,7 @@ export function buildUpdateCompetitionPyramidBody(
   return { competitionPyramidId, body };
 }
 
-export function buildCreateCompetitionTierBody(
-  formData: FormData,
-): {
+export function buildCreateCompetitionTierBody(formData: FormData): {
   body?: Record<string, unknown>;
   error?: CompetitionTierActionState;
 } {
@@ -309,8 +317,10 @@ export function buildCreateCompetitionTierBody(
   const name = str(formData, 'name');
   const shortName = optionalString(str(formData, 'shortName'));
   const levelOrder = optionalNumber(str(formData, 'levelOrder'));
-  const scopeKind = parseCompetitionScopeKind(str(formData, 'scopeKind'));
-  const participantScope = parseParticipantScope(str(formData, 'participantScope'));
+  const scopeKind = parseCompetitionTierScopeKind(str(formData, 'scopeKind'));
+  const participantScope = parseParticipantScope(
+    str(formData, 'participantScope'),
+  );
 
   if (!competitionPyramidId) {
     return {
@@ -400,9 +410,7 @@ export function buildCreateCompetitionTierBody(
   };
 }
 
-export function buildUpdateCompetitionTierBody(
-  formData: FormData,
-): {
+export function buildUpdateCompetitionTierBody(formData: FormData): {
   body?: Record<string, unknown>;
   error?: CompetitionTierActionState;
   competitionTierId?: string;
@@ -423,8 +431,10 @@ export function buildUpdateCompetitionTierBody(
   const name = str(formData, 'name');
   const shortName = optionalString(str(formData, 'shortName'));
   const levelOrder = optionalNumber(str(formData, 'levelOrder'));
-  const scopeKind = parseCompetitionScopeKind(str(formData, 'scopeKind'));
-  const participantScope = parseParticipantScope(str(formData, 'participantScope'));
+  const scopeKind = parseCompetitionTierScopeKind(str(formData, 'scopeKind'));
+  const participantScope = parseParticipantScope(
+    str(formData, 'participantScope'),
+  );
 
   if (!competitionPyramidId) {
     return {
@@ -524,7 +534,10 @@ export function buildUpdateCompetitionTierBody(
     levelOrder,
     optionalNumber(str(formData, 'original_levelOrder')),
   );
-  const scopeKindResult = partialRequired(scopeKind, str(formData, 'original_scopeKind'));
+  const scopeKindResult = partialRequired(
+    scopeKind,
+    str(formData, 'original_scopeKind'),
+  );
   const participantScopeResult = partialRequired(
     participantScope,
     str(formData, 'original_participantScope'),

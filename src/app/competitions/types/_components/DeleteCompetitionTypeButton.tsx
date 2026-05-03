@@ -10,6 +10,7 @@ import { deleteCompetitionType } from '@/_actions/competitionType/deleteCompetit
 import Button from '@/_components/forms/Button';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 
 type DeleteCompetitionTypeButtonProps = Readonly<{
   competitionTypeId: string;
@@ -34,7 +35,12 @@ export default function DeleteCompetitionTypeButton({
     if (!confirmed) return;
 
     startTransition(async () => {
+      logCompetitionDebug('DeleteCompetitionTypeButton', 'request', {
+        competitionTypeId,
+        competitionTypeName,
+      });
       const result = await deleteCompetitionType(competitionTypeId);
+      logCompetitionDebug('DeleteCompetitionTypeButton', 'response', result);
 
       if (result.success) {
         toast.success(`"${competitionTypeName}" deleted.`);

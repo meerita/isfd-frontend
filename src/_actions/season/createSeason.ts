@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { SeasonActionState } from '@/_types/season';
@@ -30,14 +31,25 @@ export async function createSeason(
   formData: FormData,
 ): Promise<SeasonActionState> {
   const { body, error } = buildCreateSeasonBody(formData);
-  if (error || !body) return error ?? { status: 'error' };
+  if (error || !body) {
+    const result = error ?? { status: 'error' };
+    logCompetitionDebug('season.create', 'validation', { body, result });
+    return result;
+  }
 
   const client = await getServerAxios();
+  logCompetitionDebug('season.create', 'request', body);
 
   try {
     const { data } = await client.post<unknown>(API_ROUTES.SEASONS_ADMIN, body);
     const raw = extractRaw(data);
     const season = raw ? mapSeason(raw) : null;
+    const result = {
+      status: 'success' as const,
+      seasonId: season?.id,
+    };
+
+    logCompetitionDebug('season.create', 'response', { data, season, result });
 
     revalidatePath(NAVIGATION.COMPETITION_SEASONS);
     revalidatePath(NAVIGATION.CREATE_A_SEASON);
@@ -45,16 +57,15 @@ export async function createSeason(
       revalidatePath(NAVIGATION.SEASON_BY_ID(season.id));
     }
 
-    return {
-      status: 'success',
-      seasonId: season?.id,
-    };
+    return result;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    return {
+    const result = {
       status: 'error',
       error: normalized.data,
     };
+    logCompetitionDebug('season.create', 'error', { payload: body, result });
+    return result;
   }
 }

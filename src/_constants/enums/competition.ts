@@ -12,7 +12,27 @@ export const COMPETITION_TYPE_CATEGORIES = [
 ] as const;
 
 export const PARTICIPANT_SCOPES = ['CLUB', 'NATIONAL_TEAM', 'MIXED'] as const;
-export const COMPETITION_SCOPE_KINDS = ['MEN', 'WOMEN', 'MIXED'] as const;
+
+export const COMPETITION_PYRAMID_SCOPE_KINDS = [
+  'NATIONAL',
+  'REGIONAL',
+  'MIXED',
+] as const;
+
+export const COMPETITION_TIER_SCOPE_KINDS = [
+  'NATIONAL',
+  'REGIONAL',
+  'METROPOLITAN',
+  'MIXED',
+] as const;
+
+/**
+ * Temporary backward-compatible alias.
+ * Existing callers that still use the generic competition structure scope
+ * will continue to work while the codebase is migrated to the explicit
+ * pyramid/tier separation.
+ */
+export const COMPETITION_SCOPE_KINDS = COMPETITION_TIER_SCOPE_KINDS;
 
 export const COMPETITION_EDITION_STATUSES = [
   'DRAFT',
@@ -22,10 +42,18 @@ export const COMPETITION_EDITION_STATUSES = [
   'ARCHIVED',
 ] as const;
 
-export type CompetitionTypeCategory = (typeof COMPETITION_TYPE_CATEGORIES)[number];
+export type CompetitionTypeCategory =
+  (typeof COMPETITION_TYPE_CATEGORIES)[number];
 export type ParticipantScope = (typeof PARTICIPANT_SCOPES)[number];
-export type CompetitionScopeKind = (typeof COMPETITION_SCOPE_KINDS)[number];
-export type CompetitionEditionStatus = (typeof COMPETITION_EDITION_STATUSES)[number];
+export type CompetitionPyramidScopeKind =
+  (typeof COMPETITION_PYRAMID_SCOPE_KINDS)[number];
+export type CompetitionTierScopeKind =
+  (typeof COMPETITION_TIER_SCOPE_KINDS)[number];
+export type CompetitionScopeKind =
+  | CompetitionPyramidScopeKind
+  | CompetitionTierScopeKind;
+export type CompetitionEditionStatus =
+  (typeof COMPETITION_EDITION_STATUSES)[number];
 
 export function parseCompetitionTypeCategory(
   value: string | null | undefined,
@@ -39,10 +67,30 @@ export function parseParticipantScope(
   return parseOptionalEnum(PARTICIPANT_SCOPES, value);
 }
 
+export function parseCompetitionPyramidScopeKind(
+  value: string | null | undefined,
+): CompetitionPyramidScopeKind | null {
+  return parseOptionalEnum(COMPETITION_PYRAMID_SCOPE_KINDS, value);
+}
+
+export function parseCompetitionTierScopeKind(
+  value: string | null | undefined,
+): CompetitionTierScopeKind | null {
+  return parseOptionalEnum(COMPETITION_TIER_SCOPE_KINDS, value);
+}
+
+/**
+ * Temporary backward-compatible generic parser.
+ * Prefer parseCompetitionPyramidScopeKind or parseCompetitionTierScopeKind
+ * in new code.
+ */
 export function parseCompetitionScopeKind(
   value: string | null | undefined,
 ): CompetitionScopeKind | null {
-  return parseOptionalEnum(COMPETITION_SCOPE_KINDS, value);
+  return (
+    parseCompetitionTierScopeKind(value) ??
+    parseCompetitionPyramidScopeKind(value)
+  );
 }
 
 export function parseCompetitionEditionStatus(
@@ -51,42 +99,51 @@ export function parseCompetitionEditionStatus(
   return parseOptionalEnum(COMPETITION_EDITION_STATUSES, value);
 }
 
-export function getCompetitionTypeCategoryLabel(
-  value: CompetitionTypeCategory | string,
-): string {
-  switch (value) {
-    case 'SUPER_CUP':
-      return 'Super Cup';
-    default:
-      return value
-        .toLowerCase()
-        .split('_')
-        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
+function formatEnumLabel(value: string): string {
+  return value
+    .toLowerCase()
+    .split('_')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+export function getCompetitionTypeCategoryLabel(value: string): string {
+  if (value === 'SUPER_CUP') {
+    return 'Super Cup';
   }
+
+  return formatEnumLabel(value);
 }
 
-export function getParticipantScopeLabel(value: ParticipantScope | string): string {
-  switch (value) {
-    case 'NATIONAL_TEAM':
-      return 'National team';
-    default:
-      return value
-        .toLowerCase()
-        .split('_')
-        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
+export function getParticipantScopeLabel(value: string): string {
+  if (value === 'NATIONAL_TEAM') {
+    return 'National team';
   }
+
+  return formatEnumLabel(value);
 }
 
-export function getCompetitionScopeKindLabel(
-  value: CompetitionScopeKind | string,
-): string {
-  return value.charAt(0) + value.slice(1).toLowerCase();
+export function getCompetitionPyramidScopeKindLabel(value: string): string {
+  return formatEnumLabel(value);
 }
 
-export function getCompetitionEditionStatusLabel(
-  value: CompetitionEditionStatus | string,
-): string {
-  return value.charAt(0) + value.slice(1).toLowerCase();
+export function getCompetitionTierScopeKindLabel(value: string): string {
+  return formatEnumLabel(value);
+}
+
+/**
+ * Temporary backward-compatible generic label helper.
+ * Prefer getCompetitionPyramidScopeKindLabel or getCompetitionTierScopeKindLabel
+ * in new code.
+ */
+export function getCompetitionScopeKindLabel(value: string): string {
+  if (value === 'METROPOLITAN') {
+    return getCompetitionTierScopeKindLabel(value);
+  }
+
+  return getCompetitionPyramidScopeKindLabel(value);
+}
+
+export function getCompetitionEditionStatusLabel(value: string): string {
+  return formatEnumLabel(value);
 }

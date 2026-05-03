@@ -14,6 +14,7 @@ import Card from '@/_components/Card';
 import Grid from '@/_components/layout/Grid';
 import Title from '@/_components/typography/Title';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import type { CompetitionEditionActionState } from '@/_types/competitionEdition';
 
 const INITIAL_STATE: CompetitionEditionActionState = { status: 'idle' };
@@ -36,6 +37,13 @@ export default function CompetitionEditionCodeForm({
   useEffect(() => {
     if (state.status === 'idle') return;
 
+    logCompetitionDebug('CompetitionEditionCodeForm', 'actionState', {
+      competitionEditionId,
+      status: state.status,
+      error: state.error,
+      responseCompetitionEditionId: state.competitionEditionId,
+    });
+
     if (state.status === 'error') {
       toast.error(resolveCompetitionAdminErrorMessage(state.error));
       return;
@@ -43,7 +51,13 @@ export default function CompetitionEditionCodeForm({
 
     toast.success('Competition edition code updated successfully.');
     router.refresh();
-  }, [router, state.error, state.status]);
+  }, [
+    competitionEditionId,
+    router,
+    state.competitionEditionId,
+    state.error,
+    state.status,
+  ]);
 
   return (
     <Form action={action}>

@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { CompetitionPyramidActionState } from '@/_types/competitionStructure';
@@ -33,9 +34,17 @@ export async function createCompetitionPyramid(
   formData: FormData,
 ): Promise<CompetitionPyramidActionState> {
   const { body, error } = buildCreateCompetitionPyramidBody(formData);
-  if (error || !body) return error ?? { status: 'error' };
+  if (error || !body) {
+    const result = error ?? { status: 'error' };
+    logCompetitionDebug('competitionPyramid.create', 'validation', {
+      body,
+      result,
+    });
+    return result;
+  }
 
   const client = await getServerAxios();
+  logCompetitionDebug('competitionPyramid.create', 'request', body);
 
   try {
     const { data } = await client.post<unknown>(
@@ -44,6 +53,16 @@ export async function createCompetitionPyramid(
     );
     const raw = extractRaw(data);
     const competitionPyramid = raw ? mapCompetitionPyramid(raw) : null;
+    const result = {
+      status: 'success' as const,
+      competitionPyramidId: competitionPyramid?.id,
+    };
+
+    logCompetitionDebug('competitionPyramid.create', 'response', {
+      data,
+      competitionPyramid,
+      result,
+    });
 
     revalidatePath(NAVIGATION.COMPETITION_PYRAMIDS);
     revalidatePath(NAVIGATION.CREATE_A_COMPETITION_PYRAMID);
@@ -51,16 +70,18 @@ export async function createCompetitionPyramid(
       revalidatePath(NAVIGATION.COMPETITION_PYRAMID_BY_ID(competitionPyramid.id));
     }
 
-    return {
-      status: 'success',
-      competitionPyramidId: competitionPyramid?.id,
-    };
+    return result;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    return {
+    const result = {
       status: 'error',
       error: normalized.data,
     };
+    logCompetitionDebug('competitionPyramid.create', 'error', {
+      payload: body,
+      result,
+    });
+    return result;
   }
 }

@@ -19,11 +19,12 @@ import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import Title from '@/_components/typography/Title';
 import {
-  COMPETITION_SCOPE_KINDS,
-  getCompetitionScopeKindLabel,
+  COMPETITION_PYRAMID_SCOPE_KINDS,
+  getCompetitionPyramidScopeKindLabel,
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import type {
   CompetitionPyramid,
   CompetitionPyramidActionState,
@@ -71,6 +72,13 @@ export default function CompetitionPyramidForm({
   useEffect(() => {
     if (actionState.status === 'idle') return;
 
+    logCompetitionDebug('CompetitionPyramidForm', 'actionState', {
+      mode: edit ? 'edit' : 'create',
+      status: actionState.status,
+      error: actionState.error,
+      competitionPyramidId: actionState.competitionPyramidId,
+    });
+
     if (actionState.status === 'error') {
       toast.error(resolveCompetitionAdminErrorMessage(actionState.error));
       return;
@@ -84,7 +92,8 @@ export default function CompetitionPyramidForm({
 
     if (edit) {
       router.push(
-        successHref ?? NAVIGATION.COMPETITION_PYRAMID_BY_ID(competitionPyramid?.id ?? ''),
+        successHref ??
+          NAVIGATION.COMPETITION_PYRAMID_BY_ID(competitionPyramid?.id ?? ''),
       );
       router.refresh();
       return;
@@ -138,8 +147,16 @@ export default function CompetitionPyramidForm({
             name='original_federationId'
             value={competitionPyramid.federationId ?? ''}
           />
-          <input type='hidden' name='original_code' value={competitionPyramid.code} />
-          <input type='hidden' name='original_name' value={competitionPyramid.name} />
+          <input
+            type='hidden'
+            name='original_code'
+            value={competitionPyramid.code}
+          />
+          <input
+            type='hidden'
+            name='original_name'
+            value={competitionPyramid.name}
+          />
           <input
             type='hidden'
             name='original_scopeKind'
@@ -156,7 +173,9 @@ export default function CompetitionPyramidForm({
       <Card>
         <Grid gap={24}>
           <Title size='small'>
-            {edit ? 'Competition pyramid configuration' : 'Create competition pyramid'}
+            {edit
+              ? 'Competition pyramid configuration'
+              : 'Create competition pyramid'}
           </Title>
           <Grid gap={16} columns={2}>
             <Section gap={16}>
@@ -173,6 +192,7 @@ export default function CompetitionPyramidForm({
                   </option>
                 ))}
               </Select>
+
               <Select
                 label='Federation'
                 name='federationId'
@@ -186,34 +206,38 @@ export default function CompetitionPyramidForm({
                   </option>
                 ))}
               </Select>
+
               <TextInput
                 label='Code'
                 name='code'
-                placeholder='SPAIN_MEN'
+                placeholder='SPAIN_NATIONAL'
                 defaultValue={competitionPyramid?.code ?? ''}
                 required
                 disabled={isPending}
               />
+
               <TextInput
                 label='Name'
                 name='name'
-                placeholder="Spain Men's Pyramid"
+                placeholder='Spain National Pyramid'
                 defaultValue={competitionPyramid?.name ?? ''}
                 required
                 disabled={isPending}
               />
+
               <Select
                 label='Scope'
                 name='scopeKind'
-                defaultValue={competitionPyramid?.scopeKind ?? 'MEN'}
+                defaultValue={competitionPyramid?.scopeKind ?? 'NATIONAL'}
                 disabled={isPending}
               >
-                {COMPETITION_SCOPE_KINDS.map(value => (
+                {COMPETITION_PYRAMID_SCOPE_KINDS.map(value => (
                   <option key={value} value={value}>
-                    {getCompetitionScopeKindLabel(value)}
+                    {getCompetitionPyramidScopeKindLabel(value)}
                   </option>
                 ))}
               </Select>
+
               <CheckBoxInput
                 label='Active'
                 name='isActive'
@@ -263,6 +287,7 @@ export default function CompetitionPyramidForm({
                   ? 'Update competition pyramid'
                   : 'Create competition pyramid'}
             </Button>
+
             <Button
               type='button'
               onClick={handleCancel}

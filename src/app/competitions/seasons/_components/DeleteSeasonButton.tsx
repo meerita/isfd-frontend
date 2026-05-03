@@ -10,6 +10,7 @@ import { deleteSeason } from '@/_actions/season/deleteSeason';
 import Button from '@/_components/forms/Button';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 
 type DeleteSeasonButtonProps = Readonly<{
   seasonId: string;
@@ -34,7 +35,12 @@ export default function DeleteSeasonButton({
     if (!confirmed) return;
 
     startTransition(async () => {
+      logCompetitionDebug('DeleteSeasonButton', 'request', {
+        seasonId,
+        seasonName,
+      });
       const result = await deleteSeason(seasonId);
+      logCompetitionDebug('DeleteSeasonButton', 'response', result);
 
       if (result.success) {
         toast.success(`"${seasonName}" deleted.`);

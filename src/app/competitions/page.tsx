@@ -30,7 +30,9 @@ type CompetitionsOverviewSection =
   | 'editions';
 
 type CompetitionsOverviewPageProps = Readonly<{
-  searchParams?: Promise<{ section?: string | string[] }> | { section?: string | string[] };
+  searchParams?:
+    | Promise<{ section?: string | string[] }>
+    | { section?: string | string[] };
 }>;
 
 function extractSingleValue(
@@ -62,27 +64,26 @@ function buildCompetitionsHref(section: CompetitionsOverviewSection): string {
 
 function renderSectionContent(
   section: CompetitionsOverviewSection,
-      counts: Readonly<{
-        types: number;
-        competitions: number;
-        pyramids: number;
-        tiers: number;
-        seasons: number;
-        editions: number;
-      }>,
+  counts: {
+    types: number;
+    competitions: number;
+    pyramids: number;
+    tiers: number;
+    seasons: number;
+    editions: number;
+  },
 ): React.JSX.Element {
   if (section === 'overview') {
     return (
-      <Grid gap={24}>
-        <Grid gap={8}>
-          <Title size='medium'>Competitions</Title>
+      <Card>
+        <Grid gap={24}>
           <Text color='gray'>
-            Manage competition types, competitions, seasons, and competition editions
-            from a single section.
+            Manage competition types, competitions, seasons, and competition
+            editions from a single section.
           </Text>
         </Grid>
 
-        <Grid columns={6} gap={16}>
+        <Grid columns={3} gap={16}>
           <CompetitionOverviewCard
             href={NAVIGATION.COMPETITION_TYPES}
             title='Competition Types'
@@ -120,60 +121,66 @@ function renderSectionContent(
             count={`${counts.editions} total`}
           />
         </Grid>
-      </Grid>
+      </Card>
     );
   }
 
   const sectionConfig: Readonly<
     Record<
       Exclude<CompetitionsOverviewSection, 'overview'>,
-      Readonly<{
+      {
         title: string;
         description: string;
         href: string;
         count: number;
-      ctaLabel: string;
-      }>
+        ctaLabel: string;
+      }
     >
   > = {
     types: {
       title: 'Competition Types',
-      description: 'Open the competition types section to manage configuration entities, filters, and detail pages.',
+      description:
+        'Open the competition types section to manage configuration entities, filters, and detail pages.',
       href: NAVIGATION.COMPETITION_TYPES,
       count: counts.types,
       ctaLabel: 'Open competition types',
     },
     competitions: {
       title: 'Competitions',
-      description: 'Open the competitions list to manage base competitions, relations, and edition links.',
+      description:
+        'Open the competitions list to manage base competitions, relations, and edition links.',
       href: NAVIGATION.COMPETITIONS_LIST,
       count: counts.competitions,
       ctaLabel: 'Open competitions',
     },
     pyramids: {
       title: 'Competition Pyramids',
-      description: 'Open the competition pyramids list to manage structural catalogs used by competitions and tiers.',
+      description:
+        'Open the competition pyramids list to manage structural catalogs used by competitions and tiers.',
       href: NAVIGATION.COMPETITION_PYRAMIDS,
       count: counts.pyramids,
       ctaLabel: 'Open competition pyramids',
     },
     tiers: {
       title: 'Competition Tiers',
-      description: 'Open the competition tiers list to manage hierarchy, participant scope, and pyramid membership.',
+      description:
+        'Open the competition tiers list to manage hierarchy, participant scope, and pyramid membership.',
       href: NAVIGATION.COMPETITION_TIERS,
       count: counts.tiers,
       ctaLabel: 'Open competition tiers',
     },
     seasons: {
       title: 'Seasons',
-      description: 'Open the seasons list to manage catalog seasons and their details.',
+      description:
+        'Open the seasons list to manage catalog seasons and their details.',
       href: NAVIGATION.COMPETITION_SEASONS,
       count: counts.seasons,
       ctaLabel: 'Open seasons',
     },
     editions: {
       title: 'Competition Editions',
-      description: 'Open the competition editions list to manage relations, lifecycle status, and code updates.',
+      description:
+        'Open the competition editions list to manage relations, lifecycle status, and code updates.',
       href: NAVIGATION.COMPETITION_EDITIONS,
       count: counts.editions,
       ctaLabel: 'Open competition editions',
@@ -214,15 +221,22 @@ export default async function CompetitionsOverviewPage({
     tiersResponse,
     seasonsResponse,
     editionsResponse,
-  ] =
-    await Promise.all([
-      getAdminCompetitionTypes({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
-      getAdminCompetitions({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
-      getAdminCompetitionPyramids({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
-      getAdminCompetitionTiers({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
-      getAdminSeasons({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
-      getAdminCompetitionEditions({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
-    ]);
+  ] = await Promise.all([
+    getAdminCompetitionTypes({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
+    getAdminCompetitions({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
+    getAdminCompetitionPyramids({
+      page: 1,
+      pageSize: 1,
+      sort: 'updated_at_desc',
+    }),
+    getAdminCompetitionTiers({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
+    getAdminSeasons({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
+    getAdminCompetitionEditions({
+      page: 1,
+      pageSize: 1,
+      sort: 'updated_at_desc',
+    }),
+  ]);
 
   return (
     <Grid gap={24}>

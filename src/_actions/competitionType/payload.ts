@@ -42,7 +42,10 @@ function formError(
   };
 }
 
-function partialRequired(value: string, original: string): string | typeof UNSET {
+function partialRequired(
+  value: string,
+  original: string,
+): string | typeof UNSET {
   return value === original ? UNSET : value;
 }
 
@@ -53,18 +56,26 @@ function partialNullableNumber(
   return value === original ? UNSET : value;
 }
 
-export function buildCreateCompetitionTypeBody(
-  formData: FormData,
-): { body?: Record<string, unknown>; error?: CompetitionTypeActionState } {
+export function buildCreateCompetitionTypeBody(formData: FormData): {
+  body?: Record<string, unknown>;
+  error?: CompetitionTypeActionState;
+} {
   const code = str(formData, 'code');
   const name = str(formData, 'name');
   const competitionTypeCategory = parseCompetitionTypeCategory(
     str(formData, 'competitionTypeCategory'),
   );
-  const participantScope = parseParticipantScope(str(formData, 'participantScope'));
+  const participantScope = parseParticipantScope(
+    str(formData, 'participantScope'),
+  );
 
   if (!code) {
-    return { error: formError('COMPETITION_TYPE_CODE_REQUIRED', 'Competition type code is required.') };
+    return {
+      error: formError(
+        'COMPETITION_TYPE_CODE_REQUIRED',
+        'Competition type code is required.',
+      ),
+    };
   }
 
   if (!CODE_PATTERN.test(code)) {
@@ -77,7 +88,12 @@ export function buildCreateCompetitionTypeBody(
   }
 
   if (!name) {
-    return { error: formError('COMPETITION_TYPE_NAME_REQUIRED', 'Competition type name is required.') };
+    return {
+      error: formError(
+        'COMPETITION_TYPE_NAME_REQUIRED',
+        'Competition type name is required.',
+      ),
+    };
   }
 
   if (!competitionTypeCategory) {
@@ -112,9 +128,7 @@ export function buildCreateCompetitionTypeBody(
   };
 }
 
-export function buildUpdateCompetitionTypeBody(
-  formData: FormData,
-): {
+export function buildUpdateCompetitionTypeBody(formData: FormData): {
   body?: Record<string, unknown>;
   error?: CompetitionTypeActionState;
   competitionTypeId?: string;
@@ -129,12 +143,13 @@ export function buildUpdateCompetitionTypeBody(
     };
   }
 
-  const code = str(formData, 'code');
   const name = str(formData, 'name');
   const competitionTypeCategory = parseCompetitionTypeCategory(
     str(formData, 'competitionTypeCategory'),
   );
-  const participantScope = parseParticipantScope(str(formData, 'participantScope'));
+  const participantScope = parseParticipantScope(
+    str(formData, 'participantScope'),
+  );
 
   if (!name) {
     return {

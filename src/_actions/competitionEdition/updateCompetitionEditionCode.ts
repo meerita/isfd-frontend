@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
+import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { CompetitionEditionActionState } from '@/_types/competitionEdition';
@@ -18,7 +19,7 @@ export async function updateCompetitionEditionCode(
   const { body, error, competitionEditionId } =
     buildUpdateCompetitionEditionCodeBody(formData);
   if (error || !competitionEditionId || !body) {
-    return (
+    const result =
       error ?? {
         status: 'error',
         error: {
@@ -27,14 +28,23 @@ export async function updateCompetitionEditionCode(
           error:
             'Competition edition identifier is required to update the code.',
         },
-      }
-    );
+      };
+    logCompetitionDebug('competitionEdition.updateCode', 'validation', {
+      competitionEditionId,
+      body,
+      result,
+    });
+    return result;
   }
 
   const client = await getServerAxios();
+  logCompetitionDebug('competitionEdition.updateCode', 'request', {
+    competitionEditionId,
+    payload: body,
+  });
 
   try {
-    await client.patch(
+    const { data } = await client.patch<unknown>(
       API_ROUTES.COMPETITION_EDITION_CODE_ADMIN_BY_ID(competitionEditionId),
       body,
     );
@@ -42,16 +52,29 @@ export async function updateCompetitionEditionCode(
     revalidatePath(NAVIGATION.COMPETITION_EDITIONS);
     revalidatePath(NAVIGATION.COMPETITION_EDITION_BY_ID(competitionEditionId));
 
-    return {
+    const result = {
       status: 'success',
       competitionEditionId,
     };
+    logCompetitionDebug('competitionEdition.updateCode', 'response', {
+      competitionEditionId,
+      payload: body,
+      data,
+      result,
+    });
+    return result;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    return {
+    const result = {
       status: 'error',
       error: normalized.data,
     };
+    logCompetitionDebug('competitionEdition.updateCode', 'error', {
+      competitionEditionId,
+      payload: body,
+      result,
+    });
+    return result;
   }
 }
