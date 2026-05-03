@@ -1,7 +1,7 @@
 /** @format */
 /**
  * @file src/_i18n/messages/es.ts
- * @description Defines the Spanish default dictionary for the application UI.
+ * @description Defines the Spanish dictionary for the application UI.
  * @layer app
  * @created Diego Martín Lafuente <diego.lafuente@cognativinc.com>
  */

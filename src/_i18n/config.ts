@@ -11,7 +11,7 @@ export const FALLBACK_LOCALE = 'en' as const;
 export const LOCALE_COOKIE_NAME = 'locale';
 export const BROWSER_LANGUAGE_IS_ENABLED = false;
 
-export const SUPPORTED_LOCALES = ['es', 'en'] as const;
+export const SUPPORTED_LOCALES = ['es', 'ja', 'en'] as const;
 
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number];
 

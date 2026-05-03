@@ -1,6 +1,6 @@
 /** @format */
 
-import type { AppLocale } from '@/_i18n/config';
+import { DEFAULT_LOCALE, type AppLocale } from '@/_i18n/config';
 
 import { parseOptionalEnum } from './helpers';
 
@@ -122,9 +122,17 @@ function formatEnumLabel(value: string): string {
 
 export function getCompetitionTypeCategoryLabel(
   value: string,
-  locale: AppLocale = 'es',
+  locale: AppLocale = DEFAULT_LOCALE,
 ): string {
   const labels: Record<AppLocale, Partial<Record<CompetitionTypeCategory, string>>> = {
+    ja: {
+      LEAGUE: 'リーグ',
+      CUP: 'カップ',
+      SUPER_CUP: 'スーパーカップ',
+      TOURNAMENT: 'トーナメント',
+      FRIENDLY: '親善試合',
+      QUALIFICATION: '予選',
+    },
     es: {
       LEAGUE: 'Liga',
       CUP: 'Copa',
@@ -148,9 +156,18 @@ export function getCompetitionTypeCategoryLabel(
 
 export function getCompetitionTypeCodeLabel(
   value: string,
-  locale: AppLocale = 'es',
+  locale: AppLocale = DEFAULT_LOCALE,
 ): string {
   const labels: Record<AppLocale, Partial<Record<CompetitionTypeCode, string>>> = {
+    ja: {
+      QUALIFICATION_COMPETITION: '予選大会',
+      FRIENDLY_COMPETITION: '親善大会',
+      INTERNATIONAL_NATIONAL_TEAM_COMPETITION: '国際代表チーム大会',
+      CONTINENTAL_CLUB_COMPETITION: '大陸別クラブ大会',
+      SUPER_CUP: 'スーパーカップ',
+      DOMESTIC_CUP: '国内カップ',
+      LEAGUE: 'リーグ',
+    },
     es: {
       QUALIFICATION_COMPETITION: 'Competición de clasificación',
       FRIENDLY_COMPETITION: 'Competición amistosa',
@@ -178,9 +195,14 @@ export function getCompetitionTypeCodeLabel(
 
 export function getParticipantScopeLabel(
   value: string,
-  locale: AppLocale = 'es',
+  locale: AppLocale = DEFAULT_LOCALE,
 ): string {
   const labels: Record<AppLocale, Partial<Record<ParticipantScope, string>>> = {
+    ja: {
+      CLUB: 'クラブ',
+      NATIONAL_TEAM: '代表チーム',
+      MIXED: '混合',
+    },
     es: {
       CLUB: 'Club',
       NATIONAL_TEAM: 'Selección nacional',
@@ -198,12 +220,17 @@ export function getParticipantScopeLabel(
 
 export function getCompetitionPyramidScopeKindLabel(
   value: string,
-  locale: AppLocale = 'es',
+  locale: AppLocale = DEFAULT_LOCALE,
 ): string {
   const labels: Record<
     AppLocale,
     Partial<Record<CompetitionPyramidScopeKind, string>>
   > = {
+    ja: {
+      NATIONAL: '全国',
+      REGIONAL: '地域',
+      MIXED: '混合',
+    },
     es: {
       NATIONAL: 'Nacional',
       REGIONAL: 'Regional',
@@ -223,9 +250,15 @@ export function getCompetitionPyramidScopeKindLabel(
 
 export function getCompetitionTierScopeKindLabel(
   value: string,
-  locale: AppLocale = 'es',
+  locale: AppLocale = DEFAULT_LOCALE,
 ): string {
   const labels: Record<AppLocale, Partial<Record<CompetitionTierScopeKind, string>>> = {
+    ja: {
+      NATIONAL: '全国',
+      REGIONAL: '地域',
+      METROPOLITAN: '都市圏',
+      MIXED: '混合',
+    },
     es: {
       NATIONAL: 'Nacional',
       REGIONAL: 'Regional',
@@ -250,7 +283,7 @@ export function getCompetitionTierScopeKindLabel(
  */
 export function getCompetitionScopeKindLabel(
   value: string,
-  locale: AppLocale = 'es',
+  locale: AppLocale = DEFAULT_LOCALE,
 ): string {
   if (value === 'METROPOLITAN') {
     return getCompetitionTierScopeKindLabel(value, locale);
@@ -261,9 +294,16 @@ export function getCompetitionScopeKindLabel(
 
 export function getCompetitionEditionStatusLabel(
   value: string,
-  locale: AppLocale = 'es',
+  locale: AppLocale = DEFAULT_LOCALE,
 ): string {
   const labels: Record<AppLocale, Partial<Record<CompetitionEditionStatus, string>>> = {
+    ja: {
+      DRAFT: '下書き',
+      SCHEDULED: '予定',
+      ACTIVE: '進行中',
+      FINISHED: '終了',
+      ARCHIVED: 'アーカイブ済み',
+    },
     es: {
       DRAFT: 'Borrador',
       SCHEDULED: 'Programada',

@@ -9,6 +9,7 @@
 import { FALLBACK_LOCALE, type AppLocale } from './config';
 import en from './messages/en';
 import es from './messages/es';
+import ja from './messages/ja';
 
 export interface AppDictionary {
   readonly common: {
@@ -626,6 +627,7 @@ export interface AppDictionary {
 }
 
 const DICTIONARIES: Readonly<Record<AppLocale, AppDictionary>> = {
+  ja,
   en,
   es,
 };
