@@ -211,6 +211,70 @@ export interface AppDictionary {
         readonly nameDesc: string;
       };
     };
+    readonly seasons: {
+      readonly title: string;
+      readonly createAction: string;
+      readonly loadErrorTitle: string;
+      readonly emptyState: string;
+      readonly paginationLabel: string;
+      readonly headers: {
+        readonly name: string;
+        readonly startYear: string;
+        readonly endYear: string;
+        readonly active: string;
+        readonly created: string;
+        readonly updated: string;
+      };
+      readonly filters: {
+        readonly updating: string;
+        readonly allStatuses: string;
+        readonly yearPlaceholder: string;
+        readonly updatedDesc: string;
+        readonly updatedAsc: string;
+        readonly createdDesc: string;
+        readonly createdAsc: string;
+        readonly nameAsc: string;
+        readonly nameDesc: string;
+        readonly startYearDesc: string;
+        readonly startYearAsc: string;
+      };
+    };
+    readonly editions: {
+      readonly title: string;
+      readonly createAction: string;
+      readonly loadErrorTitle: string;
+      readonly emptyState: string;
+      readonly paginationLabel: string;
+      readonly headers: {
+        readonly name: string;
+        readonly competition: string;
+        readonly season: string;
+        readonly status: string;
+        readonly year: string;
+        readonly active: string;
+        readonly updated: string;
+      };
+      readonly filters: {
+        readonly updating: string;
+        readonly allStatuses: string;
+        readonly allCompetitions: string;
+        readonly allActiveStates: string;
+        readonly yearPlaceholder: string;
+        readonly searchPlaceholder: string;
+        readonly updatedDesc: string;
+        readonly updatedAsc: string;
+        readonly createdDesc: string;
+        readonly createdAsc: string;
+        readonly nameAsc: string;
+        readonly nameDesc: string;
+        readonly sortOrderAsc: string;
+        readonly sortOrderDesc: string;
+        readonly yearDesc: string;
+        readonly yearAsc: string;
+        readonly startedOnDesc: string;
+        readonly startedOnAsc: string;
+      };
+    };
     readonly types: {
       readonly title: string;
       readonly createAction: string;

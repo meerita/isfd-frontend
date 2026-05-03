@@ -1,7 +1,11 @@
 /** @format */
 
+'use client';
+
+import { useCallback, useEffect, useRef, type KeyboardEvent } from 'react';
+import { toast } from 'sonner';
+
 import Button from '@/_components/forms/Button';
-import Form from '@/_components/forms/Form';
 import NumberInput from '@/_components/forms/NumberInput';
 import Select from '@/_components/forms/Select';
 import TextInput from '@/_components/forms/TextInput';
@@ -11,6 +15,7 @@ import {
   getCompetitionEditionStatusLabel,
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
+import { useI18n } from '@/_i18n/I18nProvider';
 import type {
   CompetitionEditionActiveStatusFilter,
   CompetitionEditionSort,
@@ -33,6 +38,8 @@ type CompetitionEditionFiltersProps = Readonly<{
   competitions: ReadonlyArray<SelectorOption>;
 }>;
 
+const FILTERS_TOAST_ID = 'competition-editions-filters-loading';
+
 export default function CompetitionEditionFilters({
   pageSize,
   sort,
@@ -43,68 +50,167 @@ export default function CompetitionEditionFilters({
   q,
   competitions,
 }: CompetitionEditionFiltersProps): React.JSX.Element {
+  const { dictionary, locale } = useI18n();
+  const formRef = useRef<HTMLFormElement>(null);
+  const hasPendingNavigationRef = useRef(false);
+
+  useEffect(
+    function syncFilterToast(): void {
+      if (!hasPendingNavigationRef.current) {
+        return;
+      }
+
+      hasPendingNavigationRef.current = false;
+      toast.dismiss(FILTERS_TOAST_ID);
+    },
+    [activeStatus, competitionId, pageSize, q, sort, status, year],
+  );
+
+  const handleSubmit = useCallback(
+    function handleSubmit(): void {
+      hasPendingNavigationRef.current = true;
+      toast.loading(dictionary.competitions.editions.filters.updating, {
+        id: FILTERS_TOAST_ID,
+      });
+    },
+    [dictionary.competitions.editions.filters.updating],
+  );
+
+  const submitFilters = useCallback(
+    function submitFilters(): void {
+      handleSubmit();
+      formRef.current?.requestSubmit();
+    },
+    [handleSubmit],
+  );
+
+  const handleInputKeyDown = useCallback(
+    function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
+      if (event.key !== 'Enter') {
+        return;
+      }
+
+      event.preventDefault();
+      submitFilters();
+    },
+    [submitFilters],
+  );
+
   return (
-    <Form method='GET' action={NAVIGATION.COMPETITION_EDITIONS} gap={8}>
+    <form
+      ref={formRef}
+      method='GET'
+      action={NAVIGATION.COMPETITION_EDITIONS}
+      onSubmit={handleSubmit}
+    >
       <input type='hidden' name='page' value='1' />
       <input type='hidden' name='page_size' value={String(pageSize)} />
+
       <Grid gap={8} columns={6} alignItems='end'>
-        <Select label='Sort' name='sort' defaultValue={sort}>
-          <option value='updated_at_desc'>Updated ↓</option>
-          <option value='updated_at_asc'>Updated ↑</option>
-          <option value='created_at_desc'>Created ↓</option>
-          <option value='created_at_asc'>Created ↑</option>
-          <option value='name_asc'>Name A-Z</option>
-          <option value='name_desc'>Name Z-A</option>
-          <option value='sort_order_asc'>Sort order ↑</option>
-          <option value='sort_order_desc'>Sort order ↓</option>
-          <option value='year_desc'>Year ↓</option>
-          <option value='year_asc'>Year ↑</option>
-          <option value='started_on_desc'>Started on ↓</option>
-          <option value='started_on_asc'>Started on ↑</option>
+        <Select name='sort' defaultValue={sort} onChange={submitFilters}>
+          <option value='updated_at_desc'>
+            {dictionary.competitions.editions.filters.updatedDesc}
+          </option>
+          <option value='updated_at_asc'>
+            {dictionary.competitions.editions.filters.updatedAsc}
+          </option>
+          <option value='created_at_desc'>
+            {dictionary.competitions.editions.filters.createdDesc}
+          </option>
+          <option value='created_at_asc'>
+            {dictionary.competitions.editions.filters.createdAsc}
+          </option>
+          <option value='name_asc'>
+            {dictionary.competitions.editions.filters.nameAsc}
+          </option>
+          <option value='name_desc'>
+            {dictionary.competitions.editions.filters.nameDesc}
+          </option>
+          <option value='sort_order_asc'>
+            {dictionary.competitions.editions.filters.sortOrderAsc}
+          </option>
+          <option value='sort_order_desc'>
+            {dictionary.competitions.editions.filters.sortOrderDesc}
+          </option>
+          <option value='year_desc'>
+            {dictionary.competitions.editions.filters.yearDesc}
+          </option>
+          <option value='year_asc'>
+            {dictionary.competitions.editions.filters.yearAsc}
+          </option>
+          <option value='started_on_desc'>
+            {dictionary.competitions.editions.filters.startedOnDesc}
+          </option>
+          <option value='started_on_asc'>
+            {dictionary.competitions.editions.filters.startedOnAsc}
+          </option>
         </Select>
-        <Select label='Lifecycle status' name='status' defaultValue={status ?? 'all'}>
-          <option value='all'>All statuses</option>
+
+        <Select
+          name='status'
+          defaultValue={status ?? 'all'}
+          onChange={submitFilters}
+        >
+          <option value='all'>
+            {dictionary.competitions.editions.filters.allStatuses}
+          </option>
           {COMPETITION_EDITION_STATUSES.map(value => (
             <option key={value} value={value}>
-              {getCompetitionEditionStatusLabel(value)}
+              {getCompetitionEditionStatusLabel(value, locale)}
             </option>
           ))}
         </Select>
+
         <Select
-          label='Active status'
           name='active_status'
           defaultValue={activeStatus ?? 'all'}
+          onChange={submitFilters}
         >
-          <option value='all'>All</option>
-          <option value='active'>Active</option>
-          <option value='inactive'>Inactive</option>
+          <option value='all'>
+            {dictionary.competitions.editions.filters.allActiveStates}
+          </option>
+          <option value='active'>{dictionary.common.active}</option>
+          <option value='inactive'>{dictionary.common.inactive}</option>
         </Select>
+
         <Select
-          label='Competition'
           name='competition_id'
           defaultValue={competitionId ?? ''}
+          onChange={submitFilters}
         >
-          <option value=''>All competitions</option>
+          <option value=''>
+            {dictionary.competitions.editions.filters.allCompetitions}
+          </option>
           {competitions.map(option => (
             <option key={option.id} value={option.id}>
               {option.name}
             </option>
           ))}
         </Select>
+
         <NumberInput
-          label='Year'
           name='year'
           type='number'
+          placeholder={dictionary.competitions.editions.filters.yearPlaceholder}
           defaultValue={typeof year === 'number' ? String(year) : ''}
+          onBlur={submitFilters}
+          onKeyDown={handleInputKeyDown}
         />
-        <TextInput label='Search' name='q' defaultValue={q ?? ''} />
+
+        <TextInput
+          name='q'
+          placeholder={dictionary.competitions.editions.filters.searchPlaceholder}
+          defaultValue={q ?? ''}
+          onBlur={submitFilters}
+          onKeyDown={handleInputKeyDown}
+        />
       </Grid>
+
       <Grid display='flex' gap={8} alignItems='center'>
-        <Button type='submit'>Apply</Button>
         <Button href={NAVIGATION.COMPETITION_EDITIONS} variant='borderless'>
-          Reset
+          {dictionary.common.reset}
         </Button>
       </Grid>
-    </Form>
+    </form>
   );
 }
