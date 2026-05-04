@@ -247,6 +247,26 @@ const es = {
         successUpdate:
           'La pirámide de competición se ha actualizado correctamente.',
       },
+      delete: {
+        action: 'Eliminar pirámide',
+        confirmTitle: '¿Eliminar esta pirámide permanentemente?',
+        confirmBody:
+          'Esta acción no se puede deshacer. La pirámide solo se puede eliminar cuando no tiene relaciones bloqueantes.',
+        confirmAction: 'Eliminar',
+        pending: 'Eliminando...',
+        success: '"{name}" se ha eliminado.',
+        errors: {
+          notFound: 'La pirámide ya no existe.',
+          hasRelations:
+            'Esta pirámide no se puede eliminar porque todavía tiene registros relacionados.',
+          invalidId: 'No se ha podido eliminar la pirámide. Inténtalo de nuevo.',
+          unauthorized:
+            'No se ha podido eliminar la pirámide. Inténtalo de nuevo.',
+          forbidden: 'No se ha podido eliminar la pirámide. Inténtalo de nuevo.',
+          unexpected:
+            'No se ha podido eliminar la pirámide. Inténtalo de nuevo.',
+        },
+      },
     },
     tiers: {
       title: 'Niveles',

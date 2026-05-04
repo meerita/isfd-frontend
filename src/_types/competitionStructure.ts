@@ -159,6 +159,12 @@ export interface CompetitionPyramidActionState {
   competitionPyramidId?: string;
 }
 
+export interface CompetitionPyramidDeleteActionState {
+  status: 'idle' | 'success' | 'error';
+  error?: ApiErrorResponse;
+  competitionPyramidId?: string;
+}
+
 export interface CompetitionTierActionState {
   status: 'idle' | 'success' | 'error';
   error?: ApiErrorResponse;

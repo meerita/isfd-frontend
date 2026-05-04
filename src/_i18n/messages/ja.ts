@@ -240,6 +240,28 @@ const ja = {
         successCreate: '大会ピラミッドを作成しました。',
         successUpdate: '大会ピラミッドを更新しました。',
       },
+      delete: {
+        action: 'ピラミッドを削除',
+        confirmTitle: 'このピラミッドを完全に削除しますか？',
+        confirmBody:
+          'この操作は元に戻せません。ピラミッドは、ブロッキングな関連がない場合にのみ削除できます。',
+        confirmAction: '削除',
+        pending: '削除中...',
+        success: '「{name}」を削除しました。',
+        errors: {
+          notFound: 'このピラミッドはすでに存在しません。',
+          hasRelations:
+            'このピラミッドは、関連レコードがまだ残っているため削除できません。',
+          invalidId:
+            'ピラミッドを削除できませんでした。もう一度お試しください。',
+          unauthorized:
+            'ピラミッドを削除できませんでした。もう一度お試しください。',
+          forbidden:
+            'ピラミッドを削除できませんでした。もう一度お試しください。',
+          unexpected:
+            'ピラミッドを削除できませんでした。もう一度お試しください。',
+        },
+      },
     },
     tiers: {
       title: 'ティア',

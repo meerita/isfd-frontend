@@ -242,6 +242,24 @@ const en = {
         successCreate: 'Competition pyramid created successfully.',
         successUpdate: 'Competition pyramid updated successfully.',
       },
+      delete: {
+        action: 'Delete Pyramid',
+        confirmTitle: 'Delete this pyramid permanently?',
+        confirmBody:
+          'This action cannot be undone. The pyramid can only be deleted when it has no blocking relations.',
+        confirmAction: 'Delete',
+        pending: 'Deleting...',
+        success: '"{name}" deleted.',
+        errors: {
+          notFound: 'The pyramid no longer exists.',
+          hasRelations:
+            'This pyramid cannot be deleted because it still has related records.',
+          invalidId: 'The pyramid could not be deleted. Please try again.',
+          unauthorized: 'The pyramid could not be deleted. Please try again.',
+          forbidden: 'The pyramid could not be deleted. Please try again.',
+          unexpected: 'The pyramid could not be deleted. Please try again.',
+        },
+      },
     },
     tiers: {
       title: 'Tiers',

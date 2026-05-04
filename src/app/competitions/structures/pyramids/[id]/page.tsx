@@ -19,6 +19,7 @@ import { resolveRequestLocale } from '@/_i18n/resolveRequestLocale';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
 import EntitySidebarNavigation from '../../../_components/EntitySidebarNavigation';
 import EntityUnavailable from '../../../_components/EntityUnavailable';
+import DeleteCompetitionPyramidButton from '../_components/DeleteCompetitionPyramidButton';
 import CompetitionPyramidForm from '../_components/CompetitionPyramidForm';
 import CompetitionPyramidProfileSection from '../_components/CompetitionPyramidProfileSection';
 
@@ -163,6 +164,10 @@ export default async function CompetitionPyramidDetailsPage({
         icon='trophy'
       >
         <ButtonGroup gap={4}>
+          <DeleteCompetitionPyramidButton
+            competitionPyramidId={competitionPyramid.id}
+            competitionPyramidName={competitionPyramid.name}
+          />
           <Button
             icon='edit'
             type='button'

@@ -236,6 +236,22 @@ export interface AppDictionary {
         readonly successCreate: string;
         readonly successUpdate: string;
       };
+      readonly delete: {
+        readonly action: string;
+        readonly confirmTitle: string;
+        readonly confirmBody: string;
+        readonly confirmAction: string;
+        readonly pending: string;
+        readonly success: string;
+        readonly errors: {
+          readonly notFound: string;
+          readonly hasRelations: string;
+          readonly invalidId: string;
+          readonly unauthorized: string;
+          readonly forbidden: string;
+          readonly unexpected: string;
+        };
+      };
     };
     readonly tiers: {
       readonly title: string;
