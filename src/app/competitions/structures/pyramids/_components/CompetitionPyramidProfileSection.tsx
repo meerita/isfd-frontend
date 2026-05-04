@@ -12,22 +12,37 @@ import DataRow from '@/_components/tables/DataRow';
 import Table from '@/_components/tables/Table';
 import Tbody from '@/_components/tables/Tbody';
 import {
+  getCompetitionPyramidBranchKindLabel,
   getCompetitionPyramidScopeKindLabel,
-  getCompetitionStructureBranchKindLabel,
 } from '@/_constants/enums/competition';
 import { useI18n } from '@/_i18n/I18nProvider';
 import type { CompetitionPyramid } from '@/_types/competitionStructure';
-import {
-  formatDateOnly,
-  formatDateTime,
-  PLACEHOLDER,
-} from '../../../_components/utils';
+import { formatDateTime, PLACEHOLDER } from '../../../_components/utils';
+
+const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 type CompetitionPyramidProfileSectionProps = Readonly<{
   competitionPyramid: CompetitionPyramid;
   countryLabel?: string | null;
   federationLabel?: string | null;
 }>;
+
+function formatDateOnlyValue(value: string, locale: string): string {
+  const match = DATE_ONLY_PATTERN.exec(value);
+  if (!match) {
+    return value;
+  }
+
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
 
 export default function CompetitionPyramidProfileSection({
   competitionPyramid,
@@ -94,7 +109,7 @@ export default function CompetitionPyramidProfileSection({
                     label={profileDictionary.fields.branch}
                     value={
                       competitionPyramid.branchKind
-                        ? getCompetitionStructureBranchKindLabel(
+                        ? getCompetitionPyramidBranchKindLabel(
                             competitionPyramid.branchKind,
                             locale,
                           )
@@ -112,13 +127,19 @@ export default function CompetitionPyramidProfileSection({
                 <Tbody>
                   <DataRow
                     label={profileDictionary.fields.validFrom}
-                    value={formatDateOnly(competitionPyramid.validFrom)}
+                    value={formatDateOnlyValue(
+                      competitionPyramid.validFrom,
+                      locale,
+                    )}
                   />
                   <DataRow
                     label={profileDictionary.fields.validTo}
                     value={
                       competitionPyramid.validTo
-                        ? formatDateOnly(competitionPyramid.validTo)
+                        ? formatDateOnlyValue(
+                            competitionPyramid.validTo,
+                            locale,
+                          )
                         : PLACEHOLDER
                     }
                   />

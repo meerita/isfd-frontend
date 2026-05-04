@@ -20,10 +20,10 @@ import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import Text from '@/_components/typography/Text';
 import Title from '@/_components/typography/Title';
 import {
+  COMPETITION_PYRAMID_BRANCH_KINDS,
   COMPETITION_PYRAMID_SCOPE_KINDS,
-  COMPETITION_STRUCTURE_BRANCH_KINDS,
+  getCompetitionPyramidBranchKindLabel,
   getCompetitionPyramidScopeKindLabel,
-  getCompetitionStructureBranchKindLabel,
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
@@ -36,6 +36,7 @@ import type {
 import { formatDateTime } from '../../../_components/utils';
 
 const INITIAL_STATE: CompetitionPyramidActionState = { status: 'idle' };
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 type SelectorOption = Readonly<{
   id: string;
@@ -50,6 +51,18 @@ type CompetitionPyramidFormProps = Readonly<{
   cancelHref?: string;
   successHref?: string;
 }>;
+
+function normalizeDateInputValue(value?: string | null): string {
+  if (!value) return '';
+  if (DATE_ONLY_PATTERN.test(value)) return value;
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return '';
+  }
+
+  return parsed.toISOString().slice(0, 10);
+}
 
 export default function CompetitionPyramidForm({
   competitionPyramid,
@@ -101,7 +114,9 @@ export default function CompetitionPyramidForm({
     if (edit) {
       router.push(
         successHref ??
-          NAVIGATION.COMPETITION_PYRAMID_BY_ID(currentCompetitionPyramid?.id ?? ''),
+          NAVIGATION.COMPETITION_PYRAMID_BY_ID(
+            currentCompetitionPyramid?.id ?? '',
+          ),
       );
       router.refresh();
       return;
@@ -134,6 +149,13 @@ export default function CompetitionPyramidForm({
   const handleCancel = useCallback(() => {
     router.push(cancelHref ?? NAVIGATION.COMPETITION_PYRAMIDS);
   }, [cancelHref, router]);
+
+  const validFromValue = normalizeDateInputValue(
+    currentCompetitionPyramid?.validFrom,
+  );
+  const validToValue = normalizeDateInputValue(
+    currentCompetitionPyramid?.validTo,
+  );
 
   return (
     <Form action={formAction}>
@@ -177,13 +199,9 @@ export default function CompetitionPyramidForm({
           <input
             type='hidden'
             name='original_validFrom'
-            value={currentCompetitionPyramid.validFrom}
+            value={validFromValue}
           />
-          <input
-            type='hidden'
-            name='original_validTo'
-            value={currentCompetitionPyramid.validTo ?? ''}
-          />
+          <input type='hidden' name='original_validTo' value={validToValue} />
           <input
             type='hidden'
             name='original_isActive'
@@ -255,7 +273,9 @@ export default function CompetitionPyramidForm({
               <Select
                 label={fieldDictionary.scope}
                 name='scopeKind'
-                defaultValue={currentCompetitionPyramid?.scopeKind ?? 'NATIONAL'}
+                defaultValue={
+                  currentCompetitionPyramid?.scopeKind ?? 'NATIONAL'
+                }
                 disabled={isPending}
               >
                 {COMPETITION_PYRAMID_SCOPE_KINDS.map(value => (
@@ -273,9 +293,9 @@ export default function CompetitionPyramidForm({
                 required
               >
                 <option value=''>{formDictionary.branchPlaceholder}</option>
-                {COMPETITION_STRUCTURE_BRANCH_KINDS.map(value => (
+                {COMPETITION_PYRAMID_BRANCH_KINDS.map(value => (
                   <option key={value} value={value}>
-                    {getCompetitionStructureBranchKindLabel(value, locale)}
+                    {getCompetitionPyramidBranchKindLabel(value, locale)}
                   </option>
                 ))}
               </Select>
@@ -284,20 +304,18 @@ export default function CompetitionPyramidForm({
                 label={fieldDictionary.validFrom}
                 type='date'
                 name='validFrom'
-                defaultValue={currentCompetitionPyramid?.validFrom ?? ''}
+                defaultValue={validFromValue}
                 required
                 disabled={isPending}
               />
 
-              {edit ? (
-                <TextInput
-                  label={fieldDictionary.validTo}
-                  type='date'
-                  name='validTo'
-                  defaultValue={currentCompetitionPyramid?.validTo ?? ''}
-                  disabled={isPending}
-                />
-              ) : null}
+              <TextInput
+                label={fieldDictionary.validTo}
+                type='date'
+                name='validTo'
+                defaultValue={validToValue}
+                disabled={isPending}
+              />
 
               <CheckBoxInput
                 label={fieldDictionary.active}
@@ -330,13 +348,17 @@ export default function CompetitionPyramidForm({
                 />
                 <TextInput
                   label={fieldDictionary.createdAt}
-                  defaultValue={formatDateTime(currentCompetitionPyramid.createdAt)}
+                  defaultValue={formatDateTime(
+                    currentCompetitionPyramid.createdAt,
+                  )}
                   readOnly
                   disabled
                 />
                 <TextInput
                   label={fieldDictionary.updatedAt}
-                  defaultValue={formatDateTime(currentCompetitionPyramid.updatedAt)}
+                  defaultValue={formatDateTime(
+                    currentCompetitionPyramid.updatedAt,
+                  )}
                   readOnly
                   disabled
                 />

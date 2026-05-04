@@ -1,6 +1,7 @@
 /** @format */
 
 import type {
+  CompetitionPyramidBranchKind,
   CompetitionPyramidScopeKind,
   CompetitionStructureBranchKind,
   CompetitionTierScopeKind,
@@ -28,7 +29,7 @@ export type CompetitionPyramid = Readonly<{
   slug: string;
   name: string;
   scopeKind: CompetitionPyramidScopeKind;
-  branchKind: CompetitionStructureBranchKind | null;
+  branchKind: CompetitionPyramidBranchKind | null;
   isActive: boolean;
   validFrom: string;
   validTo: string | null;
@@ -63,7 +64,7 @@ export type CompetitionPyramidListMetadata = GeoMetadata &
       countryId?: string;
       federationId?: string;
       scopeKind?: CompetitionPyramidScopeKind;
-      branchKind?: CompetitionStructureBranchKind;
+      branchKind?: CompetitionPyramidBranchKind;
       asOfDate?: string;
     }>;
   }>;
@@ -110,8 +111,9 @@ export type CreateCompetitionPyramidRequest = Readonly<{
   code: string;
   name: string;
   scope_kind: CompetitionPyramidScopeKind;
-  branch_kind: CompetitionStructureBranchKind;
+  branch_kind: CompetitionPyramidBranchKind;
   valid_from: string;
+  valid_to: string | null;
   is_active: boolean;
 }>;
 
@@ -121,7 +123,7 @@ export type UpdateCompetitionPyramidRequest = Readonly<{
   code?: string | null;
   name?: string | null;
   scope_kind?: CompetitionPyramidScopeKind | null;
-  branch_kind?: CompetitionStructureBranchKind | null;
+  branch_kind?: CompetitionPyramidBranchKind | null;
   valid_from?: string | null;
   valid_to?: string | null;
   is_active?: boolean | null;

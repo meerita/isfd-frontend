@@ -10,10 +10,10 @@ import Select from '@/_components/forms/Select';
 import TextInput from '@/_components/forms/TextInput';
 import Grid from '@/_components/layout/Grid';
 import {
+  COMPETITION_PYRAMID_BRANCH_KINDS,
   COMPETITION_PYRAMID_SCOPE_KINDS,
-  COMPETITION_STRUCTURE_BRANCH_KINDS,
+  getCompetitionPyramidBranchKindLabel,
   getCompetitionPyramidScopeKindLabel,
-  getCompetitionStructureBranchKindLabel,
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
 import { useI18n } from '@/_i18n/I18nProvider';
@@ -193,9 +193,9 @@ export default function CompetitionPyramidFilters({
           <option value=''>
             {dictionary.competitions.pyramids.filters.allBranches}
           </option>
-          {COMPETITION_STRUCTURE_BRANCH_KINDS.map(value => (
+          {COMPETITION_PYRAMID_BRANCH_KINDS.map(value => (
             <option key={value} value={value}>
-              {getCompetitionStructureBranchKindLabel(value, locale)}
+              {getCompetitionPyramidBranchKindLabel(value, locale)}
             </option>
           ))}
         </Select>

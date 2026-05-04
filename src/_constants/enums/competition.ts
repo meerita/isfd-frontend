@@ -26,6 +26,12 @@ export const COMPETITION_TYPE_CODES = [
 export const PARTICIPANT_SCOPES = ['CLUB', 'NATIONAL_TEAM', 'MIXED'] as const;
 
 export const COMPETITION_STRUCTURE_BRANCH_KINDS = [
+  'MALE',
+  'FEMALE',
+  'MIXED',
+] as const;
+
+export const COMPETITION_PYRAMID_BRANCH_KINDS = [
   'UNIFIED',
   'METROPOLITAN',
   'FEDERAL',
@@ -45,10 +51,12 @@ export const COMPETITION_TIER_SCOPE_KINDS = [
 ] as const;
 
 /**
+ * Backward-compatible alias for older callers.
+ */
+export const COMPETITION_BRANCH_KINDS = COMPETITION_STRUCTURE_BRANCH_KINDS;
+
+/**
  * Temporary backward-compatible alias.
- * Existing callers that still use the generic competition structure scope
- * will continue to work while the codebase is migrated to the explicit
- * pyramid/tier separation.
  */
 export const COMPETITION_SCOPE_KINDS = COMPETITION_TIER_SCOPE_KINDS;
 
@@ -66,6 +74,9 @@ export type CompetitionTypeCode = (typeof COMPETITION_TYPE_CODES)[number];
 export type ParticipantScope = (typeof PARTICIPANT_SCOPES)[number];
 export type CompetitionStructureBranchKind =
   (typeof COMPETITION_STRUCTURE_BRANCH_KINDS)[number];
+export type CompetitionPyramidBranchKind =
+  (typeof COMPETITION_PYRAMID_BRANCH_KINDS)[number];
+export type CompetitionBranchKind = CompetitionStructureBranchKind;
 export type CompetitionPyramidScopeKind =
   (typeof COMPETITION_PYRAMID_SCOPE_KINDS)[number];
 export type CompetitionTierScopeKind =
@@ -92,6 +103,21 @@ export function parseCompetitionStructureBranchKind(
   value: string | null | undefined,
 ): CompetitionStructureBranchKind | null {
   return parseOptionalEnum(COMPETITION_STRUCTURE_BRANCH_KINDS, value);
+}
+
+export function parseCompetitionPyramidBranchKind(
+  value: string | null | undefined,
+): CompetitionPyramidBranchKind | null {
+  return parseOptionalEnum(COMPETITION_PYRAMID_BRANCH_KINDS, value);
+}
+
+/**
+ * Backward-compatible alias for existing callers.
+ */
+export function parseCompetitionBranchKind(
+  value: string | null | undefined,
+): CompetitionBranchKind | null {
+  return parseCompetitionStructureBranchKind(value);
 }
 
 export function parseCompetitionPyramidScopeKind(
@@ -138,7 +164,10 @@ export function getCompetitionTypeCategoryLabel(
   value: string,
   locale: AppLocale = DEFAULT_LOCALE,
 ): string {
-  const labels: Record<AppLocale, Partial<Record<CompetitionTypeCategory, string>>> = {
+  const labels: Record<
+    AppLocale,
+    Partial<Record<CompetitionTypeCategory, string>>
+  > = {
     ja: {
       LEAGUE: 'リーグ',
       CUP: 'カップ',
@@ -165,14 +194,19 @@ export function getCompetitionTypeCategoryLabel(
     },
   };
 
-  return labels[locale][value as CompetitionTypeCategory] ?? formatEnumLabel(value);
+  return (
+    labels[locale][value as CompetitionTypeCategory] ?? formatEnumLabel(value)
+  );
 }
 
 export function getCompetitionTypeCodeLabel(
   value: string,
   locale: AppLocale = DEFAULT_LOCALE,
 ): string {
-  const labels: Record<AppLocale, Partial<Record<CompetitionTypeCode, string>>> = {
+  const labels: Record<
+    AppLocale,
+    Partial<Record<CompetitionTypeCode, string>>
+  > = {
     ja: {
       QUALIFICATION_COMPETITION: '予選大会',
       FRIENDLY_COMPETITION: '親善大会',
@@ -241,7 +275,38 @@ export function getCompetitionStructureBranchKindLabel(
     Partial<Record<CompetitionStructureBranchKind, string>>
   > = {
     ja: {
-      UNIFIED: '統合',
+      MALE: '男子',
+      FEMALE: '女子',
+      MIXED: '混合',
+    },
+    es: {
+      MALE: 'Masculino',
+      FEMALE: 'Femenino',
+      MIXED: 'Mixto',
+    },
+    en: {
+      MALE: 'Male',
+      FEMALE: 'Female',
+      MIXED: 'Mixed',
+    },
+  };
+
+  return (
+    labels[locale][value as CompetitionStructureBranchKind] ??
+    formatEnumLabel(value)
+  );
+}
+
+export function getCompetitionPyramidBranchKindLabel(
+  value: string,
+  locale: AppLocale = DEFAULT_LOCALE,
+): string {
+  const labels: Record<
+    AppLocale,
+    Partial<Record<CompetitionPyramidBranchKind, string>>
+  > = {
+    ja: {
+      UNIFIED: '統一',
       METROPOLITAN: '都市圏',
       FEDERAL: '連邦',
     },
@@ -258,9 +323,19 @@ export function getCompetitionStructureBranchKindLabel(
   };
 
   return (
-    labels[locale][value as CompetitionStructureBranchKind] ??
+    labels[locale][value as CompetitionPyramidBranchKind] ??
     formatEnumLabel(value)
   );
+}
+
+/**
+ * Backward-compatible alias for existing callers.
+ */
+export function getCompetitionBranchKindLabel(
+  value: string,
+  locale: AppLocale = DEFAULT_LOCALE,
+): string {
+  return getCompetitionStructureBranchKindLabel(value, locale);
 }
 
 export function getCompetitionPyramidScopeKindLabel(
@@ -289,7 +364,8 @@ export function getCompetitionPyramidScopeKindLabel(
   };
 
   return (
-    labels[locale][value as CompetitionPyramidScopeKind] ?? formatEnumLabel(value)
+    labels[locale][value as CompetitionPyramidScopeKind] ??
+    formatEnumLabel(value)
   );
 }
 
@@ -297,7 +373,10 @@ export function getCompetitionTierScopeKindLabel(
   value: string,
   locale: AppLocale = DEFAULT_LOCALE,
 ): string {
-  const labels: Record<AppLocale, Partial<Record<CompetitionTierScopeKind, string>>> = {
+  const labels: Record<
+    AppLocale,
+    Partial<Record<CompetitionTierScopeKind, string>>
+  > = {
     ja: {
       NATIONAL: '全国',
       REGIONAL: '地域',
@@ -318,7 +397,9 @@ export function getCompetitionTierScopeKindLabel(
     },
   };
 
-  return labels[locale][value as CompetitionTierScopeKind] ?? formatEnumLabel(value);
+  return (
+    labels[locale][value as CompetitionTierScopeKind] ?? formatEnumLabel(value)
+  );
 }
 
 /**
@@ -341,7 +422,10 @@ export function getCompetitionEditionStatusLabel(
   value: string,
   locale: AppLocale = DEFAULT_LOCALE,
 ): string {
-  const labels: Record<AppLocale, Partial<Record<CompetitionEditionStatus, string>>> = {
+  const labels: Record<
+    AppLocale,
+    Partial<Record<CompetitionEditionStatus, string>>
+  > = {
     ja: {
       DRAFT: '下書き',
       SCHEDULED: '予定',
@@ -365,5 +449,7 @@ export function getCompetitionEditionStatusLabel(
     },
   };
 
-  return labels[locale][value as CompetitionEditionStatus] ?? formatEnumLabel(value);
+  return (
+    labels[locale][value as CompetitionEditionStatus] ?? formatEnumLabel(value)
+  );
 }

@@ -3,10 +3,10 @@
 'use server';
 
 import {
+  parseCompetitionPyramidBranchKind,
   parseCompetitionPyramidScopeKind,
+  type CompetitionPyramidBranchKind,
   type CompetitionPyramidScopeKind,
-  parseCompetitionStructureBranchKind,
-  type CompetitionStructureBranchKind,
 } from '@/_constants/enums/competition';
 import API_ROUTES from '@/_constants/apiRoutes';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
@@ -30,7 +30,7 @@ function buildEmptyResponse(filters?: {
   countryId?: string;
   federationId?: string;
   scopeKind?: CompetitionPyramidScopeKind;
-  branchKind?: CompetitionStructureBranchKind;
+  branchKind?: CompetitionPyramidBranchKind;
   asOfDate?: string;
 }): CompetitionPyramidListResponse {
   return {
@@ -48,8 +48,7 @@ function buildEmptyResponse(filters?: {
             scopeKind:
               parseCompetitionPyramidScopeKind(filters.scopeKind) ?? undefined,
             branchKind:
-              parseCompetitionStructureBranchKind(filters.branchKind) ??
-              undefined,
+              parseCompetitionPyramidBranchKind(filters.branchKind) ?? undefined,
           }
         : undefined,
     },
@@ -65,7 +64,7 @@ export async function getAdminCompetitionPyramids(
     countryId?: string;
     federationId?: string;
     scopeKind?: CompetitionPyramidScopeKind;
-    branchKind?: CompetitionStructureBranchKind;
+    branchKind?: CompetitionPyramidBranchKind;
     asOfDate?: string;
   }> = {},
 ): Promise<CompetitionPyramidListResponse> {

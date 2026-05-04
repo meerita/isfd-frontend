@@ -1,6 +1,7 @@
 /** @format */
 
 import {
+  parseCompetitionPyramidBranchKind,
   parseCompetitionPyramidScopeKind,
   parseCompetitionStructureBranchKind,
   parseCompetitionTierScopeKind,
@@ -19,6 +20,7 @@ type Raw = Record<string, unknown>;
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function toStringValue(value: unknown): string {
   return typeof value === 'string' ? value : String(value ?? '');
@@ -50,6 +52,38 @@ function toNumberValue(value: unknown, fallback = 0): number {
   return Number.isFinite(Number(value)) ? Number(value) : fallback;
 }
 
+function toDateOnlyValue(value: unknown): string {
+  const raw = toNullableString(value);
+  if (!raw) return '';
+
+  if (DATE_ONLY_PATTERN.test(raw)) {
+    return raw;
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) {
+    return raw;
+  }
+
+  return parsed.toISOString().slice(0, 10);
+}
+
+function toNullableDateOnlyValue(value: unknown): string | null {
+  const raw = toNullableString(value);
+  if (!raw) return null;
+
+  if (DATE_ONLY_PATTERN.test(raw)) {
+    return raw;
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) {
+    return raw;
+  }
+
+  return parsed.toISOString().slice(0, 10);
+}
+
 export function mapCompetitionPyramid(raw: Raw): CompetitionPyramid {
   return {
     id: toStringValue(raw.id),
@@ -64,12 +98,12 @@ export function mapCompetitionPyramid(raw: Raw): CompetitionPyramid {
         toStringValue(raw.scope_kind ?? raw.scopeKind),
       ) ?? 'MIXED',
     branchKind:
-      parseCompetitionStructureBranchKind(
+      parseCompetitionPyramidBranchKind(
         toNullableString(raw.branch_kind ?? raw.branchKind),
       ) ?? null,
     isActive: toBooleanValue(raw.is_active ?? raw.isActive),
-    validFrom: toStringValue(raw.valid_from ?? raw.validFrom),
-    validTo: toNullableString(raw.valid_to ?? raw.validTo),
+    validFrom: toDateOnlyValue(raw.valid_from ?? raw.validFrom),
+    validTo: toNullableDateOnlyValue(raw.valid_to ?? raw.validTo),
     createdAt: toStringValue(raw.created_at ?? raw.createdAt),
     updatedAt: toStringValue(raw.updated_at ?? raw.updatedAt),
   };
@@ -153,10 +187,12 @@ export function mapCompetitionPyramidMetadata(
               toNullableString(filters.scope_kind ?? filters.scopeKind),
             ) ?? undefined,
           branchKind:
-            parseCompetitionStructureBranchKind(
+            parseCompetitionPyramidBranchKind(
               toNullableString(filters.branch_kind ?? filters.branchKind),
             ) ?? undefined,
-          asOfDate: toNullableString(filters.as_of_date ?? filters.asOfDate) ?? undefined,
+          asOfDate:
+            toNullableDateOnlyValue(filters.as_of_date ?? filters.asOfDate) ??
+            undefined,
         }
       : undefined,
   };
@@ -215,7 +251,9 @@ export function mapCompetitionTierMetadata(
             parseCompetitionStructureBranchKind(
               toNullableString(filters.branch_kind ?? filters.branchKind),
             ) ?? undefined,
-          asOfDate: toNullableString(filters.as_of_date ?? filters.asOfDate) ?? undefined,
+          asOfDate:
+            toNullableDateOnlyValue(filters.as_of_date ?? filters.asOfDate) ??
+            undefined,
         }
       : undefined,
   };

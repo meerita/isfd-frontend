@@ -1,8 +1,8 @@
 /** @format */
 
 import {
+  parseCompetitionPyramidBranchKind,
   parseCompetitionPyramidScopeKind,
-  parseCompetitionStructureBranchKind,
   parseCompetitionTierScopeKind,
   parseParticipantScope,
 } from '@/_constants/enums/competition';
@@ -115,11 +115,11 @@ export function buildCreateCompetitionPyramidBody(formData: FormData): {
   const scopeKind = parseCompetitionPyramidScopeKind(
     str(formData, 'scopeKind'),
   );
-  const branchKind = parseCompetitionStructureBranchKind(
-    str(formData, 'branchKind'),
-  );
+  const branchKind = parseCompetitionPyramidBranchKind(str(formData, 'branchKind'));
   const rawValidFrom = str(formData, 'validFrom');
   const validFrom = normalizeDateInput(rawValidFrom);
+  const rawValidTo = str(formData, 'validTo');
+  const validTo = normalizeDateInput(rawValidTo);
 
   if (!countryId) {
     return {
@@ -203,6 +203,24 @@ export function buildCreateCompetitionPyramidBody(formData: FormData): {
     };
   }
 
+  if (rawValidTo && !validTo) {
+    return {
+      error: formPyramidError(
+        'INVALID_REQUEST_DATE',
+        'Enter a valid competition pyramid end date.',
+      ),
+    };
+  }
+
+  if (validTo && validFrom >= validTo) {
+    return {
+      error: formPyramidError(
+        'INVALID_COMPETITION_PYRAMID_VALID_RANGE',
+        'Competition pyramid end date must be after the start date.',
+      ),
+    };
+  }
+
   return {
     body: {
       country_id: countryId,
@@ -212,6 +230,7 @@ export function buildCreateCompetitionPyramidBody(formData: FormData): {
       scope_kind: scopeKind,
       branch_kind: branchKind,
       valid_from: validFrom,
+      valid_to: validTo ?? null,
       is_active: bool(formData, 'isActive', true),
     },
   };
@@ -239,9 +258,7 @@ export function buildUpdateCompetitionPyramidBody(formData: FormData): {
   const scopeKind = parseCompetitionPyramidScopeKind(
     str(formData, 'scopeKind'),
   );
-  const branchKind = parseCompetitionStructureBranchKind(
-    str(formData, 'branchKind'),
-  );
+  const branchKind = parseCompetitionPyramidBranchKind(str(formData, 'branchKind'));
   const rawValidFrom = str(formData, 'validFrom');
   const validFrom = normalizeDateInput(rawValidFrom);
   const rawValidTo = str(formData, 'validTo');
@@ -346,7 +363,7 @@ export function buildUpdateCompetitionPyramidBody(formData: FormData): {
     };
   }
 
-  const originalBranchKind = parseCompetitionStructureBranchKind(
+  const originalBranchKind = parseCompetitionPyramidBranchKind(
     str(formData, 'original_branchKind'),
   );
   const originalValidFrom = normalizeDateInput(str(formData, 'original_validFrom'));

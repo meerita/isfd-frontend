@@ -20,10 +20,10 @@ import Thead from '@/_components/tables/Thead';
 import Text from '@/_components/typography/Text';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
 import {
+  getCompetitionPyramidBranchKindLabel,
   getCompetitionPyramidScopeKindLabel,
+  parseCompetitionPyramidBranchKind,
   parseCompetitionPyramidScopeKind,
-  getCompetitionStructureBranchKindLabel,
-  parseCompetitionStructureBranchKind,
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
 import { getDictionary } from '@/_i18n/getDictionary';
@@ -46,6 +46,7 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_SORT: CompetitionStructureSort = 'updated_at_desc';
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_ONLY_CAPTURE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 type SearchParams = Readonly<{
   page?: string | string[];
@@ -113,17 +114,40 @@ function formatPaginationLabel(
     .replace('{total}', String(totalPages));
 }
 
-function parseDateFilter(value: string | string[] | undefined): string | undefined {
+function parseDateFilter(
+  value: string | string[] | undefined,
+): string | undefined {
   const date = parseString(value);
   return date && DATE_PATTERN.test(date) ? date : undefined;
 }
 
-function formatValidityRange(validFrom: string, validTo: string | null): string {
-  if (!validTo) {
-    return formatDateOnly(validFrom);
+function formatDateOnlyValue(value: string, locale: string): string {
+  const match = DATE_ONLY_CAPTURE_PATTERN.exec(value);
+  if (!match) {
+    return formatDateOnly(value);
   }
 
-  return `${formatDateOnly(validFrom)} - ${formatDateOnly(validTo)}`;
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+function formatValidityRange(
+  validFrom: string,
+  validTo: string | null,
+  locale: string,
+): string {
+  if (!validTo) {
+    return formatDateOnlyValue(validFrom, locale);
+  }
+
+  return `${formatDateOnlyValue(validFrom, locale)} - ${formatDateOnlyValue(validTo, locale)}`;
 }
 
 export default async function CompetitionPyramidsPage({
@@ -147,9 +171,10 @@ export default async function CompetitionPyramidsPage({
   const countryId = parseUuid(params?.country_id);
   const federationId = parseUuid(params?.federation_id);
   const scopeKind =
-    parseCompetitionPyramidScopeKind(parseString(params?.scope_kind)) ?? undefined;
+    parseCompetitionPyramidScopeKind(parseString(params?.scope_kind)) ??
+    undefined;
   const branchKind =
-    parseCompetitionStructureBranchKind(parseString(params?.branch_kind)) ??
+    parseCompetitionPyramidBranchKind(parseString(params?.branch_kind)) ??
     undefined;
   const asOfDate = parseDateFilter(params?.as_of_date);
 
@@ -176,7 +201,10 @@ export default async function CompetitionPyramidsPage({
 
   return (
     <Grid gap={16}>
-      <SectionHeader title={dictionary.competitions.pyramids.title} icon='group'>
+      <SectionHeader
+        title={dictionary.competitions.pyramids.title}
+        icon='group'
+      >
         <Button icon='plus' href={NAVIGATION.CREATE_A_COMPETITION_PYRAMID}>
           {dictionary.competitions.pyramids.createAction}
         </Button>
@@ -219,7 +247,9 @@ export default async function CompetitionPyramidsPage({
               <Table>
                 <Thead>
                   <Row>
-                    <Cell header>{dictionary.competitions.pyramids.headers.name}</Cell>
+                    <Cell header>
+                      {dictionary.competitions.pyramids.headers.name}
+                    </Cell>
                     <Cell header className='padding-left--16'>
                       {dictionary.competitions.pyramids.headers.country}
                     </Cell>
@@ -273,18 +303,25 @@ export default async function CompetitionPyramidsPage({
                             : PLACEHOLDER}
                         </Cell>
                         <Cell className='padding-left--16'>
-                          {getCompetitionPyramidScopeKindLabel(item.scopeKind, locale)}
+                          {getCompetitionPyramidScopeKindLabel(
+                            item.scopeKind,
+                            locale,
+                          )}
                         </Cell>
                         <Cell className='padding-left--16'>
                           {item.branchKind
-                            ? getCompetitionStructureBranchKindLabel(
+                            ? getCompetitionPyramidBranchKindLabel(
                                 item.branchKind,
                                 locale,
                               )
                             : PLACEHOLDER}
                         </Cell>
                         <Cell className='padding-left--16'>
-                          {formatValidityRange(item.validFrom, item.validTo)}
+                          {formatValidityRange(
+                            item.validFrom,
+                            item.validTo,
+                            locale,
+                          )}
                         </Cell>
                         <Cell align='center'>
                           <Dot inline active={item.isActive} />
