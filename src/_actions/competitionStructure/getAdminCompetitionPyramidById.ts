@@ -26,6 +26,9 @@ function extractRaw(payload: unknown): Record<string, unknown> | null {
 
 export async function getAdminCompetitionPyramidById(
   competitionPyramidId: string,
+  query: Readonly<{
+    asOfDate?: string;
+  }> = {},
 ): Promise<CompetitionPyramidDetailResponse> {
   if (!competitionPyramidId) {
     return {
@@ -41,8 +44,10 @@ export async function getAdminCompetitionPyramidById(
   const client = await getServerAxios();
 
   try {
+    const params = query.asOfDate ? { as_of_date: query.asOfDate } : undefined;
     const { data } = await client.get<unknown>(
       API_ROUTES.COMPETITION_PYRAMID_ADMIN_BY_ID(competitionPyramidId),
+      { params },
     );
     const raw = extractRaw(data);
 

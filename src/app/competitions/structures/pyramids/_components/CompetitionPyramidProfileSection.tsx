@@ -12,10 +12,16 @@ import DataRow from '@/_components/tables/DataRow';
 import Table from '@/_components/tables/Table';
 import Tbody from '@/_components/tables/Tbody';
 import {
-  getCompetitionScopeKindLabel,
+  getCompetitionPyramidScopeKindLabel,
+  getCompetitionStructureBranchKindLabel,
 } from '@/_constants/enums/competition';
+import { useI18n } from '@/_i18n/I18nProvider';
 import type { CompetitionPyramid } from '@/_types/competitionStructure';
-import { formatDateTime, PLACEHOLDER } from '../../../_components/utils';
+import {
+  formatDateOnly,
+  formatDateTime,
+  PLACEHOLDER,
+} from '../../../_components/utils';
 
 type CompetitionPyramidProfileSectionProps = Readonly<{
   competitionPyramid: CompetitionPyramid;
@@ -28,55 +34,117 @@ export default function CompetitionPyramidProfileSection({
   countryLabel,
   federationLabel,
 }: CompetitionPyramidProfileSectionProps): React.JSX.Element {
+  const { dictionary, locale } = useI18n();
+  const profileDictionary = dictionary.competitions.pyramids;
+
   return (
     <Card>
       <Grid gap={32}>
         <SectionHeader title={competitionPyramid.name} />
         <Grid gap={32} columns={2}>
           <Section gap={32}>
-            <DataRowSection title='Identity'>
+            <DataRowSection title={profileDictionary.sections.identity}>
               <Table>
                 <Tbody>
-                  <DataRow label='Name' value={competitionPyramid.name} />
-                  <DataRow label='Code' value={competitionPyramid.code} monospace />
-                  <DataRow label='Slug' value={competitionPyramid.slug} monospace />
                   <DataRow
-                    label='Active'
+                    label={profileDictionary.fields.name}
+                    value={competitionPyramid.name}
+                  />
+                  <DataRow
+                    label={profileDictionary.fields.code}
+                    value={competitionPyramid.code}
+                    monospace
+                  />
+                  <DataRow
+                    label={profileDictionary.fields.slug}
+                    value={competitionPyramid.slug}
+                    monospace
+                  />
+                  <DataRow
+                    label={profileDictionary.fields.active}
                     value={<Dot inline active={competitionPyramid.isActive} />}
                   />
                 </Tbody>
               </Table>
             </DataRowSection>
-            <DataRowSection title='Relations'>
+
+            <DataRowSection title={profileDictionary.sections.relations}>
               <Table>
                 <Tbody>
                   <DataRow
-                    label='Country'
+                    label={profileDictionary.fields.country}
                     value={countryLabel ?? competitionPyramid.countryId}
                   />
                   <DataRow
-                    label='Federation'
-                    value={federationLabel ?? competitionPyramid.federationId ?? PLACEHOLDER}
+                    label={profileDictionary.fields.federation}
+                    value={
+                      federationLabel ??
+                      competitionPyramid.federationId ??
+                      PLACEHOLDER
+                    }
                   />
                   <DataRow
-                    label='Scope'
-                    value={getCompetitionScopeKindLabel(competitionPyramid.scopeKind)}
+                    label={profileDictionary.fields.scope}
+                    value={getCompetitionPyramidScopeKindLabel(
+                      competitionPyramid.scopeKind,
+                      locale,
+                    )}
+                  />
+                  <DataRow
+                    label={profileDictionary.fields.branch}
+                    value={
+                      competitionPyramid.branchKind
+                        ? getCompetitionStructureBranchKindLabel(
+                            competitionPyramid.branchKind,
+                            locale,
+                          )
+                        : PLACEHOLDER
+                    }
                   />
                 </Tbody>
               </Table>
             </DataRowSection>
           </Section>
+
           <Section gap={32}>
-            <DataRowSection title='Metadata'>
+            <DataRowSection title={profileDictionary.sections.validity}>
               <Table>
                 <Tbody>
-                  <DataRow label='ID' value={competitionPyramid.id} monospace />
                   <DataRow
-                    label='Created at'
+                    label={profileDictionary.fields.validFrom}
+                    value={formatDateOnly(competitionPyramid.validFrom)}
+                  />
+                  <DataRow
+                    label={profileDictionary.fields.validTo}
+                    value={
+                      competitionPyramid.validTo
+                        ? formatDateOnly(competitionPyramid.validTo)
+                        : PLACEHOLDER
+                    }
+                  />
+                </Tbody>
+              </Table>
+            </DataRowSection>
+
+            <DataRowSection title={profileDictionary.sections.metadata}>
+              <Table>
+                <Tbody>
+                  <DataRow
+                    label={profileDictionary.fields.id}
+                    value={competitionPyramid.id}
+                    monospace
+                  />
+                  <DataRow
+                    label={profileDictionary.fields.versionId}
+                    value={competitionPyramid.versionId ?? PLACEHOLDER}
+                    monospace
+                  />
+                  <DataRow
+                    label={profileDictionary.fields.createdAt}
                     value={formatDateTime(competitionPyramid.createdAt)}
                   />
                   <DataRow
-                    label='Updated at'
+                    label={profileDictionary.fields.updatedAt}
                     value={formatDateTime(competitionPyramid.updatedAt)}
                   />
                 </Tbody>

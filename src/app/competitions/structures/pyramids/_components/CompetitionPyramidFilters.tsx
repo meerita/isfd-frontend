@@ -7,10 +7,13 @@ import { toast } from 'sonner';
 
 import Button from '@/_components/forms/Button';
 import Select from '@/_components/forms/Select';
+import TextInput from '@/_components/forms/TextInput';
 import Grid from '@/_components/layout/Grid';
 import {
-  COMPETITION_SCOPE_KINDS,
-  getCompetitionScopeKindLabel,
+  COMPETITION_PYRAMID_SCOPE_KINDS,
+  COMPETITION_STRUCTURE_BRANCH_KINDS,
+  getCompetitionPyramidScopeKindLabel,
+  getCompetitionStructureBranchKindLabel,
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
 import { useI18n } from '@/_i18n/I18nProvider';
@@ -31,6 +34,8 @@ type CompetitionPyramidFiltersProps = Readonly<{
   countryId?: string;
   federationId?: string;
   scopeKind?: string;
+  branchKind?: string;
+  asOfDate?: string;
   countries: ReadonlyArray<SelectorOption>;
   federations: ReadonlyArray<SelectorOption>;
 }>;
@@ -44,6 +49,8 @@ export default function CompetitionPyramidFilters({
   countryId,
   federationId,
   scopeKind,
+  branchKind,
+  asOfDate,
   countries,
   federations,
 }: CompetitionPyramidFiltersProps): React.JSX.Element {
@@ -60,7 +67,7 @@ export default function CompetitionPyramidFilters({
       hasPendingNavigationRef.current = false;
       toast.dismiss(FILTERS_TOAST_ID);
     },
-    [countryId, federationId, pageSize, scopeKind, sort, status],
+    [asOfDate, branchKind, countryId, federationId, pageSize, scopeKind, sort, status],
   );
 
   const handleSubmit = useCallback(
@@ -91,8 +98,13 @@ export default function CompetitionPyramidFilters({
       <input type='hidden' name='page' value='1' />
       <input type='hidden' name='page_size' value={String(pageSize)} />
 
-      <Grid gap={8} columns={6} alignItems='end'>
-        <Select name='sort' defaultValue={sort} onChange={handleChange}>
+      <Grid gap={8} columns={8} alignItems='end'>
+        <Select
+          name='sort'
+          defaultValue={sort}
+          onChange={handleChange}
+          aria-label={dictionary.competitions.pyramids.filters.sort}
+        >
           <option value='updated_at_desc'>
             {dictionary.competitions.pyramids.filters.updatedDesc}
           </option>
@@ -117,6 +129,7 @@ export default function CompetitionPyramidFilters({
           name='status'
           defaultValue={status ?? 'all'}
           onChange={handleChange}
+          aria-label={dictionary.competitions.pyramids.filters.status}
         >
           <option value='all'>{dictionary.common.all}</option>
           <option value='active'>{dictionary.common.active}</option>
@@ -127,6 +140,7 @@ export default function CompetitionPyramidFilters({
           name='country_id'
           defaultValue={countryId ?? ''}
           onChange={handleChange}
+          aria-label={dictionary.competitions.pyramids.filters.country}
         >
           <option value=''>
             {dictionary.competitions.pyramids.filters.allCountries}
@@ -142,6 +156,7 @@ export default function CompetitionPyramidFilters({
           name='federation_id'
           defaultValue={federationId ?? ''}
           onChange={handleChange}
+          aria-label={dictionary.competitions.pyramids.filters.federation}
         >
           <option value=''>
             {dictionary.competitions.pyramids.filters.allFederations}
@@ -157,16 +172,41 @@ export default function CompetitionPyramidFilters({
           name='scope_kind'
           defaultValue={scopeKind ?? ''}
           onChange={handleChange}
+          aria-label={dictionary.competitions.pyramids.filters.scope}
         >
           <option value=''>
             {dictionary.competitions.pyramids.filters.allScopes}
           </option>
-          {COMPETITION_SCOPE_KINDS.map(value => (
+          {COMPETITION_PYRAMID_SCOPE_KINDS.map(value => (
             <option key={value} value={value}>
-              {getCompetitionScopeKindLabel(value, locale)}
+              {getCompetitionPyramidScopeKindLabel(value, locale)}
             </option>
           ))}
         </Select>
+
+        <Select
+          name='branch_kind'
+          defaultValue={branchKind ?? ''}
+          onChange={handleChange}
+          aria-label={dictionary.competitions.pyramids.filters.branch}
+        >
+          <option value=''>
+            {dictionary.competitions.pyramids.filters.allBranches}
+          </option>
+          {COMPETITION_STRUCTURE_BRANCH_KINDS.map(value => (
+            <option key={value} value={value}>
+              {getCompetitionStructureBranchKindLabel(value, locale)}
+            </option>
+          ))}
+        </Select>
+
+        <TextInput
+          type='date'
+          name='as_of_date'
+          defaultValue={asOfDate ?? ''}
+          onChange={handleChange}
+          aria-label={dictionary.competitions.pyramids.filters.asOfDate}
+        />
 
         <Grid display='flex' gap={8} alignItems='center'>
           <Button href={NAVIGATION.COMPETITION_PYRAMIDS} variant='borderless'>

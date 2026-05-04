@@ -37,7 +37,7 @@ export async function updateCompetitionPyramid(
   }
 
   if (Object.keys(body).length === 0) {
-    const result = {
+    const result: CompetitionPyramidActionState = {
       status: 'success',
       competitionPyramidId,
     };
@@ -64,7 +64,7 @@ export async function updateCompetitionPyramid(
     revalidatePath(NAVIGATION.COMPETITION_PYRAMIDS);
     revalidatePath(NAVIGATION.COMPETITION_PYRAMID_BY_ID(competitionPyramidId));
 
-    const result = {
+    const result: CompetitionPyramidActionState = {
       status: 'success',
       competitionPyramidId,
     };
@@ -78,7 +78,7 @@ export async function updateCompetitionPyramid(
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    const result = {
+    const result: CompetitionPyramidActionState = {
       status: 'error',
       error: normalized.data,
     };

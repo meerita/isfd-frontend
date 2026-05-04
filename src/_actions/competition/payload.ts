@@ -1,6 +1,10 @@
 /** @format */
 
-import type { CompetitionActionState } from '@/_types/competition';
+import type {
+  CompetitionActionState,
+  CreateCompetitionRequest,
+  UpdateCompetitionRequest,
+} from '@/_types/competition';
 
 const UNSET = Symbol('unset');
 const CODE_PATTERN = /^[A-Z0-9_]+$/;
@@ -27,7 +31,12 @@ function optionalString(value: string): string | null {
 
 function optionalNumber(value: string): number | null {
   if (!value) return null;
-  return Number.isFinite(Number(value)) ? Number(value) : null;
+
+  if (!/^\d+$/.test(value)) {
+    return null;
+  }
+
+  return Number(value);
 }
 
 function optionalStringArray(formData: FormData, key: string): string[] {
@@ -36,10 +45,6 @@ function optionalStringArray(formData: FormData, key: string): string[] {
     .filter((value): value is string => typeof value === 'string')
     .map(value => value.trim())
     .filter(Boolean);
-}
-
-function uniqueStrings(values: ReadonlyArray<string>): string[] {
-  return Array.from(new Set(values));
 }
 
 function parseStringArray(value: string): string[] {
@@ -55,14 +60,18 @@ function parseStringArray(value: string): string[] {
   }
 }
 
+function normalizeCode(value: string): string {
+  return value.trim().toUpperCase();
+}
+
 function normalizeDateInput(value: string): string | null {
   if (!value) return null;
   if (DATE_PATTERN.test(value)) return value;
+  return null;
+}
 
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
-
-  return parsed.toISOString().slice(0, 10);
+function uniqueStrings(values: ReadonlyArray<string>): string[] {
+  return Array.from(new Set(values));
 }
 
 function formError(reason: string, message: string): CompetitionActionState {
@@ -117,178 +126,219 @@ function partialStringArray(
   return value;
 }
 
-export function buildCreateCompetitionBody(
-  formData: FormData,
-): { body?: Record<string, unknown>; error?: CompetitionActionState } {
-  const competitionTypeId = str(formData, 'competitionTypeId');
-  const code = str(formData, 'code');
-  const name = str(formData, 'name');
-  const federationId = optionalString(str(formData, 'federationId'));
-  const countryId = optionalString(str(formData, 'countryId'));
-  const competitionPyramidId = optionalString(str(formData, 'competitionPyramidId'));
-  const primaryCompetitionTierId = optionalString(
-    str(formData, 'primaryCompetitionTierId'),
-  );
+type MutableUpdateCompetitionRequest = {
+  -readonly [Key in keyof UpdateCompetitionRequest]?: UpdateCompetitionRequest[Key];
+};
+
+type NormalizedCompetitionFormInput = Readonly<{
+  competitionTypeId: string;
+  federationId: string | null;
+  countryId: string | null;
+  competitionPyramidId: string | null;
+  primaryCompetitionTierId: string | null;
+  allowedCompetitionTierIds: ReadonlyArray<string>;
+  code: string;
+  name: string;
+  originalName: string | null;
+  rawStartedOn: string;
+  rawEndedOn: string;
+  startedOn: string | null;
+  endedOn: string | null;
+  rawSortOrder: string;
+  sortOrder: number | null;
+  isActive: boolean;
+}>;
+
+function normalizeCompetitionFormInput(formData: FormData): NormalizedCompetitionFormInput {
   const rawAllowedCompetitionTierIds = optionalStringArray(
     formData,
     'allowedCompetitionTierIds',
   );
-  const allowedCompetitionTierIds = uniqueStrings(rawAllowedCompetitionTierIds);
+  const primaryCompetitionTierId = optionalString(
+    str(formData, 'primaryCompetitionTierId'),
+  );
+  const allowedCompetitionTierIds = uniqueStrings([
+    ...rawAllowedCompetitionTierIds,
+    ...(primaryCompetitionTierId ? [primaryCompetitionTierId] : []),
+  ]);
   const rawStartedOn = str(formData, 'startedOn');
   const rawEndedOn = str(formData, 'endedOn');
-  const startedOn = normalizeDateInput(rawStartedOn);
-  const endedOn = normalizeDateInput(rawEndedOn);
-  const sortOrder = optionalNumber(str(formData, 'sortOrder'));
+  const rawSortOrder = str(formData, 'sortOrder');
 
-  if (!competitionTypeId) {
-    return {
-      error: formError(
-        'COMPETITION_COMPETITION_TYPE_ID_REQUIRED',
-        'Competition type is required.',
-      ),
-    };
+  return {
+    competitionTypeId: str(formData, 'competitionTypeId'),
+    federationId: optionalString(str(formData, 'federationId')),
+    countryId: optionalString(str(formData, 'countryId')),
+    competitionPyramidId: optionalString(str(formData, 'competitionPyramidId')),
+    primaryCompetitionTierId,
+    allowedCompetitionTierIds,
+    code: normalizeCode(str(formData, 'code')),
+    name: str(formData, 'name'),
+    originalName: optionalString(str(formData, 'originalName')),
+    rawStartedOn,
+    rawEndedOn,
+    startedOn: normalizeDateInput(rawStartedOn),
+    endedOn: normalizeDateInput(rawEndedOn),
+    rawSortOrder,
+    sortOrder: optionalNumber(rawSortOrder),
+    isActive: bool(formData, 'isActive', true),
+  };
+}
+
+function validateCompetitionInput(
+  input: NormalizedCompetitionFormInput,
+  originalDates?: Readonly<{
+    startedOn: string | null;
+    endedOn: string | null;
+  }>,
+): CompetitionActionState | null {
+  if (!input.competitionTypeId) {
+    return formError('COMPETITION_TYPE_ID_REQUIRED', 'Competition type is required.');
   }
 
-  if (!UUID_PATTERN.test(competitionTypeId)) {
-    return {
-      error: formError(
-        'COMPETITION_INVALID_COMPETITION_TYPE_ID',
-        'Select a valid competition type.',
-      ),
-    };
+  if (!UUID_PATTERN.test(input.competitionTypeId)) {
+    return formError(
+      'COMPETITION_INVALID_COMPETITION_TYPE_ID',
+      'Select a valid competition type.',
+    );
   }
 
-  if (!code) {
-    return { error: formError('COMPETITION_CODE_REQUIRED', 'Competition code is required.') };
+  if (!input.code) {
+    return formError('COMPETITION_CODE_REQUIRED', 'Competition code is required.');
   }
 
-  if (!CODE_PATTERN.test(code)) {
-    return {
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Competition code must use A-Z, 0-9, and _.',
-      ),
-    };
+  if (!CODE_PATTERN.test(input.code)) {
+    return formError(
+      'COMPETITION_CODE_INVALID_FORMAT',
+      'Competition code must use uppercase letters, numbers, and underscores.',
+    );
   }
 
-  if (!name) {
-    return { error: formError('COMPETITION_NAME_REQUIRED', 'Competition name is required.') };
+  if (!input.name) {
+    return formError('COMPETITION_NAME_REQUIRED', 'Competition name is required.');
   }
 
   const validationError = [
     validateNullableUuid(
-      federationId,
+      input.federationId,
       'COMPETITION_INVALID_FEDERATION_ID',
       'Select a valid federation.',
     ),
     validateNullableUuid(
-      countryId,
+      input.countryId,
       'COMPETITION_INVALID_COUNTRY_ID',
       'Select a valid country.',
     ),
     validateNullableUuid(
-      competitionPyramidId,
+      input.competitionPyramidId,
       'COMPETITION_INVALID_COMPETITION_PYRAMID_ID',
       'Select a valid competition pyramid.',
     ),
     validateNullableUuid(
-      primaryCompetitionTierId,
+      input.primaryCompetitionTierId,
       'COMPETITION_INVALID_PRIMARY_COMPETITION_TIER_ID',
       'Select a valid primary competition tier.',
     ),
-    ...allowedCompetitionTierIds.map(value =>
+    ...input.allowedCompetitionTierIds.map(value =>
       validateNullableUuid(
         value,
         'COMPETITION_INVALID_ALLOWED_COMPETITION_TIER_ID',
-        'One allowed tier is invalid.',
+        'One allowed competition tier is invalid.',
       ),
     ),
   ].find(Boolean);
 
   if (validationError) {
-    return { error: validationError };
+    return validationError;
   }
 
-  if (!competitionPyramidId && primaryCompetitionTierId) {
-    return {
-      error: formError(
-        'COMPETITION_PRIMARY_TIER_REQUIRES_PYRAMID',
-        'Primary tier requires a competition pyramid.',
-      ),
-    };
-  }
-
-  if (!competitionPyramidId && allowedCompetitionTierIds.length > 0) {
-    return {
-      error: formError(
-        'COMPETITION_ALLOWED_TIERS_REQUIRE_PYRAMID',
-        'Allowed tiers require a competition pyramid.',
-      ),
-    };
+  if (!input.competitionPyramidId && input.primaryCompetitionTierId) {
+    return formError(
+      'COMPETITION_PRIMARY_TIER_REQUIRES_PYRAMID',
+      'Primary competition tier requires a competition pyramid.',
+    );
   }
 
   if (
-    primaryCompetitionTierId &&
-    !allowedCompetitionTierIds.includes(primaryCompetitionTierId)
+    !input.competitionPyramidId &&
+    input.allowedCompetitionTierIds.length > 0
   ) {
-    return {
-      error: formError(
-        'COMPETITION_PRIMARY_TIER_MUST_BE_ALLOWED',
-        'Primary tier must be included in allowed tiers.',
-      ),
-    };
+    return formError(
+      'COMPETITION_ALLOWED_TIERS_REQUIRE_PYRAMID',
+      'Allowed competition tiers require a competition pyramid.',
+    );
   }
 
-  if (rawAllowedCompetitionTierIds.length !== allowedCompetitionTierIds.length) {
-    return {
-      error: formError(
-        'COMPETITION_DUPLICATE_ALLOWED_COMPETITION_TIER_IDS',
-        'Allowed tiers cannot contain duplicates.',
-      ),
-    };
+  if (input.rawStartedOn && !input.startedOn) {
+    return formError(
+      'COMPETITION_INVALID_STARTED_ON',
+      'Enter a valid start date.',
+    );
   }
 
-  if (rawStartedOn && !startedOn) {
-    return {
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Start date must use YYYY-MM-DD.',
-      ),
-    };
+  if (input.rawEndedOn && !input.endedOn) {
+    return formError(
+      'COMPETITION_INVALID_ENDED_ON',
+      'Enter a valid end date.',
+    );
   }
 
-  if (rawEndedOn && !endedOn) {
-    return {
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'End date must use YYYY-MM-DD.',
-      ),
-    };
+  if (input.rawSortOrder && input.sortOrder === null) {
+    return formError(
+      'COMPETITION_INVALID_SORT_ORDER',
+      'Enter a valid sort order.',
+    );
   }
 
-  if (startedOn && endedOn && endedOn < startedOn) {
-    return {
-      error: formError(
-        'COMPETITION_ENDED_ON_BEFORE_STARTED_ON',
-        'End date cannot be before the start date.',
-      ),
-    };
+  if (input.sortOrder !== null && input.sortOrder < 0) {
+    return formError(
+      'COMPETITION_INVALID_SORT_ORDER',
+      'Enter a valid sort order.',
+    );
+  }
+
+  const effectiveStartedOn = input.startedOn ?? originalDates?.startedOn ?? null;
+  const effectiveEndedOn = input.endedOn ?? originalDates?.endedOn ?? null;
+
+  if (
+    effectiveStartedOn &&
+    effectiveEndedOn &&
+    effectiveEndedOn < effectiveStartedOn
+  ) {
+    return formError(
+      'COMPETITION_ENDED_ON_BEFORE_STARTED_ON',
+      'End date cannot be before the start date.',
+    );
+  }
+
+  return null;
+}
+
+export function buildCreateCompetitionBody(
+  formData: FormData,
+): { body?: CreateCompetitionRequest; error?: CompetitionActionState } {
+  const input = normalizeCompetitionFormInput(formData);
+  const error = validateCompetitionInput(input);
+
+  if (error) {
+    return { error };
   }
 
   return {
     body: {
-      competition_type_id: competitionTypeId,
-      federation_id: federationId,
-      country_id: countryId,
-      competition_pyramid_id: competitionPyramidId,
-      primary_competition_tier_id: primaryCompetitionTierId,
-      allowed_competition_tier_ids: allowedCompetitionTierIds,
-      code,
-      name,
-      started_on: startedOn,
-      ended_on: endedOn,
-      sort_order: sortOrder,
-      is_active: bool(formData, 'isActive', true),
+      competition_type_id: input.competitionTypeId,
+      federation_id: input.federationId,
+      country_id: input.countryId,
+      competition_pyramid_id: input.competitionPyramidId,
+      primary_competition_tier_id: input.primaryCompetitionTierId,
+      allowed_competition_tier_ids: input.allowedCompetitionTierIds,
+      code: input.code,
+      name: input.name,
+      original_name: input.originalName,
+      started_on: input.startedOn,
+      ended_on: input.endedOn,
+      sort_order: input.sortOrder,
+      is_active: input.isActive,
     },
   };
 }
@@ -296,7 +346,7 @@ export function buildCreateCompetitionBody(
 export function buildUpdateCompetitionBody(
   formData: FormData,
 ): {
-  body?: Record<string, unknown>;
+  body?: UpdateCompetitionRequest;
   error?: CompetitionActionState;
   competitionId?: string;
 } {
@@ -310,241 +360,77 @@ export function buildUpdateCompetitionBody(
     };
   }
 
-  const competitionTypeId = str(formData, 'competitionTypeId');
-  const code = str(formData, 'code');
-  const name = str(formData, 'name');
-  const federationId = optionalString(str(formData, 'federationId'));
-  const countryId = optionalString(str(formData, 'countryId'));
-  const competitionPyramidId = optionalString(str(formData, 'competitionPyramidId'));
-  const primaryCompetitionTierId = optionalString(
-    str(formData, 'primaryCompetitionTierId'),
-  );
-  const rawAllowedCompetitionTierIds = optionalStringArray(
-    formData,
-    'allowedCompetitionTierIds',
-  );
-  const allowedCompetitionTierIds = uniqueStrings(rawAllowedCompetitionTierIds);
-  const rawStartedOn = str(formData, 'startedOn');
-  const rawEndedOn = str(formData, 'endedOn');
-  const startedOn = normalizeDateInput(rawStartedOn);
-  const endedOn = normalizeDateInput(rawEndedOn);
-  const sortOrder = optionalNumber(str(formData, 'sortOrder'));
+  const input = normalizeCompetitionFormInput(formData);
   const originalStartedOn = optionalString(str(formData, 'original_startedOn'));
   const originalEndedOn = optionalString(str(formData, 'original_endedOn'));
-  const originalCompetitionPyramidId = optionalString(
-    str(formData, 'original_competitionPyramidId'),
-  );
-  const originalPrimaryCompetitionTierId = optionalString(
-    str(formData, 'original_primaryCompetitionTierId'),
-  );
-  const originalAllowedCompetitionTierIds = parseStringArray(
-    str(formData, 'original_allowedCompetitionTierIds'),
-  );
+  const error = validateCompetitionInput(input, {
+    startedOn: originalStartedOn,
+    endedOn: originalEndedOn,
+  });
 
-  if (!competitionTypeId) {
-    return {
-      competitionId,
-      error: formError(
-        'COMPETITION_COMPETITION_TYPE_ID_REQUIRED',
-        'Competition type is required.',
-      ),
-    };
+  if (error) {
+    return { competitionId, error };
   }
 
-  if (!UUID_PATTERN.test(competitionTypeId)) {
-    return {
-      competitionId,
-      error: formError(
-        'COMPETITION_INVALID_COMPETITION_TYPE_ID',
-        'Select a valid competition type.',
-      ),
-    };
-  }
-
-  if (!code) {
-    return {
-      competitionId,
-      error: formError(
-        'COMPETITION_CODE_REQUIRED',
-        'Competition code is required.',
-      ),
-    };
-  }
-
-  if (!CODE_PATTERN.test(code)) {
-    return {
-      competitionId,
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Competition code must use A-Z, 0-9, and _.',
-      ),
-    };
-  }
-
-  if (!name) {
-    return {
-      competitionId,
-      error: formError(
-        'COMPETITION_NAME_REQUIRED',
-        'Competition name is required.',
-      ),
-    };
-  }
-
-  const validationError = [
-    validateNullableUuid(
-      federationId,
-      'COMPETITION_INVALID_FEDERATION_ID',
-      'Select a valid federation.',
-    ),
-    validateNullableUuid(
-      countryId,
-      'COMPETITION_INVALID_COUNTRY_ID',
-      'Select a valid country.',
-    ),
-    validateNullableUuid(
-      competitionPyramidId,
-      'COMPETITION_INVALID_COMPETITION_PYRAMID_ID',
-      'Select a valid competition pyramid.',
-    ),
-    validateNullableUuid(
-      primaryCompetitionTierId,
-      'COMPETITION_INVALID_PRIMARY_COMPETITION_TIER_ID',
-      'Select a valid primary competition tier.',
-    ),
-    ...allowedCompetitionTierIds.map(value =>
-      validateNullableUuid(
-        value,
-        'COMPETITION_INVALID_ALLOWED_COMPETITION_TIER_ID',
-        'One allowed tier is invalid.',
-      ),
-    ),
-  ].find(Boolean);
-
-  if (validationError) {
-    return { competitionId, error: validationError };
-  }
-
-  if (!competitionPyramidId && primaryCompetitionTierId) {
-    return {
-      competitionId,
-      error: formError(
-        'COMPETITION_PRIMARY_TIER_REQUIRES_PYRAMID',
-        'Primary tier requires a competition pyramid.',
-      ),
-    };
-  }
-
-  if (!competitionPyramidId && allowedCompetitionTierIds.length > 0) {
-    return {
-      competitionId,
-      error: formError(
-        'COMPETITION_ALLOWED_TIERS_REQUIRE_PYRAMID',
-        'Allowed tiers require a competition pyramid.',
-      ),
-    };
-  }
-
-  if (
-    primaryCompetitionTierId &&
-    !allowedCompetitionTierIds.includes(primaryCompetitionTierId)
-  ) {
-    return {
-      competitionId,
-      error: formError(
-        'COMPETITION_PRIMARY_TIER_MUST_BE_ALLOWED',
-        'Primary tier must be included in allowed tiers.',
-      ),
-    };
-  }
-
-  if (rawAllowedCompetitionTierIds.length !== allowedCompetitionTierIds.length) {
-    return {
-      competitionId,
-      error: formError(
-        'COMPETITION_DUPLICATE_ALLOWED_COMPETITION_TIER_IDS',
-        'Allowed tiers cannot contain duplicates.',
-      ),
-    };
-  }
-
-  if (rawStartedOn && !startedOn) {
-    return {
-      competitionId,
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'Start date must use YYYY-MM-DD.',
-      ),
-    };
-  }
-
-  if (rawEndedOn && !endedOn) {
-    return {
-      competitionId,
-      error: formError(
-        'FORM_VALIDATION_ERROR',
-        'End date must use YYYY-MM-DD.',
-      ),
-    };
-  }
-
-  const effectiveStartedOn = startedOn ?? originalStartedOn;
-  const effectiveEndedOn = endedOn ?? originalEndedOn;
-  if (
-    effectiveStartedOn &&
-    effectiveEndedOn &&
-    effectiveEndedOn < effectiveStartedOn
-  ) {
-    return {
-      competitionId,
-      error: formError(
-        'COMPETITION_ENDED_ON_BEFORE_STARTED_ON',
-        'End date cannot be before the start date.',
-      ),
-    };
-  }
-
-  const body: Record<string, unknown> = {};
+  const body: MutableUpdateCompetitionRequest = {};
   const competitionTypeResult = partialRequired(
-    competitionTypeId,
+    input.competitionTypeId,
     str(formData, 'original_competitionTypeId'),
   );
-  const codeResult = partialRequired(code, str(formData, 'original_code'));
-  const nameResult = partialRequired(name, str(formData, 'original_name'));
+  const codeResult = partialRequired(
+    input.code,
+    normalizeCode(str(formData, 'original_code')),
+  );
+  const nameResult = partialRequired(input.name, str(formData, 'original_name'));
+  const originalNameResult = partialNullable(
+    input.originalName,
+    optionalString(str(formData, 'original_originalName')),
+  );
   const federationResult = partialNullable(
-    federationId,
+    input.federationId,
     optionalString(str(formData, 'original_federationId')),
   );
   const countryResult = partialNullable(
-    countryId,
+    input.countryId,
     optionalString(str(formData, 'original_countryId')),
   );
   const competitionPyramidResult = partialNullable(
-    competitionPyramidId,
-    originalCompetitionPyramidId,
+    input.competitionPyramidId,
+    optionalString(str(formData, 'original_competitionPyramidId')),
   );
   const primaryCompetitionTierResult = partialNullable(
-    primaryCompetitionTierId,
-    originalPrimaryCompetitionTierId,
+    input.primaryCompetitionTierId,
+    optionalString(str(formData, 'original_primaryCompetitionTierId')),
   );
   const allowedCompetitionTierIdsResult = partialStringArray(
-    allowedCompetitionTierIds,
-    originalAllowedCompetitionTierIds,
+    input.allowedCompetitionTierIds,
+    parseStringArray(str(formData, 'original_allowedCompetitionTierIds')),
   );
-  const startedOnResult = partialNullable(startedOn, originalStartedOn);
-  const endedOnResult = partialNullable(endedOn, originalEndedOn);
+  const startedOnResult = partialNullable(input.startedOn, originalStartedOn);
+  const endedOnResult = partialNullable(input.endedOn, originalEndedOn);
   const sortOrderResult = partialNullableNumber(
-    sortOrder,
+    input.sortOrder,
     optionalNumber(str(formData, 'original_sortOrder')),
   );
 
   if (competitionTypeResult !== UNSET) {
     body.competition_type_id = competitionTypeResult;
   }
-  if (codeResult !== UNSET) body.code = codeResult;
-  if (nameResult !== UNSET) body.name = nameResult;
-  if (federationResult !== UNSET) body.federation_id = federationResult;
-  if (countryResult !== UNSET) body.country_id = countryResult;
+  if (codeResult !== UNSET) {
+    body.code = codeResult;
+  }
+  if (nameResult !== UNSET) {
+    body.name = nameResult;
+  }
+  if (originalNameResult !== UNSET) {
+    body.original_name = originalNameResult;
+  }
+  if (federationResult !== UNSET) {
+    body.federation_id = federationResult;
+  }
+  if (countryResult !== UNSET) {
+    body.country_id = countryResult;
+  }
   if (competitionPyramidResult !== UNSET) {
     body.competition_pyramid_id = competitionPyramidResult;
   }
@@ -554,9 +440,15 @@ export function buildUpdateCompetitionBody(
   if (allowedCompetitionTierIdsResult !== UNSET) {
     body.allowed_competition_tier_ids = allowedCompetitionTierIdsResult;
   }
-  if (startedOnResult !== UNSET) body.started_on = startedOnResult;
-  if (endedOnResult !== UNSET) body.ended_on = endedOnResult;
-  if (sortOrderResult !== UNSET) body.sort_order = sortOrderResult;
+  if (startedOnResult !== UNSET) {
+    body.started_on = startedOnResult;
+  }
+  if (endedOnResult !== UNSET) {
+    body.ended_on = endedOnResult;
+  }
+  if (sortOrderResult !== UNSET) {
+    body.sort_order = sortOrderResult;
+  }
 
   const isActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);

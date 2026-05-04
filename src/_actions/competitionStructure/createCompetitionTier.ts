@@ -65,7 +65,7 @@ export async function createCompetitionTier(
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    const result = {
+    const result: CompetitionTierActionState = {
       status: 'error',
       error: normalized.data,
     };

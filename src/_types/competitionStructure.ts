@@ -1,6 +1,11 @@
 /** @format */
 
-import type { CompetitionScopeKind, ParticipantScope } from '@/_constants/enums/competition';
+import type {
+  CompetitionPyramidScopeKind,
+  CompetitionStructureBranchKind,
+  CompetitionTierScopeKind,
+  ParticipantScope,
+} from '@/_constants/enums/competition';
 import type { ApiErrorResponse } from '@/_types/api';
 import type { GeoMetadata } from '@/_types/country';
 
@@ -16,27 +21,34 @@ export type CompetitionStructureStatusFilter = 'all' | 'active' | 'inactive';
 
 export type CompetitionPyramid = Readonly<{
   id: string;
+  versionId: string | null;
   countryId: string;
   federationId: string | null;
   code: string;
   slug: string;
   name: string;
-  scopeKind: CompetitionScopeKind;
+  scopeKind: CompetitionPyramidScopeKind;
+  branchKind: CompetitionStructureBranchKind | null;
   isActive: boolean;
+  validFrom: string;
+  validTo: string | null;
   createdAt: string;
   updatedAt: string;
 }>;
 
 export type CompetitionTier = Readonly<{
   id: string;
+  versionId: string | null;
   competitionPyramidId: string;
   parentTierId: string | null;
+  parentTierVersionId: string | null;
   code: string;
   slug: string;
   name: string;
   shortName: string | null;
   levelOrder: number | null;
-  scopeKind: CompetitionScopeKind;
+  scopeKind: CompetitionTierScopeKind;
+  branchKind: CompetitionStructureBranchKind | null;
   participantScope: ParticipantScope;
   isActive: boolean;
   createdAt: string;
@@ -50,7 +62,9 @@ export type CompetitionPyramidListMetadata = GeoMetadata &
       status?: CompetitionStructureStatusFilter;
       countryId?: string;
       federationId?: string;
-      scopeKind?: CompetitionScopeKind;
+      scopeKind?: CompetitionPyramidScopeKind;
+      branchKind?: CompetitionStructureBranchKind;
+      asOfDate?: string;
     }>;
   }>;
 
@@ -62,7 +76,9 @@ export type CompetitionTierListMetadata = GeoMetadata &
       competitionPyramidId?: string;
       parentTierId?: string;
       participantScope?: ParticipantScope;
-      scopeKind?: CompetitionScopeKind;
+      scopeKind?: CompetitionTierScopeKind;
+      branchKind?: CompetitionStructureBranchKind;
+      asOfDate?: string;
     }>;
   }>;
 
@@ -93,8 +109,10 @@ export type CreateCompetitionPyramidRequest = Readonly<{
   federation_id: string | null;
   code: string;
   name: string;
-  scope_kind: CompetitionScopeKind;
-  is_active?: boolean | null;
+  scope_kind: CompetitionPyramidScopeKind;
+  branch_kind: CompetitionStructureBranchKind;
+  valid_from: string;
+  is_active: boolean;
 }>;
 
 export type UpdateCompetitionPyramidRequest = Readonly<{
@@ -102,7 +120,10 @@ export type UpdateCompetitionPyramidRequest = Readonly<{
   federation_id?: string | null;
   code?: string | null;
   name?: string | null;
-  scope_kind?: CompetitionScopeKind | null;
+  scope_kind?: CompetitionPyramidScopeKind | null;
+  branch_kind?: CompetitionStructureBranchKind | null;
+  valid_from?: string | null;
+  valid_to?: string | null;
   is_active?: boolean | null;
 }>;
 
@@ -113,7 +134,7 @@ export type CreateCompetitionTierRequest = Readonly<{
   name: string;
   short_name: string | null;
   level_order: number | null;
-  scope_kind: CompetitionScopeKind;
+  scope_kind: CompetitionTierScopeKind;
   participant_scope: ParticipantScope;
   is_active?: boolean | null;
 }>;
@@ -125,7 +146,7 @@ export type UpdateCompetitionTierRequest = Readonly<{
   name?: string | null;
   short_name?: string | null;
   level_order?: number | null;
-  scope_kind?: CompetitionScopeKind | null;
+  scope_kind?: CompetitionTierScopeKind | null;
   participant_scope?: ParticipantScope | null;
   is_active?: boolean | null;
 }>;

@@ -7,6 +7,16 @@ export type CompetitionAdminErrorMessageMap = Readonly<Record<string, string>>;
 export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
   {
     INVALID_REQUEST: 'The request was invalid.',
+    INVALID_JSON_BODY: 'The request body is not valid JSON.',
+    REQUEST_BODY_REQUIRED: 'The request body is required.',
+    REQUEST_BODY_TOO_LARGE: 'The request body is too large.',
+    INVALID_PAGINATION: 'The pagination parameters are invalid.',
+    INVALID_PAGE: 'Enter a valid page number.',
+    INVALID_PAGE_SIZE: 'Enter a valid page size.',
+    INVALID_SORT: 'The selected sort value is invalid.',
+    INVALID_UUID: 'Enter a valid identifier.',
+    INVALID_AS_OF_DATE: 'Enter a valid reference date.',
+    INVALID_REQUEST_DATE: 'Enter a valid date.',
     INTERNAL_SERVER_ERROR: 'The request failed on the server.',
     INVALID_RESPONSE: 'The backend returned an invalid response.',
     FORM_VALIDATION_ERROR: 'Review the form values and try again.',
@@ -18,7 +28,7 @@ export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
     SEASON_NOT_FOUND: 'This season could not be found.',
     COMPETITION_EDITION_NOT_FOUND:
       'This competition edition could not be found.',
-    COMPETITION_TYPE_ID_REQUIRED: 'Competition type identifier is required.',
+    COMPETITION_TYPE_ID_REQUIRED: 'Competition type is required.',
     COMPETITION_ID_REQUIRED: 'Competition identifier is required.',
     COMPETITION_PYRAMID_ID_REQUIRED:
       'Competition pyramid identifier is required.',
@@ -43,7 +53,13 @@ export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
     COMPETITION_TYPE_SLUG_GENERATION_FAILED:
       'The competition type slug could not be generated.',
     COMPETITION_NAME_REQUIRED: 'Competition name is required.',
+    COMPETITION_NAME_TOO_LONG: 'Competition name is too long.',
     COMPETITION_CODE_REQUIRED: 'Competition code is required.',
+    COMPETITION_CODE_TOO_LONG: 'Competition code is too long.',
+    COMPETITION_CODE_MUST_BE_UPPERCASE:
+      'Competition code must be uppercase.',
+    COMPETITION_CODE_INVALID_FORMAT:
+      'Competition code must use uppercase letters, numbers, and underscores.',
     COMPETITION_COMPETITION_TYPE_ID_REQUIRED: 'Competition type is required.',
     COMPETITION_INVALID_COMPETITION_TYPE_ID: 'Select a valid competition type.',
     COMPETITION_INVALID_FEDERATION_ID: 'Select a valid federation.',
@@ -66,8 +82,15 @@ export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
       'Primary competition tier must be included in the allowed tiers.',
     COMPETITION_TIER_BELONGS_TO_ANOTHER_PYRAMID:
       'The selected tier belongs to another competition pyramid.',
+    COMPETITION_ORIGINAL_NAME_BLANK:
+      'Original name cannot be blank when it is provided.',
+    COMPETITION_ORIGINAL_NAME_TOO_LONG: 'Original name is too long.',
+    COMPETITION_INVALID_STARTED_ON: 'Enter a valid start date.',
+    COMPETITION_INVALID_ENDED_ON: 'Enter a valid end date.',
     COMPETITION_ENDED_ON_BEFORE_STARTED_ON:
       'End date cannot be before the start date.',
+    COMPETITION_INVALID_SORT_ORDER: 'Enter a valid sort order.',
+    COMPETITION_ACTIVE_VALUE_REQUIRED: 'Competition active value is required.',
     COMPETITION_CODE_ALREADY_EXISTS: 'This competition code is already in use.',
     COMPETITION_SLUG_ALREADY_EXISTS: 'This competition slug is already in use.',
     COMPETITION_SLUG_GENERATION_FAILED:
@@ -119,11 +142,14 @@ export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
     COMPETITION_PYRAMID_COUNTRY_ID_REQUIRED:
       'Competition pyramid country is required.',
     COMPETITION_PYRAMID_CODE_REQUIRED: 'Competition pyramid code is required.',
+    COMPETITION_PYRAMID_CODE_TOO_LONG: 'Competition pyramid code is too long.',
     COMPETITION_PYRAMID_NAME_REQUIRED: 'Competition pyramid name is required.',
     COMPETITION_PYRAMID_SCOPE_KIND_REQUIRED:
       'Competition pyramid scope is required.',
     INVALID_COMPETITION_PYRAMID_SCOPE_KIND:
       'Select a valid competition pyramid scope: National, Regional, or Mixed.',
+    INVALID_COMPETITION_PYRAMID_BRANCH_KIND:
+      'Select a valid competition pyramid branch kind: Unified, Metropolitan, or Federal.',
     COMPETITION_PYRAMID_ACTIVE_VALUE_REQUIRED:
       'Competition pyramid active value is required.',
     COMPETITION_PYRAMID_SLUG_GENERATION_FAILED:
@@ -136,6 +162,10 @@ export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
       'Select a valid competition pyramid country.',
     INVALID_COMPETITION_PYRAMID_FEDERATION_ID:
       'Select a valid competition pyramid federation.',
+    INVALID_COMPETITION_PYRAMID_CODE_FORMAT:
+      'Competition pyramid code must use uppercase letters, numbers, and underscores.',
+    INVALID_COMPETITION_PYRAMID_VALID_RANGE:
+      'Competition pyramid end date must be after the start date.',
     INVALID_COMPETITION_PYRAMID_SORT:
       'Enter a valid competition pyramid sort value.',
     INVALID_COMPETITION_PYRAMID_STATUS:

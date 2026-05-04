@@ -43,6 +43,10 @@ export default function CompetitionProfileSection({
               <Table>
                 <Tbody>
                   <DataRow label='Name' value={competition.name} />
+                  <DataRow
+                    label='Original name'
+                    value={competition.originalName ?? PLACEHOLDER}
+                  />
                   <DataRow label='Code' value={competition.code} monospace />
                   <DataRow label='Slug' value={competition.slug} monospace />
                   <DataRow

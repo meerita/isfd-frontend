@@ -2,6 +2,7 @@
 
 import {
   parseCompetitionPyramidScopeKind,
+  parseCompetitionStructureBranchKind,
   parseCompetitionTierScopeKind,
   parseParticipantScope,
 } from '@/_constants/enums/competition';
@@ -34,6 +35,17 @@ function toNullableNumber(value: unknown): number | null {
   return Number.isFinite(Number(value)) ? Number(value) : null;
 }
 
+function toBooleanValue(value: unknown): boolean {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    return normalized === 'true' || normalized === '1';
+  }
+
+  return false;
+}
+
 function toNumberValue(value: unknown, fallback = 0): number {
   return Number.isFinite(Number(value)) ? Number(value) : fallback;
 }
@@ -41,6 +53,7 @@ function toNumberValue(value: unknown, fallback = 0): number {
 export function mapCompetitionPyramid(raw: Raw): CompetitionPyramid {
   return {
     id: toStringValue(raw.id),
+    versionId: toNullableString(raw.version_id ?? raw.versionId),
     countryId: toStringValue(raw.country_id ?? raw.countryId),
     federationId: toNullableString(raw.federation_id ?? raw.federationId),
     code: toStringValue(raw.code),
@@ -50,7 +63,13 @@ export function mapCompetitionPyramid(raw: Raw): CompetitionPyramid {
       parseCompetitionPyramidScopeKind(
         toStringValue(raw.scope_kind ?? raw.scopeKind),
       ) ?? 'MIXED',
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    branchKind:
+      parseCompetitionStructureBranchKind(
+        toNullableString(raw.branch_kind ?? raw.branchKind),
+      ) ?? null,
+    isActive: toBooleanValue(raw.is_active ?? raw.isActive),
+    validFrom: toStringValue(raw.valid_from ?? raw.validFrom),
+    validTo: toNullableString(raw.valid_to ?? raw.validTo),
     createdAt: toStringValue(raw.created_at ?? raw.createdAt),
     updatedAt: toStringValue(raw.updated_at ?? raw.updatedAt),
   };
@@ -59,10 +78,14 @@ export function mapCompetitionPyramid(raw: Raw): CompetitionPyramid {
 export function mapCompetitionTier(raw: Raw): CompetitionTier {
   return {
     id: toStringValue(raw.id),
+    versionId: toNullableString(raw.version_id ?? raw.versionId),
     competitionPyramidId: toStringValue(
       raw.competition_pyramid_id ?? raw.competitionPyramidId,
     ),
     parentTierId: toNullableString(raw.parent_tier_id ?? raw.parentTierId),
+    parentTierVersionId: toNullableString(
+      raw.parent_tier_version_id ?? raw.parentTierVersionId,
+    ),
     code: toStringValue(raw.code),
     slug: toStringValue(raw.slug),
     name: toStringValue(raw.name),
@@ -72,11 +95,15 @@ export function mapCompetitionTier(raw: Raw): CompetitionTier {
       parseCompetitionTierScopeKind(
         toStringValue(raw.scope_kind ?? raw.scopeKind),
       ) ?? 'MIXED',
+    branchKind:
+      parseCompetitionStructureBranchKind(
+        toNullableString(raw.branch_kind ?? raw.branchKind),
+      ) ?? null,
     participantScope:
       parseParticipantScope(
         toStringValue(raw.participant_scope ?? raw.participantScope),
       ) ?? 'CLUB',
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    isActive: toBooleanValue(raw.is_active ?? raw.isActive),
     createdAt: toStringValue(raw.created_at ?? raw.createdAt),
     updatedAt: toStringValue(raw.updated_at ?? raw.updatedAt),
   };
@@ -125,6 +152,11 @@ export function mapCompetitionPyramidMetadata(
             parseCompetitionPyramidScopeKind(
               toNullableString(filters.scope_kind ?? filters.scopeKind),
             ) ?? undefined,
+          branchKind:
+            parseCompetitionStructureBranchKind(
+              toNullableString(filters.branch_kind ?? filters.branchKind),
+            ) ?? undefined,
+          asOfDate: toNullableString(filters.as_of_date ?? filters.asOfDate) ?? undefined,
         }
       : undefined,
   };
@@ -179,6 +211,11 @@ export function mapCompetitionTierMetadata(
             parseCompetitionTierScopeKind(
               toNullableString(filters.scope_kind ?? filters.scopeKind),
             ) ?? undefined,
+          branchKind:
+            parseCompetitionStructureBranchKind(
+              toNullableString(filters.branch_kind ?? filters.branchKind),
+            ) ?? undefined,
+          asOfDate: toNullableString(filters.as_of_date ?? filters.asOfDate) ?? undefined,
         }
       : undefined,
   };

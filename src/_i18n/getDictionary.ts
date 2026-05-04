@@ -64,6 +64,7 @@ export interface AppDictionary {
     readonly users: string;
   };
   readonly competitions: {
+    readonly title: string;
     readonly overviewIntro: string;
     readonly totalSuffix: string;
     readonly actions: {
@@ -153,6 +154,7 @@ export interface AppDictionary {
     readonly pyramids: {
       readonly title: string;
       readonly createAction: string;
+      readonly createTitle: string;
       readonly loadErrorTitle: string;
       readonly emptyState: string;
       readonly paginationLabel: string;
@@ -161,6 +163,8 @@ export interface AppDictionary {
         readonly country: string;
         readonly federation: string;
         readonly scope: string;
+        readonly branch: string;
+        readonly validity: string;
         readonly active: string;
         readonly updated: string;
       };
@@ -171,15 +175,66 @@ export interface AppDictionary {
         readonly country: string;
         readonly federation: string;
         readonly scope: string;
+        readonly branch: string;
+        readonly asOfDate: string;
         readonly allCountries: string;
         readonly allFederations: string;
         readonly allScopes: string;
+        readonly allBranches: string;
         readonly updatedDesc: string;
         readonly updatedAsc: string;
         readonly createdDesc: string;
         readonly createdAsc: string;
         readonly nameAsc: string;
         readonly nameDesc: string;
+      };
+      readonly detail: {
+        readonly profile: string;
+        readonly tiers: string;
+        readonly competitions: string;
+        readonly unavailableTitle: string;
+        readonly missingId: string;
+        readonly backToList: string;
+        readonly tiersTitle: string;
+        readonly tiersEmpty: string;
+        readonly competitionsTitle: string;
+        readonly competitionsEmpty: string;
+      };
+      readonly sections: {
+        readonly identity: string;
+        readonly relations: string;
+        readonly validity: string;
+        readonly metadata: string;
+      };
+      readonly fields: {
+        readonly id: string;
+        readonly versionId: string;
+        readonly name: string;
+        readonly code: string;
+        readonly slug: string;
+        readonly country: string;
+        readonly federation: string;
+        readonly scope: string;
+        readonly branch: string;
+        readonly validFrom: string;
+        readonly validTo: string;
+        readonly active: string;
+        readonly createdAt: string;
+        readonly updatedAt: string;
+      };
+      readonly form: {
+        readonly createTitle: string;
+        readonly editTitle: string;
+        readonly countryPlaceholder: string;
+        readonly federationPlaceholder: string;
+        readonly noFederation: string;
+        readonly branchPlaceholder: string;
+        readonly submitCreate: string;
+        readonly submitCreatePending: string;
+        readonly submitUpdate: string;
+        readonly submitUpdatePending: string;
+        readonly successCreate: string;
+        readonly successUpdate: string;
       };
     };
     readonly tiers: {

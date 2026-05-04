@@ -25,6 +25,12 @@ export const COMPETITION_TYPE_CODES = [
 
 export const PARTICIPANT_SCOPES = ['CLUB', 'NATIONAL_TEAM', 'MIXED'] as const;
 
+export const COMPETITION_STRUCTURE_BRANCH_KINDS = [
+  'UNIFIED',
+  'METROPOLITAN',
+  'FEDERAL',
+] as const;
+
 export const COMPETITION_PYRAMID_SCOPE_KINDS = [
   'NATIONAL',
   'REGIONAL',
@@ -58,6 +64,8 @@ export type CompetitionTypeCategory =
   (typeof COMPETITION_TYPE_CATEGORIES)[number];
 export type CompetitionTypeCode = (typeof COMPETITION_TYPE_CODES)[number];
 export type ParticipantScope = (typeof PARTICIPANT_SCOPES)[number];
+export type CompetitionStructureBranchKind =
+  (typeof COMPETITION_STRUCTURE_BRANCH_KINDS)[number];
 export type CompetitionPyramidScopeKind =
   (typeof COMPETITION_PYRAMID_SCOPE_KINDS)[number];
 export type CompetitionTierScopeKind =
@@ -78,6 +86,12 @@ export function parseParticipantScope(
   value: string | null | undefined,
 ): ParticipantScope | null {
   return parseOptionalEnum(PARTICIPANT_SCOPES, value);
+}
+
+export function parseCompetitionStructureBranchKind(
+  value: string | null | undefined,
+): CompetitionStructureBranchKind | null {
+  return parseOptionalEnum(COMPETITION_STRUCTURE_BRANCH_KINDS, value);
 }
 
 export function parseCompetitionPyramidScopeKind(
@@ -216,6 +230,37 @@ export function getParticipantScopeLabel(
   };
 
   return labels[locale][value as ParticipantScope] ?? formatEnumLabel(value);
+}
+
+export function getCompetitionStructureBranchKindLabel(
+  value: string,
+  locale: AppLocale = DEFAULT_LOCALE,
+): string {
+  const labels: Record<
+    AppLocale,
+    Partial<Record<CompetitionStructureBranchKind, string>>
+  > = {
+    ja: {
+      UNIFIED: '統合',
+      METROPOLITAN: '都市圏',
+      FEDERAL: '連邦',
+    },
+    es: {
+      UNIFIED: 'Unificado',
+      METROPOLITAN: 'Metropolitano',
+      FEDERAL: 'Federal',
+    },
+    en: {
+      UNIFIED: 'Unified',
+      METROPOLITAN: 'Metropolitan',
+      FEDERAL: 'Federal',
+    },
+  };
+
+  return (
+    labels[locale][value as CompetitionStructureBranchKind] ??
+    formatEnumLabel(value)
+  );
 }
 
 export function getCompetitionPyramidScopeKindLabel(

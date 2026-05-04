@@ -53,6 +53,7 @@ export function mapCompetitionListItem(raw: RawCompetition): CompetitionListItem
     code: toStringValue(raw.code),
     slug: toStringValue(raw.slug),
     name: toStringValue(raw.name),
+    originalName: toNullableString(raw.original_name ?? raw.originalName),
     startedOn: toNullableString(raw.started_on ?? raw.startedOn),
     endedOn: toNullableString(raw.ended_on ?? raw.endedOn),
     sortOrder: toNumberValue(raw.sort_order ?? raw.sortOrder),

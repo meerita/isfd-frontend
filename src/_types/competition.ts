@@ -28,6 +28,7 @@ export type CompetitionAdmin = Readonly<{
   code: string;
   slug: string;
   name: string;
+  originalName: string | null;
   startedOn: string | null;
   endedOn: string | null;
   sortOrder: number;
@@ -91,6 +92,7 @@ export type CreateCompetitionRequest = Readonly<{
   allowed_competition_tier_ids: ReadonlyArray<string>;
   code: string;
   name: string;
+  original_name: string | null;
   started_on: string | null;
   ended_on: string | null;
   sort_order: number | null;
@@ -106,6 +108,7 @@ export type UpdateCompetitionRequest = Readonly<{
   allowed_competition_tier_ids?: ReadonlyArray<string> | null;
   code?: string;
   name?: string;
+  original_name?: string | null;
   started_on?: string | null;
   ended_on?: string | null;
   sort_order?: number | null;

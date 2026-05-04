@@ -36,7 +36,7 @@ export async function updateCompetitionTier(
   }
 
   if (Object.keys(body).length === 0) {
-    const result = {
+    const result: CompetitionTierActionState = {
       status: 'success',
       competitionTierId,
     };
@@ -63,7 +63,7 @@ export async function updateCompetitionTier(
     revalidatePath(NAVIGATION.COMPETITION_TIERS);
     revalidatePath(NAVIGATION.COMPETITION_TIER_BY_ID(competitionTierId));
 
-    const result = {
+    const result: CompetitionTierActionState = {
       status: 'success',
       competitionTierId,
     };
@@ -77,7 +77,7 @@ export async function updateCompetitionTier(
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    const result = {
+    const result: CompetitionTierActionState = {
       status: 'error',
       error: normalized.data,
     };
