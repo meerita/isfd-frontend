@@ -891,6 +891,13 @@ const ja = {
       imageAssetId: 'アセットID',
       imagePrimary: 'メイン',
       imageSortOrder: '並び順',
+      imageJobId: 'アセットジョブID',
+      processingUploads: '処理中のアップロード',
+      processingUploadsHint:
+        'これらのアップロードはバックエンドに受け付けられており、スタジアム詳細に反映されるまで画面が自動更新されます。',
+      processingStatus: '状態',
+      processingStatusValue: '処理中',
+      refreshGalleryAction: 'ギャラリーを更新',
       defaultMediaError: 'スタジアムギャラリーを更新できませんでした。',
     },
     form: {

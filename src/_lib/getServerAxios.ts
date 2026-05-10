@@ -12,5 +12,12 @@ import { getAuthenticatedRequestHeaders } from './authTokens';
 
 export default async function getServerAxios() {
   const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
-  return api.create({ headers });
+  const client = api.create({ headers });
+
+  delete client.defaults.headers.common['Content-Type'];
+  delete client.defaults.headers.post['Content-Type'];
+  delete client.defaults.headers.put['Content-Type'];
+  delete client.defaults.headers.patch['Content-Type'];
+
+  return client;
 }

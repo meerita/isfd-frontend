@@ -1,8 +1,10 @@
 /** @format */
 
 import API_ROUTES from '@/_constants/apiRoutes';
+import ENV from '@/_constants/env';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import api from '@/_lib/axiosInstance';
+import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
 import getServerAxios from '@/_lib/getServerAxios';
 import type {
   ApiErrorResponse,
@@ -39,6 +41,60 @@ function invalidResponse(reason: string, message: string): ApiErrorResponse {
     message,
     error: message,
   };
+}
+
+function extractUploadImagesPayload(
+  payload: unknown,
+): UploadStadiumImagesResponse | null {
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    typeof (payload as UploadStadiumImagesResponse).stadium_id === 'string' &&
+    Array.isArray((payload as UploadStadiumImagesResponse).images)
+  ) {
+    return payload as UploadStadiumImagesResponse;
+  }
+
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'data' in payload &&
+    payload.data &&
+    typeof payload.data === 'object' &&
+    typeof (payload.data as UploadStadiumImagesResponse).stadium_id === 'string' &&
+    Array.isArray((payload.data as UploadStadiumImagesResponse).images)
+  ) {
+    return payload.data as UploadStadiumImagesResponse;
+  }
+
+  return null;
+}
+
+async function parseFetchApiError(response: Response): Promise<ApiErrorResponse> {
+  try {
+    const payload = (await response.json()) as {
+      code?: string;
+      reason?: string;
+      message?: string;
+      error?: string;
+      details?: string;
+    };
+
+    return {
+      reason: payload.reason ?? payload.code ?? 'API_ERROR',
+      message: payload.message ?? payload.error ?? 'Unexpected error',
+      error:
+        payload.error ?? payload.details ?? payload.message ?? 'Unexpected error',
+      statusCode: response.status,
+    };
+  } catch {
+    return {
+      reason: 'API_ERROR',
+      message: response.statusText || 'Unexpected error',
+      error: response.statusText || 'Unexpected error',
+      statusCode: response.status,
+    };
+  }
 }
 
 function buildParams(
@@ -380,24 +436,62 @@ export async function uploadAdminStadiumImages(
   data: UploadStadiumImagesResponse | null;
   error?: ApiErrorResponse;
 }> {
-  const client = await getServerAxios();
+  if (!stadiumId) {
+    return {
+      data: null,
+      error: invalidResponse('STADIUM_ID_REQUIRED', 'Stadium identifier is required.'),
+    };
+  }
+
+  if (files.length === 0) {
+    return {
+      data: null,
+      error: invalidResponse(
+        'STADIUM_IMAGES_REQUIRED',
+        'At least one stadium image is required.',
+      ),
+    };
+  }
+
   const payload = new FormData();
+  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
 
   for (const file of files) {
     payload.append('files', file, file.name);
   }
 
   try {
-    const { data } = await client.post<UploadStadiumImagesResponse>(
-      API_ROUTES.STADIUM_ADMIN_IMAGES(stadiumId),
-      payload,
+    const response = await fetch(
+      `${ENV.apiBaseUrl}${API_ROUTES.STADIUM_ADMIN_IMAGES(stadiumId)}`,
       {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        method: 'POST',
+        headers,
+        body: payload,
+        cache: 'no-store',
       },
     );
-    return { data };
+
+    if (!response.ok) {
+      return {
+        data: null,
+        error: await parseFetchApiError(response),
+      };
+    }
+
+    const data = (await response.json()) as unknown;
+    const parsed = extractUploadImagesPayload(data);
+
+    if (!parsed) {
+      return {
+        data: null,
+        error: invalidResponse(
+          'INVALID_RESPONSE',
+          'The stadium image upload response was not valid.',
+        ),
+      };
+    }
+
+    return { data: parsed };
   } catch (error) {
     const normalized = normalizeApiError(error);
     logApiError(normalized);

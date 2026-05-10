@@ -2,7 +2,13 @@
 
 'use client';
 
-import { useActionState, useEffect, useRef, useTransition } from 'react';
+import {
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+  useTransition,
+  type FormEvent,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -23,6 +29,7 @@ import type {
   Stadium,
   StadiumImageActionState,
   StadiumImageResponse,
+  UploadStadiumImageTicket,
 } from '@/_types/stadium';
 
 type StadiumMediaSectionProps = Readonly<{
@@ -35,7 +42,124 @@ type ImageCardProps = Readonly<{
   stadiumName: string;
 }>;
 
+type PendingImageCardProps = Readonly<{
+  image: UploadStadiumImageTicket;
+}>;
+
 const INITIAL_UPLOAD_STATE: StadiumImageActionState = { status: 'idle' };
+const PENDING_UPLOADS_STORAGE_PREFIX = 'stadium-pending-uploads:';
+const STADIUM_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp';
+const PENDING_UPLOADS_UPDATED_EVENT = 'stadium-pending-uploads-updated';
+const EMPTY_PENDING_UPLOADS: ReadonlyArray<UploadStadiumImageTicket> = [];
+const PENDING_UPLOADS_POLL_INTERVAL_MS = 3_000;
+const pendingUploadsSnapshotCache = new Map<
+  string,
+  Readonly<{
+    rawValue: string | null;
+    parsedValue: ReadonlyArray<UploadStadiumImageTicket>;
+  }>
+>();
+
+function getPendingUploadsStorageKey(stadiumId: string): string {
+  return `${PENDING_UPLOADS_STORAGE_PREFIX}${stadiumId}`;
+}
+
+function readPendingUploadsFromStorage(
+  stadiumId: string,
+): ReadonlyArray<UploadStadiumImageTicket> {
+  if (typeof window === 'undefined') return EMPTY_PENDING_UPLOADS;
+
+  const storageKey = getPendingUploadsStorageKey(stadiumId);
+  const storedValue = globalThis.window.sessionStorage.getItem(storageKey);
+  const cachedSnapshot = pendingUploadsSnapshotCache.get(storageKey);
+
+  if (cachedSnapshot?.rawValue === storedValue) {
+    return cachedSnapshot.parsedValue;
+  }
+
+  if (!storedValue) {
+    pendingUploadsSnapshotCache.set(storageKey, {
+      rawValue: null,
+      parsedValue: EMPTY_PENDING_UPLOADS,
+    });
+    return EMPTY_PENDING_UPLOADS;
+  }
+
+  try {
+    const parsedValue = JSON.parse(storedValue) as UploadStadiumImageTicket[];
+    pendingUploadsSnapshotCache.set(storageKey, { rawValue: storedValue, parsedValue });
+    return parsedValue;
+  } catch {
+    globalThis.window.sessionStorage.removeItem(storageKey);
+    pendingUploadsSnapshotCache.set(storageKey, {
+      rawValue: null,
+      parsedValue: EMPTY_PENDING_UPLOADS,
+    });
+    return EMPTY_PENDING_UPLOADS;
+  }
+}
+
+function writePendingUploadsToStorage(
+  stadiumId: string,
+  pendingUploads: ReadonlyArray<UploadStadiumImageTicket>,
+): void {
+  if (typeof window === 'undefined') return;
+
+  const storageKey = getPendingUploadsStorageKey(stadiumId);
+
+  if (pendingUploads.length === 0) {
+    globalThis.window.sessionStorage.removeItem(storageKey);
+    globalThis.window.dispatchEvent(new Event(PENDING_UPLOADS_UPDATED_EVENT));
+    return;
+  }
+
+  globalThis.window.sessionStorage.setItem(
+    storageKey,
+    JSON.stringify(pendingUploads),
+  );
+  globalThis.window.dispatchEvent(new Event(PENDING_UPLOADS_UPDATED_EVENT));
+}
+
+function subscribeToPendingUploads(onStoreChange: () => void): () => void {
+  if (typeof window === 'undefined') {
+    return () => undefined;
+  }
+
+  const handleStorage = (event: StorageEvent) => {
+    if (
+      event.key === null ||
+      event.key.startsWith(PENDING_UPLOADS_STORAGE_PREFIX)
+    ) {
+      onStoreChange();
+    }
+  };
+
+  globalThis.window.addEventListener('storage', handleStorage);
+  globalThis.window.addEventListener(PENDING_UPLOADS_UPDATED_EVENT, onStoreChange);
+
+  return () => {
+    globalThis.window.removeEventListener('storage', handleStorage);
+    globalThis.window.removeEventListener(
+      PENDING_UPLOADS_UPDATED_EVENT,
+      onStoreChange,
+    );
+  };
+}
+
+function mergePendingUploads(
+  current: ReadonlyArray<UploadStadiumImageTicket>,
+  incoming: ReadonlyArray<UploadStadiumImageTicket>,
+): ReadonlyArray<UploadStadiumImageTicket> {
+  const byId = new Map(current.map(item => [item.attachment_id, item]));
+
+  for (const item of incoming) {
+    byId.set(item.attachment_id, item);
+  }
+
+  return Array.from(byId.values()).sort((left, right) =>
+    left.created_at.localeCompare(right.created_at),
+  );
+}
 
 function ImagePreview({
   url,
@@ -103,6 +227,24 @@ function StadiumImageCard({
       const result = await deleteStadiumImage(stadiumId, image.id);
 
       if (result.success) {
+        if (typeof window !== 'undefined') {
+          const storageKey = getPendingUploadsStorageKey(stadiumId);
+          const storedValue = globalThis.window.sessionStorage.getItem(storageKey);
+
+          if (storedValue) {
+            try {
+              const parsed = JSON.parse(storedValue) as UploadStadiumImageTicket[];
+              const unresolved = parsed.filter(
+                pendingImage => pendingImage.attachment_id !== image.id,
+              );
+
+              writePendingUploadsToStorage(stadiumId, unresolved);
+            } catch {
+              globalThis.window.sessionStorage.removeItem(storageKey);
+            }
+          }
+        }
+
         toast.success(dictionary.stadiums.detail.deleteImageSuccess);
         router.refresh();
         return;
@@ -176,48 +318,136 @@ function StadiumImageCard({
   );
 }
 
+function PendingStadiumImageCard({
+  image,
+}: PendingImageCardProps): React.JSX.Element {
+  const { dictionary } = useI18n();
+
+  return (
+    <Card>
+      <Grid gap={16}>
+        <ImagePreview
+          url={null}
+          fallback={dictionary.stadiums.detail.processingStatusValue}
+          minHeight={180}
+        />
+        <Table>
+          <Tbody>
+            <DataRow
+              label={dictionary.stadiums.detail.imageAttachmentId}
+              value={image.attachment_id}
+            />
+            <DataRow
+              label={dictionary.stadiums.detail.imageAssetId}
+              value={image.asset_id}
+            />
+            <DataRow
+              label={dictionary.stadiums.detail.imageJobId}
+              value={image.asset_job_id}
+            />
+            <DataRow
+              label={dictionary.stadiums.detail.imagePrimary}
+              value={image.is_primary ? 'Yes' : 'No'}
+            />
+            <DataRow
+              label={dictionary.stadiums.detail.imageSortOrder}
+              value={String(image.sort_order)}
+            />
+            <DataRow
+              label={dictionary.stadiums.detail.processingStatus}
+              value={dictionary.stadiums.detail.processingStatusValue}
+            />
+          </Tbody>
+        </Table>
+      </Grid>
+    </Card>
+  );
+}
+
 export default function StadiumMediaSection({
   stadium,
 }: StadiumMediaSectionProps): React.JSX.Element {
   const router = useRouter();
   const { dictionary } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadState, uploadAction, uploadPending] = useActionState<
-    StadiumImageActionState,
-    FormData
-  >(uploadStadiumImages, INITIAL_UPLOAD_STATE);
+  const [uploadPending, startUploadTransition] = useTransition();
+  const pendingUploads = useSyncExternalStore(
+    subscribeToPendingUploads,
+    () => readPendingUploadsFromStorage(stadium.id),
+    () => EMPTY_PENDING_UPLOADS,
+  );
+  const gallery = stadium.images ?? [];
+  const visibleImageIds = new Set(gallery.map(image => image.id));
+  const unresolvedPendingUploads = pendingUploads.filter(
+    image => !visibleImageIds.has(image.attachment_id),
+  );
 
   useEffect(() => {
-    if (uploadState.status === 'idle') return;
+    if (pendingUploads.length === unresolvedPendingUploads.length) return;
 
-    if (uploadState.status === 'error') {
-      toast.error(
-        resolveLocalizedStadiumErrorMessage(
-          uploadState.error,
-          dictionary.stadiums.errors,
-          dictionary.common.unexpectedError,
-        ),
-      );
+    writePendingUploadsToStorage(stadium.id, unresolvedPendingUploads);
+  }, [pendingUploads, stadium.id, unresolvedPendingUploads]);
+
+  useEffect(() => {
+    if (uploadPending || unresolvedPendingUploads.length === 0) return;
+    if (
+      typeof document !== 'undefined' &&
+      document.visibilityState !== 'visible'
+    ) {
       return;
     }
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    const timeoutId = globalThis.window.setTimeout(() => {
+      router.refresh();
+    }, PENDING_UPLOADS_POLL_INTERVAL_MS);
 
-    toast.success(dictionary.stadiums.detail.uploadImagesSuccess);
-    router.refresh();
-  }, [
-    dictionary.common.unexpectedError,
-    dictionary.stadiums.detail.uploadImagesSuccess,
-    dictionary.stadiums.errors,
-    router,
-    uploadState.error,
-    uploadState.status,
-  ]);
+    return () => {
+      globalThis.window.clearTimeout(timeoutId);
+    };
+  }, [router, unresolvedPendingUploads.length, uploadPending]);
+
+  function handleUploadSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (uploadPending) return;
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    startUploadTransition(async () => {
+      const uploadState: StadiumImageActionState = await uploadStadiumImages(
+        INITIAL_UPLOAD_STATE,
+        formData,
+      );
+
+      if (uploadState.status === 'error') {
+        toast.error(
+          resolveLocalizedStadiumErrorMessage(
+            uploadState.error,
+            dictionary.stadiums.errors,
+            dictionary.common.unexpectedError,
+          ),
+        );
+        return;
+      }
+
+      form.reset();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      const nextPendingUploads = mergePendingUploads(
+        unresolvedPendingUploads,
+        uploadState.pendingImages ?? [],
+      );
+
+      writePendingUploadsToStorage(stadium.id, nextPendingUploads);
+
+      toast.success(dictionary.stadiums.detail.uploadImagesSuccess);
+      router.refresh();
+    });
+  }
 
   const primaryImageUrl = stadium.primary_image?.url ?? null;
-  const gallery = stadium.images ?? [];
 
   return (
     <Grid gap={24}>
@@ -245,7 +475,7 @@ export default function StadiumMediaSection({
               <Text color='gray' size='small'>
                 {dictionary.stadiums.detail.uploadImagesHint}
               </Text>
-              <form action={uploadAction}>
+              <form onSubmit={handleUploadSubmit}>
                 <Grid gap={16}>
                   <input type='hidden' name='stadium_id' value={stadium.id} />
                   <Grid gap={8}>
@@ -253,13 +483,13 @@ export default function StadiumMediaSection({
                       {dictionary.stadiums.detail.uploadImagesLabel}
                     </Text>
                     <input
-                      ref={fileInputRef}
-                      type='file'
-                      name='files'
-                      accept='image/*'
-                      multiple
-                      required
-                      disabled={uploadPending}
+                       ref={fileInputRef}
+                       type='file'
+                       name='files'
+                       accept={STADIUM_IMAGE_ACCEPT}
+                       multiple
+                       required
+                       disabled={uploadPending}
                     />
                   </Grid>
                   <Grid justifyItems='start'>
@@ -299,6 +529,32 @@ export default function StadiumMediaSection({
           </Grid>
         )}
       </Grid>
+
+      {unresolvedPendingUploads.length > 0 ? (
+        <Grid gap={16}>
+          <SectionHeader title={dictionary.stadiums.detail.processingUploads}>
+            <Button
+              type='button'
+              variant='borderless'
+              onClick={() => router.refresh()}
+              disabled={uploadPending}
+            >
+              {dictionary.stadiums.detail.refreshGalleryAction}
+            </Button>
+          </SectionHeader>
+          <Text color='gray' size='small'>
+            {dictionary.stadiums.detail.processingUploadsHint}
+          </Text>
+          <Grid gap={16} columns={2}>
+            {unresolvedPendingUploads.map(image => (
+              <PendingStadiumImageCard
+                key={image.attachment_id}
+                image={image}
+              />
+            ))}
+          </Grid>
+        </Grid>
+      ) : null}
     </Grid>
   );
 }

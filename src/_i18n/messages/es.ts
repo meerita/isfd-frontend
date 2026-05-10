@@ -923,6 +923,13 @@ const es = {
       imageAssetId: 'ID del asset',
       imagePrimary: 'Principal',
       imageSortOrder: 'Orden',
+      imageJobId: 'ID del job del asset',
+      processingUploads: 'Subidas en proceso',
+      processingUploadsHint:
+        'Estas subidas han sido aceptadas por el backend y la vista se refresca automáticamente hasta que aparezcan en el detalle del estadio.',
+      processingStatus: 'Estado',
+      processingStatusValue: 'Procesando',
+      refreshGalleryAction: 'Refrescar galería',
       defaultMediaError: 'No hemos podido actualizar la galería del estadio.',
     },
     form: {

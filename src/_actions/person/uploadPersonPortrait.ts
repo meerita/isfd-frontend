@@ -5,9 +5,9 @@
 import { revalidatePath } from 'next/cache';
 
 import API_ROUTES from '@/_constants/apiRoutes';
+import ENV from '@/_constants/env';
 import NAVIGATION from '@/_constants/navigation';
-import { logApiError, normalizeApiError } from '@/_lib/apiError';
-import getServerAxios from '@/_lib/getServerAxios';
+import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
 import type { PersonActionState } from '@/_types/person';
 
 const MISSING_ID_RESPONSE: PersonActionState = {
@@ -44,22 +44,57 @@ export async function uploadPersonPortrait(
 
   const payload = new FormData();
   payload.append('file', file, file.name);
-
-  const client = await getServerAxios();
+  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: true });
 
   try {
-    await client.post(API_ROUTES.PERSON_ADMIN_PORTRAIT(personId), payload, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    const response = await fetch(
+      `${ENV.apiBaseUrl}${API_ROUTES.PERSON_ADMIN_PORTRAIT(personId)}`,
+      {
+        method: 'POST',
+        headers,
+        body: payload,
+        cache: 'no-store',
       },
-    });
+    );
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            code?: string;
+            reason?: string;
+            message?: string;
+            error?: string;
+            details?: string;
+          }
+        | null;
+
+      return {
+        status: 'error',
+        error: {
+          reason: payload?.reason ?? payload?.code ?? 'API_ERROR',
+          message: payload?.message ?? payload?.error ?? 'Unexpected error',
+          error:
+            payload?.error ??
+            payload?.details ??
+            payload?.message ??
+            'Unexpected error',
+          statusCode: response.status,
+        },
+      } satisfies PersonActionState;
+    }
+
     revalidatePath(NAVIGATION.PERSONS);
     revalidatePath(NAVIGATION.PERSON_BY_ID(personId));
 
     return { status: 'success', personId } satisfies PersonActionState;
   } catch (error) {
-    const normalized = normalizeApiError(error);
-    logApiError(normalized);
-    return { status: 'error', error: normalized.data } satisfies PersonActionState;
+    return {
+      status: 'error',
+      error: {
+        reason: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'Unexpected error',
+        error: error instanceof Error ? error.message : 'Unexpected error',
+      },
+    } satisfies PersonActionState;
   }
 }

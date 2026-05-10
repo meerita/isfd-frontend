@@ -8,6 +8,15 @@ import NAVIGATION from '@/_constants/navigation';
 import type { StadiumImageActionState } from '@/_types/stadium';
 import { uploadAdminStadiumImages } from './api';
 
+const MAX_STADIUM_IMAGE_COUNT = 10;
+const MAX_STADIUM_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_STADIUM_IMAGE_BATCH_SIZE_BYTES = 12 * 1024 * 1024;
+const SUPPORTED_STADIUM_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+]);
+
 const MISSING_ID_RESPONSE: StadiumImageActionState = {
   status: 'error',
   error: {
@@ -41,7 +50,7 @@ export async function uploadStadiumImages(
     };
   }
 
-  if (files.length > 10) {
+  if (files.length > MAX_STADIUM_IMAGE_COUNT) {
     return {
       status: 'error',
       error: {
@@ -52,7 +61,23 @@ export async function uploadStadiumImages(
     };
   }
 
-  const oversizedFile = files.find(file => file.size > 10 * 1024 * 1024);
+  const unsupportedFile = files.find(
+    file => !SUPPORTED_STADIUM_IMAGE_TYPES.has(file.type),
+  );
+  if (unsupportedFile) {
+    return {
+      status: 'error',
+      error: {
+        reason: 'INVALID_REQUEST',
+        message: `"${unsupportedFile.name}" must be a JPEG, PNG, or WebP image.`,
+        error: `"${unsupportedFile.name}" must be a JPEG, PNG, or WebP image.`,
+      },
+    };
+  }
+
+  const oversizedFile = files.find(
+    file => file.size > MAX_STADIUM_IMAGE_SIZE_BYTES,
+  );
   if (oversizedFile) {
     return {
       status: 'error',
@@ -61,6 +86,22 @@ export async function uploadStadiumImages(
         message: `"${oversizedFile.name}" exceeds the 10 MB file limit.`,
         error: `"${oversizedFile.name}" exceeds the 10 MB file limit.`,
       },
+    };
+  }
+
+  const totalPayloadSize = files.reduce(
+    (total, file) => total + file.size,
+    0,
+  );
+  if (totalPayloadSize > MAX_STADIUM_IMAGE_BATCH_SIZE_BYTES) {
+    return {
+      status: 'error',
+      error: {
+        reason: 'INVALID_REQUEST',
+        message: 'Selected images exceed the 12 MB upload limit for one request.',
+        error: 'Selected images exceed the 12 MB upload limit for one request.',
+      },
+      stadiumId,
     };
   }
 
@@ -79,5 +120,6 @@ export async function uploadStadiumImages(
   return {
     status: 'success',
     stadiumId,
+    pendingImages: response.data.images,
   };
 }

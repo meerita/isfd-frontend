@@ -204,6 +204,8 @@ export type UploadStadiumImagesResponse = Readonly<{
   >;
 }>;
 
+export type UploadStadiumImageTicket = UploadStadiumImagesResponse['images'][number];
+
 export type StadiumApiError = ApiError;
 
 export interface StadiumActionState {
@@ -216,4 +218,5 @@ export interface StadiumImageActionState {
   status: 'idle' | 'success' | 'error';
   error?: ApiErrorResponse;
   stadiumId?: string;
+  pendingImages?: ReadonlyArray<UploadStadiumImageTicket>;
 }

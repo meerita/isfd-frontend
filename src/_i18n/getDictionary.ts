@@ -751,6 +751,12 @@ export interface AppDictionary {
       readonly imageAssetId: string;
       readonly imagePrimary: string;
       readonly imageSortOrder: string;
+      readonly imageJobId: string;
+      readonly processingUploads: string;
+      readonly processingUploadsHint: string;
+      readonly processingStatus: string;
+      readonly processingStatusValue: string;
+      readonly refreshGalleryAction: string;
       readonly defaultMediaError: string;
     };
     readonly form: {

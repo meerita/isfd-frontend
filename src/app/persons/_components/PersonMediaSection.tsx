@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useRef, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -34,41 +34,41 @@ export default function PersonMediaSection({
   const { dictionary } = useI18n();
   const portraitAssetId = person.portrait_asset_id ?? null;
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadState, uploadAction, uploadPending] = useActionState<
-    PersonActionState,
-    FormData
-  >(uploadPersonPortrait, INITIAL_UPLOAD_STATE);
+  const [uploadPending, startUploadTransition] = useTransition();
 
-  useEffect(() => {
-    if (uploadState.status === 'idle') {
-      return;
-    }
+  function handleUploadSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (uploadPending) return;
 
-    if (uploadState.status === 'error') {
-      toast.error(
-        resolvePersonErrorMessage(
-          uploadState.error,
-          dictionary.persons.errors,
-          dictionary.common.unexpectedError,
-        ),
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    startUploadTransition(async () => {
+      const uploadState: PersonActionState = await uploadPersonPortrait(
+        INITIAL_UPLOAD_STATE,
+        formData,
       );
-      return;
-    }
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+      if (uploadState.status === 'error') {
+        toast.error(
+          resolvePersonErrorMessage(
+            uploadState.error,
+            dictionary.persons.errors,
+            dictionary.common.unexpectedError,
+          ),
+        );
+        return;
+      }
 
-    toast.success(dictionary.persons.detail.portraitUploadSuccess);
-    router.refresh();
-  }, [
-    dictionary.common.unexpectedError,
-    dictionary.persons.detail.portraitUploadSuccess,
-    dictionary.persons.errors,
-    router,
-    uploadState.error,
-    uploadState.status,
-  ]);
+      form.reset();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      toast.success(dictionary.persons.detail.portraitUploadSuccess);
+      router.refresh();
+    });
+  }
 
   return (
     <Card>
@@ -94,7 +94,7 @@ export default function PersonMediaSection({
             <Text color='gray' size='small'>
               {dictionary.persons.detail.portraitUploadHint}
             </Text>
-            <form action={uploadAction}>
+            <form onSubmit={handleUploadSubmit}>
               <Grid gap={16}>
                 <input type='hidden' name='person_id' value={person.id} />
                 <Grid gap={8}>

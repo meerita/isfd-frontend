@@ -886,6 +886,13 @@ const en = {
       imageAssetId: 'Asset ID',
       imagePrimary: 'Primary',
       imageSortOrder: 'Sort order',
+      imageJobId: 'Asset job ID',
+      processingUploads: 'Processing uploads',
+      processingUploadsHint:
+        'These uploads were accepted by the backend and the view refreshes automatically until they appear in the stadium detail response.',
+      processingStatus: 'Status',
+      processingStatusValue: 'Processing',
+      refreshGalleryAction: 'Refresh gallery',
       defaultMediaError: 'We could not update the stadium gallery.',
     },
     form: {
