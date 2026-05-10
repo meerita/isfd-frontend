@@ -5,26 +5,27 @@
 import { revalidatePath } from 'next/cache';
 
 import NAVIGATION from '@/_constants/navigation';
-import { deleteAdminStadium } from './api';
+import { deleteAdminStadiumImage } from './api';
 
-export type DeleteStadiumResult = Readonly<{
+export type DeleteStadiumImageResult = Readonly<{
   success: boolean;
   error?: string;
   reason?: string;
 }>;
 
-export async function deleteStadium(
+export async function deleteStadiumImage(
   stadiumId: string,
-): Promise<DeleteStadiumResult> {
-  if (!stadiumId) {
+  attachmentId: string,
+): Promise<DeleteStadiumImageResult> {
+  if (!stadiumId || !attachmentId) {
     return {
       success: false,
-      reason: 'STADIUM_ID_REQUIRED',
-      error: 'Missing stadium identifier.',
+      reason: 'INVALID_REQUEST',
+      error: 'Stadium and attachment identifiers are required.',
     };
   }
 
-  const response = await deleteAdminStadium(stadiumId);
+  const response = await deleteAdminStadiumImage(stadiumId, attachmentId);
   if (!response.success) {
     return {
       success: false,

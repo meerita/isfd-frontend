@@ -17,11 +17,13 @@ import { toast } from 'sonner';
 import { getAdminCitiesByCountryIdAndProvince } from '@/_actions/city/getCities';
 import { getAdminProvincesByCountryId } from '@/_actions/country/getAdminProvincesByCountryId';
 import { createStadium } from '@/_actions/stadium/createStadium';
+import {
+  formatFormerNamesForInput,
+  formatNullableBooleanForInput,
+} from '@/_actions/stadium/payload';
 import { updateStadium } from '@/_actions/stadium/updateStadium';
-import { formatFormerNamesForInput } from '@/_actions/stadium/payload';
 import Card from '@/_components/Card';
 import Button from '@/_components/forms/Button';
-import CheckBoxInput from '@/_components/forms/CheckBoxInput';
 import FieldSet from '@/_components/forms/Fieldset';
 import Form from '@/_components/forms/Form';
 import Select from '@/_components/forms/Select';
@@ -31,16 +33,13 @@ import Grid from '@/_components/layout/Grid';
 import Line from '@/_components/Line';
 import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
+import Title from '@/_components/typography/Title';
 import { getStadiumSurfaceTypeOptions } from '@/_constants/enums/stadium';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveStadiumErrorMessage } from '@/_constants/stadiumErrorMessages';
 import type { City } from '@/_types/city';
 import type { CountrySelectOption, ProvinceAdmin } from '@/_types/country';
-import {
-  type Stadium,
-  type StadiumActionState,
-} from '@/_types/stadium';
-import Title from '@/_components/typography/Title';
+import type { Stadium, StadiumActionState } from '@/_types/stadium';
 
 const INITIAL_STATE: StadiumActionState = { status: 'idle' };
 
@@ -71,6 +70,10 @@ function formatDateTime(value: string | null | undefined): string {
   return parsed.toLocaleString();
 }
 
+function formatNullableNumber(value: number | null | undefined): string {
+  return typeof value === 'number' ? String(value) : '';
+}
+
 export default function StadiumForm({
   stadium,
   countries,
@@ -88,12 +91,12 @@ export default function StadiumForm({
   const latestCitiesRequest = useRef(0);
 
   const [selectedCountryId, setSelectedCountryId] = useState(
-    stadium?.countryId ?? '',
+    stadium?.country_id ?? '',
   );
   const [selectedProvinceName, setSelectedProvinceName] = useState(
     initialProvinceName ?? '',
   );
-  const [selectedCityId, setSelectedCityId] = useState(stadium?.cityId ?? '');
+  const [selectedCityId, setSelectedCityId] = useState(stadium?.city_id ?? '');
   const [provinceOptions, setProvinceOptions] = useState<
     ReadonlyArray<ProvinceAdmin>
   >([]);
@@ -376,11 +379,73 @@ export default function StadiumForm({
     <Form action={formAction}>
       {edit && stadium ? (
         <>
-          <input type='hidden' name='stadiumId' value={stadium.id} />
+          <input type='hidden' name='stadium_id' value={stadium.id} />
+          <input type='hidden' name='original_name' value={stadium.name} />
           <input
             type='hidden'
-            name='original_surfaceType'
-            value={stadium.surfaceType ?? ''}
+            name='original_former_names'
+            value={formatFormerNamesForInput(stadium.former_names)}
+          />
+          <input
+            type='hidden'
+            name='original_official_website_url'
+            value={stadium.official_website_url ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_country_id'
+            value={stadium.country_id ?? ''}
+          />
+          <input type='hidden' name='original_city_id' value={stadium.city_id ?? ''} />
+          <input
+            type='hidden'
+            name='original_primary_club_id'
+            value={stadium.primary_club_id ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_seat_count'
+            value={formatNullableNumber(stadium.seat_count)}
+          />
+          <input
+            type='hidden'
+            name='original_surface_type'
+            value={stadium.surface_type ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_pitch_length_meters'
+            value={formatNullableNumber(stadium.pitch_length_meters)}
+          />
+          <input
+            type='hidden'
+            name='original_pitch_width_meters'
+            value={formatNullableNumber(stadium.pitch_width_meters)}
+          />
+          <input
+            type='hidden'
+            name='original_opened_on'
+            value={stadium.opened_on ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_closed_on'
+            value={stadium.closed_on ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_is_indoor'
+            value={formatNullableBooleanForInput(stadium.is_indoor)}
+          />
+          <input
+            type='hidden'
+            name='original_is_roofed'
+            value={formatNullableBooleanForInput(stadium.is_roofed)}
+          />
+          <input
+            type='hidden'
+            name='original_is_public'
+            value={stadium.is_public ? 'true' : 'false'}
           />
         </>
       ) : null}
@@ -389,7 +454,7 @@ export default function StadiumForm({
         <Grid gap={16}>
           <Grid gap={16} columns={2}>
             <Section>
-              <Title size='small'>Stadium Information</Title>
+              <Title size='small'>Stadium information</Title>
               <FieldSet>
                 <Grid gap={8} columns={2}>
                   <TextInput
@@ -401,9 +466,18 @@ export default function StadiumForm({
                     disabled={isPending}
                   />
                   <Select
+                    label='Visibility'
+                    name='is_public'
+                    defaultValue={stadium ? (stadium.is_public ? 'true' : 'false') : 'true'}
+                    disabled={isPending}
+                  >
+                    <option value='true'>Public</option>
+                    <option value='false'>Private</option>
+                  </Select>
+                  <Select
                     label='Surface type'
-                    name='surfaceType'
-                    defaultValue={stadium?.surfaceType ?? ''}
+                    name='surface_type'
+                    defaultValue={stadium?.surface_type ?? ''}
                     disabled={isPending}
                   >
                     <option value=''>No surface type</option>
@@ -415,46 +489,38 @@ export default function StadiumForm({
                   </Select>
                   <TextInput
                     label='Seat count'
-                    name='seatCount'
+                    name='seat_count'
                     type='number'
-                    min='0'
+                    min='1'
                     step='1'
                     placeholder='Optional seat count'
-                    defaultValue={stadium?.seatCount?.toString() ?? ''}
+                    defaultValue={formatNullableNumber(stadium?.seat_count)}
                     disabled={isPending}
                   />
                   <TextInput
                     label='Primary club ID'
-                    name='primaryClubId'
+                    name='primary_club_id'
                     placeholder='Optional club UUID'
-                    defaultValue={stadium?.primaryClubId ?? ''}
+                    defaultValue={stadium?.primary_club_id ?? ''}
                     disabled={isPending}
                   />
                   <TextInput
-                    label='Image URL'
-                    name='imageUrl'
+                    label='Official website'
+                    name='official_website_url'
                     type='url'
                     placeholder='https://...'
-                    defaultValue={stadium?.imageUrl ?? ''}
+                    defaultValue={stadium?.official_website_url ?? ''}
                     disabled={isPending}
-                    className='grid-column--2'
                   />
                   <TextArea
                     label='Former names'
-                    name='formerNames'
+                    name='former_names'
                     placeholder='One former name per line'
-                    defaultValue={formatFormerNamesForInput(stadium?.formerNames)}
+                    defaultValue={formatFormerNamesForInput(stadium?.former_names)}
                     disabled={isPending}
                     rows={5}
                     className='grid-column--2'
                     helperText='Optional. Use one former name per line.'
-                  />
-                  <CheckBoxInput
-                    label='Active'
-                    name='isActive'
-                    value='true'
-                    defaultChecked={stadium?.isActive ?? true}
-                    disabled={isPending}
                   />
                 </Grid>
               </FieldSet>
@@ -466,7 +532,7 @@ export default function StadiumForm({
                 <Grid gap={8} columns={2}>
                   <Select
                     label='Country'
-                    name='countryId'
+                    name='country_id'
                     value={selectedCountryId}
                     onChange={handleCountryChange}
                     disabled={isPending || Boolean(countriesError)}
@@ -478,11 +544,11 @@ export default function StadiumForm({
                       <option key={country.id} value={country.id}>
                         {country.name}
                       </option>
-                      ))}
-                    </Select>
+                    ))}
+                  </Select>
                   <Select
                     label='Province'
-                    name='provinceName'
+                    name='province_name'
                     value={selectedProvinceName}
                     onChange={handleProvinceChange}
                     disabled={isPending || !selectedCountryId || isProvincesPending}
@@ -498,7 +564,7 @@ export default function StadiumForm({
                   </Select>
                   <Select
                     label='City'
-                    name='cityId'
+                    name='city_id'
                     value={selectedCityId}
                     onChange={handleCityChange}
                     disabled={
@@ -517,6 +583,66 @@ export default function StadiumForm({
                         {city.name}
                       </option>
                     ))}
+                  </Select>
+                </Grid>
+              </FieldSet>
+
+              <Line />
+
+              <Title size='small'>Specifications</Title>
+              <FieldSet>
+                <Grid gap={8} columns={2}>
+                  <TextInput
+                    label='Pitch length (m)'
+                    name='pitch_length_meters'
+                    type='number'
+                    min='0.1'
+                    step='0.1'
+                    defaultValue={formatNullableNumber(stadium?.pitch_length_meters)}
+                    disabled={isPending}
+                  />
+                  <TextInput
+                    label='Pitch width (m)'
+                    name='pitch_width_meters'
+                    type='number'
+                    min='0.1'
+                    step='0.1'
+                    defaultValue={formatNullableNumber(stadium?.pitch_width_meters)}
+                    disabled={isPending}
+                  />
+                  <TextInput
+                    label='Opened on'
+                    name='opened_on'
+                    type='date'
+                    defaultValue={stadium?.opened_on ?? ''}
+                    disabled={isPending}
+                  />
+                  <TextInput
+                    label='Closed on'
+                    name='closed_on'
+                    type='date'
+                    defaultValue={stadium?.closed_on ?? ''}
+                    disabled={isPending}
+                  />
+                  <Select
+                    label='Indoor'
+                    name='is_indoor'
+                    defaultValue={formatNullableBooleanForInput(stadium?.is_indoor)}
+                    disabled={isPending}
+                  >
+                    <option value=''>Not defined</option>
+                    <option value='true'>Yes</option>
+                    <option value='false'>No</option>
+                  </Select>
+                  <Select
+                    label='Roofed'
+                    name='is_roofed'
+                    defaultValue={formatNullableBooleanForInput(stadium?.is_roofed)}
+                    disabled={isPending}
+                  >
+                    <option value=''>Not defined</option>
+                    <option value='true'>Yes</option>
+                    <option value='false'>No</option>
                   </Select>
                 </Grid>
               </FieldSet>
@@ -540,13 +666,13 @@ export default function StadiumForm({
                       />
                       <TextInput
                         label='Created at'
-                        defaultValue={formatDateTime(stadium.createdAt)}
+                        defaultValue={formatDateTime(stadium.created_at)}
                         readOnly
                         disabled
                       />
                       <TextInput
                         label='Updated at'
-                        defaultValue={formatDateTime(stadium.updatedAt)}
+                        defaultValue={formatDateTime(stadium.updated_at)}
                         readOnly
                         disabled
                       />

@@ -905,6 +905,25 @@ const es = {
       noImageAvailable: 'No hay imagen disponible.',
       notAvailableTitle: 'Estadio no disponible',
       backToStadiums: 'Volver a estadios',
+      primaryImage: 'Imagen principal',
+      gallery: 'Galería',
+      emptyGallery: 'No hay imágenes del estadio disponibles.',
+      uploadImagesTitle: 'Subir imágenes',
+      uploadImagesHint:
+        'Sube hasta 10 archivos usando el endpoint canónico de imágenes del estadio. Tras completar la subida, el detalle se refresca para mostrar las imágenes renderizables más recientes.',
+      uploadImagesLabel: 'Archivos de imagen',
+      uploadImagesAction: 'Subir imágenes',
+      uploadingImages: 'Subiendo imágenes...',
+      uploadImagesSuccess: 'Imágenes del estadio subidas correctamente.',
+      deleteImageAction: 'Eliminar imagen',
+      deletingImage: 'Eliminando imagen...',
+      deleteImageSuccess: 'Imagen del estadio eliminada correctamente.',
+      deleteImageConfirm: '¿Eliminar esta imagen de "{name}"?',
+      imageAttachmentId: 'ID del adjunto',
+      imageAssetId: 'ID del asset',
+      imagePrimary: 'Principal',
+      imageSortOrder: 'Orden',
+      defaultMediaError: 'No hemos podido actualizar la galería del estadio.',
     },
     form: {
       name: 'Nombre del estadio',
@@ -913,9 +932,15 @@ const es = {
       primaryClubId: 'Club principal',
       formerNames: 'Nombres anteriores',
       activeLabel: 'Activo',
+      publicLabel: 'Público',
       countryId: 'País',
       cityId: 'Ciudad',
-      imageUrl: 'URL de imagen',
+      officialWebsiteUrl: 'Sitio web oficial',
+      pitchSize: 'Tamaño del campo',
+      openedOn: 'Abierto el',
+      closedOn: 'Cerrado el',
+      isIndoor: 'Cubierto interior',
+      isRoofed: 'Con techo',
       id: 'ID',
       slug: 'Slug',
       createdAt: 'Creado el',
@@ -931,27 +956,51 @@ const es = {
     },
     errors: {
       INVALID_REQUEST: 'La solicitud de estadio no es válida.',
+      INVALID_PAGINATION: 'Los valores de paginación de estadios no son válidos.',
+      INVALID_SORT: 'El valor de orden de estadios no es válido.',
+      INVALID_STATUS: 'El filtro de estado de estadios no es válido.',
+      UNAUTHORIZED: 'Debes iniciar sesión para continuar.',
       INTERNAL_SERVER_ERROR:
         'La solicitud de estadio ha fallado en el servidor.',
       STADIUM_NOT_FOUND: 'No se ha encontrado este estadio.',
       STADIUM_ID_REQUIRED: 'El identificador del estadio es obligatorio.',
       STADIUM_NAME_REQUIRED: 'El nombre del estadio es obligatorio.',
       STADIUM_NAME_TOO_LONG: 'El nombre del estadio es demasiado largo.',
-      STADIUM_FORMER_NAMES_TOO_LONG:
-        'Los nombres anteriores son demasiado largos.',
+      STADIUM_FORMER_NAME_TOO_LONG:
+        'Un nombre anterior es demasiado largo.',
+      STADIUM_FORMER_NAMES_INVALID:
+        'Revisa la lista de nombres anteriores.',
       STADIUM_INVALID_COUNTRY_ID: 'Selecciona un país válido.',
       STADIUM_INVALID_CITY_ID: 'Selecciona una ciudad válida.',
       STADIUM_INVALID_PRIMARY_CLUB_ID:
         'Introduce un UUID válido para el club principal.',
       STADIUM_CITY_REQUIRES_COUNTRY:
         'Selecciona un país antes de seleccionar una ciudad.',
-      STADIUM_INVALID_IMAGE_URL: 'Introduce una URL de imagen válida.',
+      STADIUM_CITY_COUNTRY_MISMATCH:
+        'La ciudad seleccionada no pertenece al país.',
+      STADIUM_PRIMARY_CLUB_INACTIVE:
+        'El club principal seleccionado no está activo.',
+      STADIUM_INVALID_OFFICIAL_WEBSITE_URL:
+        'Introduce una URL válida para el sitio web oficial.',
       STADIUM_INVALID_SEAT_COUNT: 'Introduce un aforo válido.',
       STADIUM_INVALID_SURFACE_TYPE: 'Selecciona un tipo de superficie válido.',
-      STADIUM_SURFACE_TYPE_TOO_LONG:
-        'El tipo de superficie es demasiado largo.',
+      STADIUM_INVALID_OPENED_ON: 'Introduce una fecha de apertura válida.',
+      STADIUM_INVALID_CLOSED_ON: 'Introduce una fecha de cierre válida.',
+      STADIUM_OPENED_ON_IN_FUTURE:
+        'La fecha de apertura no puede estar en el futuro.',
+      STADIUM_CLOSED_ON_IN_FUTURE:
+        'La fecha de cierre no puede estar en el futuro.',
+      STADIUM_CLOSED_ON_BEFORE_OPENED_ON:
+        'La fecha de cierre no puede ser anterior a la de apertura.',
+      STADIUM_INVALID_PITCH_LENGTH:
+        'Introduce una longitud de campo válida.',
+      STADIUM_INVALID_PITCH_WIDTH:
+        'Introduce una anchura de campo válida.',
       STADIUM_SLUG_GENERATION_FAILED:
         'El backend no ha podido generar el slug del estadio.',
+      STADIUM_IMAGES_REQUIRED: 'Selecciona al menos una imagen del estadio.',
+      STADIUM_IMAGE_ATTACHMENT_NOT_FOUND:
+        'No se ha encontrado esta imagen del estadio.',
       STADIUM_HAS_REFERENCES:
         'Este estadio no se puede eliminar porque está vinculado a otros registros.',
       FORM_VALIDATION_ERROR:

@@ -35,12 +35,34 @@ function formatDateTime(value: string, locale: string): string {
     : parsed.toLocaleString(locale);
 }
 
+function formatDateOnly(value: string | null | undefined): string {
+  if (!value) return PLACEHOLDER;
+  return value;
+}
+
 function formatSeatCount(value: number | null | undefined): string {
   return typeof value === 'number' ? value.toLocaleString() : PLACEHOLDER;
 }
 
 function formatFormerNames(values: ReadonlyArray<string>): string {
   return values.length > 0 ? values.join(', ') : PLACEHOLDER;
+}
+
+function formatNullableBoolean(
+  value: boolean | null | undefined,
+  dictionary: ReturnType<typeof useI18n>['dictionary'],
+): string {
+  if (value === true) return dictionary.common.active;
+  if (value === false) return dictionary.common.inactive;
+  return PLACEHOLDER;
+}
+
+function formatPitchSize(length: number | null | undefined, width: number | null | undefined) {
+  if (typeof length !== 'number' || typeof width !== 'number') {
+    return PLACEHOLDER;
+  }
+
+  return `${length} x ${width} m`;
 }
 
 export default function StadiumProfileSection({
@@ -67,12 +89,16 @@ export default function StadiumProfileSection({
                     monospace
                   />
                   <DataRow
-                    label={dictionary.stadiums.form.activeLabel}
-                    value={<Dot inline active={stadium.isActive} />}
+                    label={dictionary.stadiums.form.publicLabel}
+                    value={<Dot inline active={stadium.is_public} />}
                   />
                   <DataRow
                     label={dictionary.stadiums.form.formerNames}
-                    value={formatFormerNames(stadium.formerNames)}
+                    value={formatFormerNames(stadium.former_names)}
+                  />
+                  <DataRow
+                    label={dictionary.stadiums.form.officialWebsiteUrl}
+                    value={formatText(stadium.official_website_url)}
                   />
                 </Tbody>
               </Table>
@@ -83,15 +109,15 @@ export default function StadiumProfileSection({
                 <Tbody>
                   <DataRow
                     label={dictionary.stadiums.form.countryId}
-                    value={formatText(countryLabel ?? stadium.countryId)}
+                    value={formatText(countryLabel ?? stadium.country_id)}
                   />
                   <DataRow
                     label={dictionary.stadiums.form.cityId}
-                    value={formatText(cityLabel ?? stadium.cityId)}
+                    value={formatText(cityLabel ?? stadium.city_id)}
                   />
                   <DataRow
                     label={dictionary.stadiums.form.primaryClubId}
-                    value={formatText(primaryClubLabel ?? stadium.primaryClubId)}
+                    value={formatText(primaryClubLabel ?? stadium.primary_club_id)}
                   />
                 </Tbody>
               </Table>
@@ -105,16 +131,35 @@ export default function StadiumProfileSection({
                   <DataRow
                     label={dictionary.stadiums.form.surfaceType}
                     value={
-                      getStadiumSurfaceTypeLabel(stadium.surfaceType) ?? PLACEHOLDER
+                      getStadiumSurfaceTypeLabel(stadium.surface_type) ?? PLACEHOLDER
                     }
                   />
                   <DataRow
                     label={dictionary.stadiums.form.seatCount}
-                    value={formatSeatCount(stadium.seatCount)}
+                    value={formatSeatCount(stadium.seat_count)}
                   />
                   <DataRow
-                    label={dictionary.stadiums.form.imageUrl}
-                    value={formatText(stadium.imageUrl)}
+                    label={dictionary.stadiums.form.pitchSize}
+                    value={formatPitchSize(
+                      stadium.pitch_length_meters,
+                      stadium.pitch_width_meters,
+                    )}
+                  />
+                  <DataRow
+                    label={dictionary.stadiums.form.openedOn}
+                    value={formatDateOnly(stadium.opened_on)}
+                  />
+                  <DataRow
+                    label={dictionary.stadiums.form.closedOn}
+                    value={formatDateOnly(stadium.closed_on)}
+                  />
+                  <DataRow
+                    label={dictionary.stadiums.form.isIndoor}
+                    value={formatNullableBoolean(stadium.is_indoor, dictionary)}
+                  />
+                  <DataRow
+                    label={dictionary.stadiums.form.isRoofed}
+                    value={formatNullableBoolean(stadium.is_roofed, dictionary)}
                   />
                 </Tbody>
               </Table>
@@ -126,11 +171,11 @@ export default function StadiumProfileSection({
                   <DataRow label={dictionary.stadiums.form.id} value={stadium.id} monospace />
                   <DataRow
                     label={dictionary.stadiums.form.createdAt}
-                    value={formatDateTime(stadium.createdAt, locale)}
+                    value={formatDateTime(stadium.created_at, locale)}
                   />
                   <DataRow
                     label={dictionary.stadiums.form.updatedAt}
-                    value={formatDateTime(stadium.updatedAt, locale)}
+                    value={formatDateTime(stadium.updated_at, locale)}
                   />
                 </Tbody>
               </Table>

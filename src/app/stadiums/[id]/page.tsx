@@ -123,18 +123,18 @@ export default async function StadiumDetailsPage({
   }
 
   const stadium = stadiumResponse.data;
-  const selectedCountry = countries.find(country => country.id === stadium.countryId);
+  const selectedCountry = countries.find(country => country.id === stadium.country_id);
   const [selectedCity, selectedPrimaryClub] = await Promise.all([
-    stadium.cityId ? getCityById(stadium.cityId) : Promise.resolve(null),
-    stadium.primaryClubId
-      ? getAdminClubById(stadium.primaryClubId)
+    stadium.city_id ? getCityById(stadium.city_id) : Promise.resolve(null),
+    stadium.primary_club_id
+      ? getAdminClubById(stadium.primary_club_id)
       : Promise.resolve({ data: null }),
   ]);
   const initialProvinceName = selectedCity?.provinceName ?? null;
   const initialCities =
-    stadium.countryId && initialProvinceName
+    stadium.country_id && initialProvinceName
       ? await getAdminCitiesByCountryIdAndProvince(
-          stadium.countryId,
+          stadium.country_id,
           initialProvinceName,
         )
       : [];
@@ -172,10 +172,10 @@ export default async function StadiumDetailsPage({
             countries={countries}
             initialProvinceName={initialProvinceName}
             initialCities={initialCities}
-            selectedCountryLabel={selectedCountry?.name ?? stadium.countryId}
-            selectedCityLabel={selectedCity?.name ?? stadium.cityId}
+            selectedCountryLabel={selectedCountry?.name ?? stadium.country_id}
+            selectedCityLabel={selectedCity?.name ?? stadium.city_id}
             selectedPrimaryClubLabel={
-              selectedPrimaryClub.data?.name ?? stadium.primaryClubId
+              selectedPrimaryClub.data?.name ?? stadium.primary_club_id
             }
             cancelHref={detailHref}
             successHref={detailHref}

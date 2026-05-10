@@ -48,7 +48,11 @@ export async function uploadPersonPortrait(
   const client = await getServerAxios();
 
   try {
-    await client.post(API_ROUTES.PERSON_ADMIN_PORTRAIT(personId), payload);
+    await client.post(API_ROUTES.PERSON_ADMIN_PORTRAIT(personId), payload, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     revalidatePath(NAVIGATION.PERSONS);
     revalidatePath(NAVIGATION.PERSON_BY_ID(personId));
 

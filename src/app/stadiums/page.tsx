@@ -24,13 +24,13 @@ import SECTIONS from '@/_constants/sections';
 import { parseUuid } from '@/_helpers/uuid';
 import { resolveStadiumErrorMessage } from '@/_constants/stadiumErrorMessages';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
-import type { StadiumSort, StadiumStatusFilter } from '@/_types/stadium';
+import type { StadiumAdminSort, StadiumStatusFilter } from '@/_types/stadium';
 import StadiumFilters from './_components/StadiumFilters';
 
 const PLACEHOLDER = '--';
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
-const DEFAULT_SORT: StadiumSort = 'updated_at_desc';
+const DEFAULT_SORT: StadiumAdminSort = 'updated_at_desc';
 const EMPTY_STADIUM_ROW_KEYS = [
   'name',
   'slug',
@@ -86,7 +86,7 @@ function formatDateOnly(value: string): string {
 function buildHref(
   page: number,
   pageSize: number,
-  sort: StadiumSort,
+  sort: StadiumAdminSort,
   status?: StadiumStatusFilter,
   countryId?: string,
   cityId?: string,
@@ -149,7 +149,7 @@ export default async function StadiumsPage({
   const page = parsePositiveInt(params?.page, DEFAULT_PAGE);
   const pageSize = parsePositiveInt(params?.page_size, DEFAULT_PAGE_SIZE, 100);
   const sort =
-    (parseString(params?.sort) as StadiumSort | undefined) ?? DEFAULT_SORT;
+    (parseString(params?.sort) as StadiumAdminSort | undefined) ?? DEFAULT_SORT;
   const status = parseString(params?.status) as StadiumStatusFilter | undefined;
   const countryId = parseUuid(params?.country_id);
   const cityId = parseUuid(params?.city_id);
@@ -159,12 +159,12 @@ export default async function StadiumsPage({
     [
       getAdminStadiums({
         page,
-        pageSize,
+        page_size: pageSize,
         sort,
         status,
-        countryId,
-        cityId,
-        primaryClubId,
+        country_id: countryId,
+        city_id: cityId,
+        primary_club_id: primaryClubId,
       }),
       getAllCountries(),
       cityId ? getCityById(cityId) : Promise.resolve(null),
@@ -179,7 +179,7 @@ export default async function StadiumsPage({
     new Set(
       [
         countryId,
-        ...stadiumsResponse.data.map(stadium => stadium.countryId),
+        ...stadiumsResponse.data.map(stadium => stadium.country_id),
       ].filter(
         (value): value is string =>
           typeof value === 'string' && availableCountryIds.has(value),
@@ -219,9 +219,9 @@ export default async function StadiumsPage({
 
   const { metadata } = stadiumsResponse;
   const currentPage = metadata.page;
-  const totalPages = Math.max(1, metadata.totalPages);
-  const hasPrev = metadata.hasPreviousPage;
-  const hasNext = metadata.hasNextPage;
+  const totalPages = Math.max(1, metadata.total_pages);
+  const hasPrev = metadata.has_previous_page;
+  const hasNext = metadata.has_next_page;
 
   return (
     <Grid gap={16}>
@@ -310,44 +310,47 @@ export default async function StadiumsPage({
                       href={NAVIGATION.STADIUM_BY_ID(stadium.id)}
                     >
                       <Cell>
-                        {renderImagePreview(stadium.name, stadium.imageUrl)}
-                      </Cell>
-                      <Cell className='padding-left--16'>{stadium.name}</Cell>
-                      <Cell className='padding-left--16'>{stadium.slug}</Cell>
-                      <Cell className='padding-left--16'>
-                        {stadium.countryId
-                          ? (countryLabels.get(stadium.countryId) ??
-                            stadium.countryId)
-                          : PLACEHOLDER}
-                      </Cell>
-                      <Cell className='padding-left--16'>
-                        {stadium.cityId
-                          ? (cityLabels.get(stadium.cityId) ?? stadium.cityId)
-                          : PLACEHOLDER}
-                      </Cell>
-                      <Cell align='right' className='padding-left--16'>
-                        {stadium.seatCount?.toLocaleString() ?? PLACEHOLDER}
-                      </Cell>
-                      <Cell className='padding-left--16'>
-                        {getStadiumSurfaceTypeLabel(stadium.surfaceType) ??
-                          PLACEHOLDER}
-                      </Cell>
-                      <Cell className='padding-left--16'>
-                        {stadium.primaryClubId ?? PLACEHOLDER}
-                      </Cell>
-                      <Cell align='center'>
-                        {stadium.isActive ? (
-                          <Dot active inline />
-                        ) : (
-                          <Dot inline />
-                        )}
-                      </Cell>
-                      <Cell align='right' className='padding-left--16'>
-                        {formatDateOnly(stadium.createdAt)}
-                      </Cell>
-                      <Cell align='right' className='padding-left--16'>
-                        {formatDateOnly(stadium.updatedAt)}
-                      </Cell>
+                         {renderImagePreview(
+                           stadium.name,
+                           stadium.primary_image?.url ?? null,
+                         )}
+                       </Cell>
+                       <Cell className='padding-left--16'>{stadium.name}</Cell>
+                       <Cell className='padding-left--16'>{stadium.slug}</Cell>
+                       <Cell className='padding-left--16'>
+                         {stadium.country_id
+                           ? (countryLabels.get(stadium.country_id) ??
+                             stadium.country_id)
+                           : PLACEHOLDER}
+                       </Cell>
+                       <Cell className='padding-left--16'>
+                         {stadium.city_id
+                           ? (cityLabels.get(stadium.city_id) ?? stadium.city_id)
+                           : PLACEHOLDER}
+                       </Cell>
+                       <Cell align='right' className='padding-left--16'>
+                         {stadium.seat_count?.toLocaleString() ?? PLACEHOLDER}
+                       </Cell>
+                       <Cell className='padding-left--16'>
+                         {getStadiumSurfaceTypeLabel(stadium.surface_type) ??
+                           PLACEHOLDER}
+                       </Cell>
+                       <Cell className='padding-left--16'>
+                         {stadium.primary_club_id ?? PLACEHOLDER}
+                       </Cell>
+                       <Cell align='center'>
+                         {stadium.is_public ? (
+                           <Dot active inline />
+                         ) : (
+                           <Dot inline />
+                         )}
+                       </Cell>
+                       <Cell align='right' className='padding-left--16'>
+                         {formatDateOnly(stadium.created_at)}
+                       </Cell>
+                       <Cell align='right' className='padding-left--16'>
+                         {formatDateOnly(stadium.updated_at)}
+                       </Cell>
                     </Row>
                   ))
                 )}

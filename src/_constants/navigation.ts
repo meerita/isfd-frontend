@@ -66,6 +66,9 @@ const NAVIGATION = {
     `/legal/${id}/translations/${translationId}`,
   EVENT_BY_ID: (id: string) => `/events/${id}`,
   STADIUM_BY_ID: (id: string) => `/stadiums/${id}`,
+  STADIUM_BY_SLUG: (slug: string) =>
+    `/stadiums/slug?value=${encodeURIComponent(slug)}`,
+  STADIUMS_PUBLIC: '/stadiums/public',
   PLACE_BY_ID: (id: string) => `/places/${id}`,
   HOME: '/',
   LOGIN: '/auth/login',

@@ -19,8 +19,13 @@ const API_ROUTES = {
   CONTRIBUTION_ADMIN_BY_ID: (id: string) => `/admin/contributions/${id}`,
   CONTRIBUTION_ADMIN_APPROVE: (id: string) => `/admin/contributions/${id}/approve`,
   CONTRIBUTION_ADMIN_REJECT: (id: string) => `/admin/contributions/${id}/reject`,
+  STADIUMS: '/stadiums',
+  STADIUM_BY_SLUG: (slug: string) => `/stadiums/${slug}`,
   STADIUMS_ADMIN: '/admin/stadiums',
   STADIUM_ADMIN_BY_ID: (id: string) => `/admin/stadiums/${id}`,
+  STADIUM_ADMIN_IMAGES: (id: string) => `/admin/stadiums/${id}/images`,
+  STADIUM_ADMIN_IMAGE_BY_ID: (id: string, attachmentId: string) =>
+    `/admin/stadiums/${id}/images/${attachmentId}`,
   ADMIN_COUNTRY_STADIUMS_CATALOG: (countryId: string) =>
     `/admin/countries/${countryId}/stadiums/catalog`,
   FEDERATIONS: '/federations',

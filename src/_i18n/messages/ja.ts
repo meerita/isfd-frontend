@@ -873,6 +873,25 @@ const ja = {
       noImageAvailable: '画像がありません。',
       notAvailableTitle: 'スタジアムを利用できません',
       backToStadiums: 'スタジアムへ戻る',
+      primaryImage: 'メイン画像',
+      gallery: 'ギャラリー',
+      emptyGallery: 'スタジアム画像はまだありません。',
+      uploadImagesTitle: '画像をアップロード',
+      uploadImagesHint:
+        '正規のスタジアム画像エンドポイントで最大10ファイルまでアップロードできます。アップロード後に詳細を再読込して、最新の表示可能画像を反映します。',
+      uploadImagesLabel: '画像ファイル',
+      uploadImagesAction: '画像をアップロード',
+      uploadingImages: '画像をアップロード中...',
+      uploadImagesSuccess: 'スタジアム画像をアップロードしました。',
+      deleteImageAction: '画像を削除',
+      deletingImage: '画像を削除中...',
+      deleteImageSuccess: 'スタジアム画像を削除しました。',
+      deleteImageConfirm: '「{name}」からこの画像を削除しますか？',
+      imageAttachmentId: '添付ID',
+      imageAssetId: 'アセットID',
+      imagePrimary: 'メイン',
+      imageSortOrder: '並び順',
+      defaultMediaError: 'スタジアムギャラリーを更新できませんでした。',
     },
     form: {
       name: 'スタジアム名',
@@ -881,9 +900,15 @@ const ja = {
       primaryClubId: '主クラブ',
       formerNames: '旧称',
       activeLabel: '有効',
+      publicLabel: '公開',
       countryId: '国',
       cityId: '都市',
-      imageUrl: '画像URL',
+      officialWebsiteUrl: '公式サイト',
+      pitchSize: 'ピッチサイズ',
+      openedOn: '開場日',
+      closedOn: '閉場日',
+      isIndoor: '屋内',
+      isRoofed: '屋根付き',
       id: 'ID',
       slug: 'スラッグ',
       createdAt: '作成日時',
@@ -899,24 +924,48 @@ const ja = {
     },
     errors: {
       INVALID_REQUEST: 'スタジアムへのリクエストが無効でした。',
+      INVALID_PAGINATION: 'スタジアムのページネーション値が無効でした。',
+      INVALID_SORT: 'スタジアムの並び順が無効でした。',
+      INVALID_STATUS: 'スタジアムの状態フィルターが無効でした。',
+      UNAUTHORIZED: '続行するにはサインインが必要です。',
       INTERNAL_SERVER_ERROR:
         'スタジアムへのリクエストがサーバーで失敗しました。',
       STADIUM_NOT_FOUND: 'このスタジアムは見つかりませんでした。',
       STADIUM_ID_REQUIRED: 'スタジアムIDは必須です。',
       STADIUM_NAME_REQUIRED: 'スタジアム名は必須です。',
       STADIUM_NAME_TOO_LONG: 'スタジアム名が長すぎます。',
-      STADIUM_FORMER_NAMES_TOO_LONG: '旧称が長すぎます。',
+      STADIUM_FORMER_NAME_TOO_LONG: '旧称が長すぎます。',
+      STADIUM_FORMER_NAMES_INVALID: '旧称の一覧を確認してください。',
       STADIUM_INVALID_COUNTRY_ID: '有効な国を選択してください。',
       STADIUM_INVALID_CITY_ID: '有効な都市を選択してください。',
       STADIUM_INVALID_PRIMARY_CLUB_ID:
         '有効な主クラブUUIDを入力してください。',
       STADIUM_CITY_REQUIRES_COUNTRY: '都市を選択する前に国を選択してください。',
-      STADIUM_INVALID_IMAGE_URL: '有効な画像URLを入力してください。',
+      STADIUM_CITY_COUNTRY_MISMATCH:
+        '選択した都市はその国に属していません。',
+      STADIUM_PRIMARY_CLUB_INACTIVE:
+        '選択した主クラブは有効ではありません。',
+      STADIUM_INVALID_OFFICIAL_WEBSITE_URL:
+        '有効な公式サイトURLを入力してください。',
       STADIUM_INVALID_SEAT_COUNT: '有効な座席数を入力してください。',
       STADIUM_INVALID_SURFACE_TYPE: '有効なサーフェスタイプを選択してください。',
-      STADIUM_SURFACE_TYPE_TOO_LONG: 'サーフェスタイプが長すぎます。',
+      STADIUM_INVALID_OPENED_ON: '有効な開場日を入力してください。',
+      STADIUM_INVALID_CLOSED_ON: '有効な閉場日を入力してください。',
+      STADIUM_OPENED_ON_IN_FUTURE:
+        '開場日は未来の日付にできません。',
+      STADIUM_CLOSED_ON_IN_FUTURE:
+        '閉場日は未来の日付にできません。',
+      STADIUM_CLOSED_ON_BEFORE_OPENED_ON:
+        '閉場日は開場日より前にできません。',
+      STADIUM_INVALID_PITCH_LENGTH:
+        '有効なピッチの長さを入力してください。',
+      STADIUM_INVALID_PITCH_WIDTH:
+        '有効なピッチの幅を入力してください。',
       STADIUM_SLUG_GENERATION_FAILED:
         'バックエンドでスタジアムのスラッグを生成できませんでした。',
+      STADIUM_IMAGES_REQUIRED: 'スタジアム画像を1つ以上選択してください。',
+      STADIUM_IMAGE_ATTACHMENT_NOT_FOUND:
+        'このスタジアム画像は見つかりませんでした。',
       STADIUM_HAS_REFERENCES:
         'このスタジアムは他のレコードに関連付けられているため削除できません。',
       FORM_VALIDATION_ERROR:
