@@ -16,9 +16,7 @@ import Select from '@/_components/forms/Select';
 import Grid from '@/_components/layout/Grid';
 import {
   getPersonCurrentProfessionOptions,
-  getPersonGenderOptions,
   type PersonCurrentProfession,
-  type PersonGender,
 } from '@/_constants/enums/person';
 import NAVIGATION from '@/_constants/navigation';
 import { useI18n } from '@/_i18n/I18nProvider';
@@ -28,7 +26,6 @@ type PersonFiltersProps = Readonly<{
   pageSize: number;
   sort: PersonSort;
   status?: PersonStatusFilter;
-  gender?: PersonGender;
   currentProfession?: PersonCurrentProfession;
 }>;
 
@@ -38,7 +35,6 @@ export default function PersonFilters({
   pageSize,
   sort,
   status,
-  gender,
   currentProfession,
 }: PersonFiltersProps): React.JSX.Element {
   const { dictionary } = useI18n();
@@ -54,35 +50,23 @@ export default function PersonFilters({
       hasPendingNavigationRef.current = false;
       toast.dismiss(FILTERS_TOAST_ID);
     },
-    [currentProfession, gender, pageSize, sort, status],
-  );
-
-  const handleSubmit = useCallback(
-    function handleSubmit(): void {
-      hasPendingNavigationRef.current = true;
-      toast.loading(dictionary.persons.filters.updating, {
-        id: FILTERS_TOAST_ID,
-      });
-    },
-    [dictionary.persons.filters.updating],
+    [currentProfession, pageSize, sort, status],
   );
 
   const handleChange = useCallback(
     function handleChange(): void {
-      handleSubmit();
+      hasPendingNavigationRef.current = true;
+      toast.loading(dictionary.persons.filters.updating, {
+        id: FILTERS_TOAST_ID,
+      });
       formRef.current?.requestSubmit();
     },
-    [handleSubmit],
+    [dictionary.persons.filters.updating],
   );
 
   return (
-    <form
-      ref={formRef}
-      method='GET'
-      action={NAVIGATION.PERSONS}
-      onSubmit={handleSubmit}
-    >
-      <Grid gap={8} columns={6} alignItems='end'>
+    <form ref={formRef} method='GET' action={NAVIGATION.PERSONS}>
+      <Grid gap={8} columns={5} alignItems='end'>
         <input type='hidden' name='page' value='1' />
         <input type='hidden' name='page_size' value={String(pageSize)} />
 
@@ -136,24 +120,6 @@ export default function PersonFilters({
         </Select>
 
         <Select
-          label={dictionary.persons.filters.gender}
-          name='gender'
-          defaultValue={gender ?? ''}
-          onChange={handleChange}
-        >
-          <option value=''>{dictionary.persons.filters.anyGender}</option>
-          {getPersonGenderOptions().map(
-            function renderGenderOption(option): React.JSX.Element {
-              return (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              );
-            },
-          )}
-        </Select>
-
-        <Select
           label={dictionary.persons.filters.currentProfession}
           name='current_profession'
           defaultValue={currentProfession ?? ''}
@@ -172,7 +138,6 @@ export default function PersonFilters({
         </Select>
 
         <Grid display='flex' gap={8} alignItems='center'>
-          <Button type='submit'>{dictionary.common.apply}</Button>
           <Button href={NAVIGATION.PERSONS} variant='borderless'>
             {dictionary.common.reset}
           </Button>

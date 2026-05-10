@@ -44,6 +44,7 @@ const SECTIONS = {
   SPORTS: 'Sports',
   CLUBS: 'Clubs',
   COMPETITIONS: 'Competitions',
+  CONTRIBUTIONS: 'Contributions',
   BRANDS: 'Brands',
   FEDERATIONS: 'Federations',
   PERSONS: 'Persons',

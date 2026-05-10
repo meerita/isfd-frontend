@@ -24,11 +24,8 @@ import Thead from '@/_components/tables/Thead';
 import Text from '@/_components/typography/Text';
 import {
   getPersonCurrentProfessionLabel,
-  getPersonGenderLabel,
   parsePersonCurrentProfession,
-  parsePersonGender,
   type PersonCurrentProfession,
-  type PersonGender,
 } from '@/_constants/enums/person';
 import NAVIGATION from '@/_constants/navigation';
 import { resolvePersonErrorMessage } from '@/_constants/personErrorMessages';
@@ -48,7 +45,6 @@ type SearchParams = Readonly<{
   page_size?: string | string[];
   sort?: string | string[];
   status?: string | string[];
-  gender?: string | string[];
   current_profession?: string | string[];
 }>;
 
@@ -104,21 +100,16 @@ function buildHref(
   pageSize: number,
   sort: PersonSort,
   status?: PersonStatusFilter,
-  gender?: PersonGender,
   current_profession?: PersonCurrentProfession,
 ): string {
   const params = new URLSearchParams();
 
   params.set('page', String(page));
   params.set('page_size', String(pageSize));
-    params.set('sort', sort);
+  params.set('sort', sort);
 
   if (status) {
     params.set('status', status);
-  }
-
-  if (gender) {
-    params.set('gender', gender);
   }
 
   if (current_profession) {
@@ -154,20 +145,18 @@ export default async function PersonsPage({
   const sort =
     (parseString(params?.sort) as PersonSort | undefined) ?? DEFAULT_SORT;
   const status = parseString(params?.status) as PersonStatusFilter | undefined;
-  const gender = parsePersonGender(parseString(params?.gender)) ?? undefined;
   const currentProfession =
     parsePersonCurrentProfession(parseString(params?.current_profession)) ??
     undefined;
 
   const [personsResponse, countriesResponse] = await Promise.all([
-    getAdminPersons({
-      page,
-      pageSize,
-      sort,
-      status,
-      gender,
-      current_profession: currentProfession,
-    }),
+      getAdminPersons({
+        page,
+        pageSize,
+        sort,
+        status,
+        current_profession: currentProfession,
+      }),
     getAllCountries(),
   ]);
 
@@ -194,7 +183,6 @@ export default async function PersonsPage({
         pageSize={pageSize}
         sort={sort}
         status={status}
-        gender={gender}
         currentProfession={currentProfession}
       />
 
@@ -230,9 +218,6 @@ export default async function PersonsPage({
                     {dictionary.persons.headers.displayName}
                   </Cell>
                   <Cell header className='padding-left--16'>
-                    {dictionary.persons.headers.gender}
-                  </Cell>
-                  <Cell header className='padding-left--16'>
                     {dictionary.persons.headers.currentProfession}
                   </Cell>
                   <Cell header className='padding-left--16'>
@@ -253,7 +238,7 @@ export default async function PersonsPage({
                 {personsResponse.data.length === 0 ? (
                   <Row>
                     <Cell>{dictionary.persons.emptyState}</Cell>
-                    {Array.from({ length: 9 }).map(
+                    {Array.from({ length: 8 }).map(
                       function renderEmptyCell(_, index): React.JSX.Element {
                         return (
                           <Cell
@@ -287,11 +272,8 @@ export default async function PersonsPage({
                              {person.display_name || PLACEHOLDER}
                           </Cell>
                           <Cell className='padding-left--16'>
-                            {getPersonGenderLabel(person.gender) ?? PLACEHOLDER}
-                          </Cell>
-                          <Cell className='padding-left--16'>
-                             {getPersonCurrentProfessionLabel(
-                               person.current_profession,
+                              {getPersonCurrentProfessionLabel(
+                                person.current_profession,
                              ) ?? PLACEHOLDER}
                            </Cell>
                            <Cell className='padding-left--16'>
@@ -332,7 +314,6 @@ export default async function PersonsPage({
                     pageSize,
                     sort,
                     status,
-                    gender,
                     currentProfession,
                   )}
                   aria-label={dictionary.common.previous}
@@ -354,7 +335,6 @@ export default async function PersonsPage({
                     pageSize,
                     sort,
                     status,
-                    gender,
                     currentProfession,
                   )}
                   aria-label={dictionary.common.next}

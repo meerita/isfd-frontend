@@ -15,6 +15,10 @@ const API_ROUTES = {
   PERSON_BY_SLUG: (slug: string) => `/persons/${slug}`,
   BRANDS_ADMIN: '/admin/brands',
   BRAND_ADMIN_BY_ID: (id: string) => `/admin/brands/${id}`,
+  CONTRIBUTIONS_ADMIN: '/admin/contributions',
+  CONTRIBUTION_ADMIN_BY_ID: (id: string) => `/admin/contributions/${id}`,
+  CONTRIBUTION_ADMIN_APPROVE: (id: string) => `/admin/contributions/${id}/approve`,
+  CONTRIBUTION_ADMIN_REJECT: (id: string) => `/admin/contributions/${id}/reject`,
   STADIUMS_ADMIN: '/admin/stadiums',
   STADIUM_ADMIN_BY_ID: (id: string) => `/admin/stadiums/${id}`,
   ADMIN_COUNTRY_STADIUMS_CATALOG: (countryId: string) =>

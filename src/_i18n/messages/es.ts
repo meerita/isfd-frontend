@@ -50,6 +50,7 @@ const es = {
     brands: 'Marcas',
     clubs: 'Clubes',
     competitions: 'Competiciones',
+    contributions: 'Contribuciones',
     countries: 'Países',
     dashboard: 'Panel',
     federations: 'Federaciones',
@@ -57,6 +58,120 @@ const es = {
     persons: 'Personas',
     stadiums: 'Estadios',
     users: 'Usuarios',
+  },
+  contributions: {
+    list: {
+      title: 'Contribuciones',
+      loadErrorTitle: 'No hemos podido cargar las contribuciones.',
+      emptyState: 'No se han encontrado contribuciones con los filtros actuales.',
+      paginationLabel: 'Página {current} de {total}',
+      headers: {
+        id: 'ID de contribución',
+        type: 'Tipo',
+        targetEntityType: 'Tipo de destino',
+        targetEntityId: 'ID de destino',
+        assetId: 'ID de asset',
+        submittedByUserId: 'Enviada por',
+        reviewStatus: 'Estado de revisión',
+        createdAt: 'Creada',
+        updatedAt: 'Actualizada',
+        actions: 'Acciones',
+      },
+      filters: {
+        updating: 'Actualizando filtros...',
+        sort: 'Orden',
+        reviewStatus: 'Estado de revisión',
+        targetEntityType: 'Tipo de destino',
+        allReviewStatuses: 'Todos los estados',
+        allTargets: 'Todos los destinos',
+        pendingStatus: 'Pendiente',
+        approvedStatus: 'Aprobada',
+        rejectedStatus: 'Rechazada',
+        stadiumOnly: 'Estadio',
+        personOnly: 'Persona',
+        updatedDesc: 'Actualizada ↓',
+        updatedAsc: 'Actualizada ↑',
+        createdDesc: 'Creada ↓',
+        createdAsc: 'Creada ↑',
+      },
+    },
+    detail: {
+      unavailableTitle: 'Contribución no disponible',
+      missingId: 'El identificador de la contribución es obligatorio.',
+      pendingHelp:
+        'Esta contribución está pendiente de revisión. Apruébala para publicar el asset enviado en la entidad destino o recházala para mantener la imagen actual.',
+    },
+    fields: {
+      id: 'ID de contribución',
+      submittedByUserId: 'ID del usuario remitente',
+      contributionType: 'Tipo de contribución',
+      targetEntityType: 'Tipo de entidad destino',
+      targetEntityId: 'ID de la entidad destino',
+      assetId: 'ID de asset',
+      reviewStatus: 'Estado de revisión',
+      reviewedByUserId: 'ID del usuario revisor',
+      reviewedAt: 'Revisada el',
+      createdAt: 'Creada el',
+      updatedAt: 'Actualizada el',
+    },
+    labels: {
+      reviewStatus: {
+        pending: 'Pendiente',
+        approved: 'Aprobada',
+        rejected: 'Rechazada',
+      },
+      contributionType: {
+        stadiumImageSubmission: 'Envío de imagen de estadio',
+        personPortraitSubmission: 'Envío de retrato de persona',
+      },
+      targetEntityType: {
+        stadium: 'Estadio',
+        person: 'Persona',
+      },
+    },
+    actions: {
+      view: 'Ver',
+      approve: 'Aprobar',
+      approvePending: 'Aprobando...',
+      reject: 'Rechazar',
+      rejectPending: 'Rechazando...',
+      approveConfirmTitle: '¿Aprobar esta contribución?',
+      approveConfirmBody:
+        'La contribución pasará a aprobada y la entidad destino se actualizará para usar el asset enviado.',
+      rejectConfirmTitle: '¿Rechazar esta contribución?',
+      rejectConfirmBody:
+        'La contribución pasará a rechazada y la entidad destino mantendrá su asset actual.',
+      approveSuccess: 'Contribución aprobada.',
+      rejectSuccess: 'Contribución rechazada.',
+      defaultError: 'No hemos podido actualizar esta contribución.',
+      alreadyReviewed: 'Solo se pueden revisar contribuciones pendientes.',
+    },
+    errors: {
+      INVALID_REQUEST: 'La solicitud de contribución no es válida.',
+      INVALID_PAGINATION: 'Los valores de paginación de contribuciones no son válidos.',
+      INVALID_SORT: 'El valor de orden de contribuciones no es válido.',
+      INVALID_REVIEW_STATUS:
+        'El filtro de estado de revisión de contribuciones no es válido.',
+      INVALID_TARGET_ENTITY_TYPE:
+        'El filtro de tipo de entidad destino no es válido.',
+      CONTRIBUTION_ID_REQUIRED: 'El identificador de la contribución es obligatorio.',
+      CONTRIBUTION_TARGET_ENTITY_ID_REQUIRED:
+        'El identificador de la entidad destino es obligatorio.',
+      CONTRIBUTION_SUBMITTED_BY_USER_ID_REQUIRED:
+        'El identificador del usuario remitente es obligatorio.',
+      CONTRIBUTION_REVIEWED_BY_USER_ID_REQUIRED:
+        'El identificador del usuario revisor es obligatorio.',
+      CONTRIBUTION_NOT_FOUND: 'No se ha encontrado esta contribución.',
+      CONTRIBUTION_ALREADY_REVIEWED:
+        'Esta contribución ya ha sido revisada.',
+      CONTRIBUTION_UNSUPPORTED_TARGET_ENTITY_TYPE:
+        'Este tipo de entidad destino no está soportado en este flujo.',
+      STADIUM_NOT_FOUND: 'No se ha encontrado el estadio vinculado.',
+      ASSET_NOT_FOUND: 'No se ha encontrado el asset vinculado.',
+      FORBIDDEN: 'No tienes permiso para revisar contribuciones.',
+      UNAUTHORIZED: 'Debes iniciar sesión para continuar.',
+      INVALID_RESPONSE: 'El backend devolvió una respuesta de contribución no válida.',
+    },
   },
   competitions: {
     title: 'Competiciones',

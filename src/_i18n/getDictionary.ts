@@ -55,6 +55,7 @@ export interface AppDictionary {
     readonly brands: string;
     readonly clubs: string;
     readonly competitions: string;
+    readonly contributions: string;
     readonly countries: string;
     readonly dashboard: string;
     readonly federations: string;
@@ -62,6 +63,92 @@ export interface AppDictionary {
     readonly persons: string;
     readonly stadiums: string;
     readonly users: string;
+  };
+  readonly contributions: {
+    readonly list: {
+      readonly title: string;
+      readonly loadErrorTitle: string;
+      readonly emptyState: string;
+      readonly paginationLabel: string;
+      readonly headers: {
+        readonly id: string;
+        readonly type: string;
+        readonly targetEntityType: string;
+        readonly targetEntityId: string;
+        readonly assetId: string;
+        readonly submittedByUserId: string;
+        readonly reviewStatus: string;
+        readonly createdAt: string;
+        readonly updatedAt: string;
+        readonly actions: string;
+      };
+      readonly filters: {
+        readonly updating: string;
+        readonly sort: string;
+        readonly reviewStatus: string;
+        readonly targetEntityType: string;
+        readonly allReviewStatuses: string;
+        readonly allTargets: string;
+        readonly pendingStatus: string;
+        readonly approvedStatus: string;
+        readonly rejectedStatus: string;
+        readonly stadiumOnly: string;
+        readonly personOnly: string;
+        readonly updatedDesc: string;
+        readonly updatedAsc: string;
+        readonly createdDesc: string;
+        readonly createdAsc: string;
+      };
+    };
+    readonly detail: {
+      readonly unavailableTitle: string;
+      readonly missingId: string;
+      readonly pendingHelp: string;
+    };
+    readonly fields: {
+      readonly id: string;
+      readonly submittedByUserId: string;
+      readonly contributionType: string;
+      readonly targetEntityType: string;
+      readonly targetEntityId: string;
+      readonly assetId: string;
+      readonly reviewStatus: string;
+      readonly reviewedByUserId: string;
+      readonly reviewedAt: string;
+      readonly createdAt: string;
+      readonly updatedAt: string;
+    };
+    readonly labels: {
+      readonly reviewStatus: {
+        readonly pending: string;
+        readonly approved: string;
+        readonly rejected: string;
+      };
+      readonly contributionType: {
+        readonly stadiumImageSubmission: string;
+        readonly personPortraitSubmission: string;
+      };
+      readonly targetEntityType: {
+        readonly stadium: string;
+        readonly person: string;
+      };
+    };
+    readonly actions: {
+      readonly view: string;
+      readonly approve: string;
+      readonly approvePending: string;
+      readonly reject: string;
+      readonly rejectPending: string;
+      readonly approveConfirmTitle: string;
+      readonly approveConfirmBody: string;
+      readonly rejectConfirmTitle: string;
+      readonly rejectConfirmBody: string;
+      readonly approveSuccess: string;
+      readonly rejectSuccess: string;
+      readonly defaultError: string;
+      readonly alreadyReviewed: string;
+    };
+    readonly errors: Readonly<Record<string, string>>;
   };
   readonly competitions: {
     readonly title: string;
