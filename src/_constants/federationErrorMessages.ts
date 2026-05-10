@@ -18,6 +18,10 @@ export const FEDERATION_ERROR_MESSAGES: FederationErrorMessageMap = {
   FEDERATION_CITY_REQUIRES_COUNTRY: 'Select a country before selecting a city.',
   FEDERATION_FOUNDATION_DATE_IN_FUTURE:
     'Foundation date cannot be in the future.',
+  FEDERATION_DISSOLUTION_DATE_IN_FUTURE:
+    'Dissolution date cannot be in the future.',
+  FEDERATION_DISSOLUTION_DATE_BEFORE_FOUNDATION_DATE:
+    'Dissolution date cannot be before foundation date.',
   FEDERATION_INVALID_OFFICIAL_WEBSITE: 'Enter a valid official website URL.',
   FEDERATION_INVALID_ICON_URL: 'Enter a valid icon URL.',
   FEDERATION_INVALID_HERO_IMAGE_URL: 'Enter a valid hero image URL.',

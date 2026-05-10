@@ -125,20 +125,22 @@ export interface AppDictionary {
         readonly competitionType: string;
         readonly federation: string;
         readonly country: string;
-        readonly active: string;
+        readonly visibility: string;
         readonly created: string;
         readonly updated: string;
       };
       readonly filters: {
         readonly updating: string;
         readonly sort: string;
-        readonly status: string;
+        readonly visibility: string;
         readonly competitionType: string;
         readonly federation: string;
         readonly country: string;
         readonly allCompetitionTypes: string;
         readonly allFederations: string;
         readonly allCountries: string;
+        readonly publicOnly: string;
+        readonly privateOnly: string;
         readonly updatedDesc: string;
         readonly updatedAsc: string;
         readonly createdDesc: string;
@@ -147,8 +149,12 @@ export interface AppDictionary {
         readonly nameDesc: string;
         readonly sortOrderAsc: string;
         readonly sortOrderDesc: string;
-        readonly activeFirst: string;
-        readonly inactiveFirst: string;
+        readonly publicFirst: string;
+        readonly privateFirst: string;
+      };
+      readonly visibility: {
+        readonly public: string;
+        readonly private: string;
       };
     };
     readonly pyramids: {
@@ -425,17 +431,15 @@ export interface AppDictionary {
     readonly loadErrorTitle: string;
     readonly emptyState: string;
     readonly paginationLabel: string;
-    readonly avatarMissing: string;
-    readonly avatarAvailable: string;
     readonly headers: {
-      readonly avatar: string;
+      readonly portraitAssetId: string;
       readonly fullName: string;
       readonly slug: string;
       readonly displayName: string;
       readonly gender: string;
       readonly currentProfession: string;
       readonly primaryNationality: string;
-      readonly active: string;
+      readonly public: string;
       readonly created: string;
       readonly updated: string;
     };
@@ -455,8 +459,10 @@ export interface AppDictionary {
       readonly fullNameDesc: string;
       readonly displayNameAsc: string;
       readonly displayNameDesc: string;
-      readonly activeFirst: string;
-      readonly inactiveFirst: string;
+      readonly publicFirst: string;
+      readonly privateFirst: string;
+      readonly publicStatus: string;
+      readonly privateStatus: string;
     };
     readonly detail: {
       readonly deletePerson: string;
@@ -479,8 +485,13 @@ export interface AppDictionary {
       readonly physicalDetails: string;
       readonly professionalInformation: string;
       readonly sectionsPending: string;
-      readonly noAvatarAvailable: string;
-      readonly noHeroAvailable: string;
+      readonly portraitAssetResolverHint: string;
+      readonly portraitUploadTitle: string;
+      readonly portraitUploadHint: string;
+      readonly portraitFileLabel: string;
+      readonly portraitUploadAction: string;
+      readonly portraitUploading: string;
+      readonly portraitUploadSuccess: string;
       readonly notAvailableTitle: string;
       readonly backToPersons: string;
     };
@@ -518,8 +529,7 @@ export interface AppDictionary {
       readonly dominantFoot: string;
       readonly professionalDebutDate: string;
       readonly retirementDate: string;
-      readonly avatarImageUrl: string;
-      readonly heroImageUrl: string;
+      readonly portraitAssetId: string;
       readonly id: string;
       readonly slug: string;
       readonly createdAt: string;
@@ -547,8 +557,7 @@ export interface AppDictionary {
         readonly secondSurname: string;
         readonly knownAs: string;
         readonly nativeFullName: string;
-        readonly avatarImageUrl: string;
-        readonly heroImageUrl: string;
+        readonly portraitAssetId: string;
       };
       readonly titles: {
         readonly nativeFullName: string;
@@ -673,12 +682,12 @@ export interface AppDictionary {
       readonly shortName: string;
       readonly acronym: string;
       readonly foundationDate: string;
+      readonly dissolutionDate: string;
       readonly countryId: string;
       readonly cityId: string;
       readonly officialWebsiteUrl: string;
       readonly iconUrl: string;
       readonly heroImageUrl: string;
-      readonly description: string;
       readonly activeLabel: string;
       readonly id: string;
       readonly slug: string;

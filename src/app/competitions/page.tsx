@@ -7,7 +7,6 @@ import { getAdminCompetitionPyramids } from '@/_actions/competitionStructure/get
 import { getAdminCompetitionTiers } from '@/_actions/competitionStructure/getAdminCompetitionTiers';
 import { getAdminCompetitions } from '@/_actions/competition/getAdminCompetitions';
 import { getAdminCompetitionEditions } from '@/_actions/competitionEdition/getAdminCompetitionEditions';
-import { getAdminSeasons } from '@/_actions/season/getAdminSeasons';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
 import SectionHeader from '@/_components/layout/SectionHeader';
@@ -53,7 +52,6 @@ type CompetitionsOverviewSection =
   | 'competitions'
   | 'pyramids'
   | 'tiers'
-  | 'seasons'
   | 'editions';
 
 type CompetitionsOverviewPageProps = Readonly<{
@@ -94,7 +92,6 @@ function parseSection(value: string | undefined): CompetitionsOverviewSection {
     case 'competitions':
     case 'pyramids':
     case 'tiers':
-    case 'seasons':
     case 'editions':
       return value;
     case 'overview':
@@ -127,14 +124,13 @@ function buildCompetitionTypesHref(
 
 function renderSectionContent(
   section: CompetitionsOverviewSection,
-  counts: {
-    types: number;
-    competitions: number;
-    pyramids: number;
-    tiers: number;
-    seasons: number;
-    editions: number;
-  },
+    counts: {
+      types: number;
+      competitions: number;
+      pyramids: number;
+      tiers: number;
+      editions: number;
+    },
   competitionTypesState: Readonly<{
     pageSize: number;
     sort: CompetitionTypeSort;
@@ -184,12 +180,6 @@ function renderSectionContent(
               title={dictionary.competitions.cards.tiersTitle}
               description={dictionary.competitions.cards.tiersDescription}
               count={`${counts.tiers} ${dictionary.competitions.totalSuffix}`}
-            />
-            <CompetitionOverviewCard
-              href={NAVIGATION.COMPETITION_SEASONS}
-              title={dictionary.competitions.cards.seasonsTitle}
-              description={dictionary.competitions.cards.seasonsDescription}
-              count={`${counts.seasons} ${dictionary.competitions.totalSuffix}`}
             />
             <CompetitionOverviewCard
               href={NAVIGATION.COMPETITION_EDITIONS}
@@ -377,7 +367,7 @@ function renderSectionContent(
         href: string;
         count: number;
         ctaLabel: string;
-        icon: 'trophy' | 'group' | 'analytics' | 'eventUpcoming' | 'docs';
+        icon: 'trophy' | 'group' | 'analytics' | 'docs';
       }
     >
   > = {
@@ -404,14 +394,6 @@ function renderSectionContent(
       count: counts.tiers,
       ctaLabel: dictionary.competitions.sections.tiersCta,
       icon: 'analytics',
-    },
-    seasons: {
-      title: dictionary.competitions.sections.seasonsTitle,
-      description: dictionary.competitions.sections.seasonsDescription,
-      href: NAVIGATION.COMPETITION_SEASONS,
-      count: counts.seasons,
-      ctaLabel: dictionary.competitions.sections.seasonsCta,
-      icon: 'eventUpcoming',
     },
     editions: {
       title: dictionary.competitions.sections.editionsTitle,
@@ -480,7 +462,6 @@ export default async function CompetitionsOverviewPage({
     competitionsResponse,
     pyramidsResponse,
     tiersResponse,
-    seasonsResponse,
     editionsResponse,
   ] = await Promise.all([
     getAdminCompetitionTypes({
@@ -498,7 +479,6 @@ export default async function CompetitionsOverviewPage({
       sort: 'updated_at_desc',
     }),
     getAdminCompetitionTiers({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
-    getAdminSeasons({ page: 1, pageSize: 1, sort: 'updated_at_desc' }),
     getAdminCompetitionEditions({
       page: 1,
       pageSize: 1,
@@ -515,7 +495,6 @@ export default async function CompetitionsOverviewPage({
           competitions: competitionsResponse.metadata.totalItems,
           pyramids: pyramidsResponse.metadata.totalItems,
           tiers: tiersResponse.metadata.totalItems,
-          seasons: seasonsResponse.metadata.totalItems,
           editions: editionsResponse.metadata.totalItems,
         },
         {

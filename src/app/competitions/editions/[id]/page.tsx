@@ -2,7 +2,8 @@
 
 import { getAdminCompetitionEditionById } from '@/_actions/competitionEdition/getAdminCompetitionEditionById';
 import { getAllCompetitions } from '@/_actions/competition/getAllCompetitions';
-import { getAllSeasons } from '@/_actions/season/getAllSeasons';
+import { getAllCompetitionPyramids } from '@/_actions/competitionStructure/getAllCompetitionPyramids';
+import { getAllCompetitionTiers } from '@/_actions/competitionStructure/getAllCompetitionTiers';
 import Button from '@/_components/forms/Button';
 import Card from '@/_components/Card';
 import Grid from '@/_components/layout/Grid';
@@ -75,11 +76,13 @@ export default async function CompetitionEditionDetailsPage({
     );
   }
 
-  const [response, competitions, seasons] = await Promise.all([
-    getAdminCompetitionEditionById(competitionEditionId),
-    getAllCompetitions(),
-    getAllSeasons(),
-  ]);
+  const [response, competitions, competitionPyramids, competitionTiers] =
+    await Promise.all([
+      getAdminCompetitionEditionById(competitionEditionId),
+      getAllCompetitions(),
+      getAllCompetitionPyramids(),
+      getAllCompetitionTiers(),
+    ]);
 
   if (!response.data) {
     return (
@@ -106,10 +109,16 @@ export default async function CompetitionEditionDetailsPage({
   const editHref = buildHref(competitionEdition.id, section, true);
   const competitionLabel =
     competitions.find(item => item.id === competitionEdition.competitionId)?.name ??
+    competitionEdition.competitionName ??
     competitionEdition.competitionId;
-  const seasonLabel =
-    seasons.find(item => item.id === competitionEdition.seasonId)?.name ??
-    competitionEdition.seasonId;
+  const competitionPyramidLabel =
+    competitionPyramids.find(
+      item => item.id === competitionEdition.competitionPyramidId,
+    )?.name ?? competitionEdition.competitionPyramidId;
+  const primaryCompetitionTierLabel =
+    competitionTiers.find(
+      item => item.id === competitionEdition.primaryCompetitionTierId,
+    )?.name ?? competitionEdition.primaryCompetitionTierId;
 
   return (
     <Grid gap={16}>
@@ -138,8 +147,16 @@ export default async function CompetitionEditionDetailsPage({
           <EntitySidebarNavigation
             activeItem={section}
             items={[
-              { id: 'profile', label: 'Profile', href: buildHref(competitionEdition.id, 'profile') },
-              { id: 'relations', label: 'Relations', href: buildHref(competitionEdition.id, 'relations') },
+              {
+                id: 'profile',
+                label: 'Profile',
+                href: buildHref(competitionEdition.id, 'profile'),
+              },
+              {
+                id: 'relations',
+                label: 'Relations',
+                href: buildHref(competitionEdition.id, 'relations'),
+              },
             ]}
           />
 
@@ -147,8 +164,15 @@ export default async function CompetitionEditionDetailsPage({
             <Grid gap={16}>
               <CompetitionEditionForm
                 competitionEdition={competitionEdition}
-                seasons={seasons.map(item => ({ id: item.id, name: item.name }))}
                 competitions={competitions.map(item => ({ id: item.id, name: item.name }))}
+                competitionPyramids={competitionPyramids.map(item => ({
+                  id: item.id,
+                  name: item.name,
+                }))}
+                competitionTiers={competitionTiers.map(item => ({
+                  id: item.id,
+                  name: item.name,
+                }))}
                 edit
                 cancelHref={detailHref}
                 successHref={detailHref}
@@ -166,7 +190,12 @@ export default async function CompetitionEditionDetailsPage({
                   Competition · {competitionLabel ?? 'No competition linked'}
                 </Text>
                 <Text size='small' color='gray'>
-                  Season · {seasonLabel ?? 'No season linked'}
+                  Competition pyramid ·{' '}
+                  {competitionPyramidLabel ?? 'No competition pyramid linked'}
+                </Text>
+                <Text size='small' color='gray'>
+                  Primary competition tier ·{' '}
+                  {primaryCompetitionTierLabel ?? 'No primary competition tier linked'}
                 </Text>
               </Grid>
             </Card>
@@ -174,7 +203,8 @@ export default async function CompetitionEditionDetailsPage({
             <CompetitionEditionProfileSection
               competitionEdition={competitionEdition}
               competitionLabel={competitionLabel}
-              seasonLabel={seasonLabel}
+              competitionPyramidLabel={competitionPyramidLabel}
+              primaryCompetitionTierLabel={primaryCompetitionTierLabel}
             />
           )}
         </Grid>

@@ -3,7 +3,6 @@
 'use client';
 
 import Card from '@/_components/Card';
-import Dot from '@/_components/Dot';
 import DataRowSection from '@/_components/layout/DataRowSection';
 import Grid from '@/_components/layout/Grid';
 import Section from '@/_components/layout/Section';
@@ -19,9 +18,6 @@ type CompetitionProfileSectionProps = Readonly<{
   competitionTypeLabel?: string | null;
   federationLabel?: string | null;
   countryLabel?: string | null;
-  pyramidLabel?: string | null;
-  primaryTierLabel?: string | null;
-  allowedTierLabels?: ReadonlyArray<string>;
 }>;
 
 export default function CompetitionProfileSection({
@@ -29,9 +25,6 @@ export default function CompetitionProfileSection({
   competitionTypeLabel,
   federationLabel,
   countryLabel,
-  pyramidLabel,
-  primaryTierLabel,
-  allowedTierLabels = [],
 }: CompetitionProfileSectionProps): React.JSX.Element {
   return (
     <Card>
@@ -50,8 +43,8 @@ export default function CompetitionProfileSection({
                   <DataRow label='Code' value={competition.code} monospace />
                   <DataRow label='Slug' value={competition.slug} monospace />
                   <DataRow
-                    label='Active'
-                    value={<Dot inline active={competition.isActive} />}
+                    label='Visibility'
+                    value={competition.isPublic ? 'Public' : 'Private'}
                   />
                 </Tbody>
               </Table>
@@ -70,26 +63,6 @@ export default function CompetitionProfileSection({
                   <DataRow
                     label='Country'
                     value={countryLabel ?? competition.countryId ?? PLACEHOLDER}
-                  />
-                  <DataRow
-                    label='Competition pyramid'
-                    value={pyramidLabel ?? competition.competitionPyramidId ?? PLACEHOLDER}
-                  />
-                  <DataRow
-                    label='Primary tier'
-                    value={
-                      primaryTierLabel ??
-                      competition.primaryCompetitionTierId ??
-                      PLACEHOLDER
-                    }
-                  />
-                  <DataRow
-                    label='Allowed tiers'
-                    value={
-                      allowedTierLabels.length > 0
-                        ? allowedTierLabels.join(', ')
-                        : PLACEHOLDER
-                    }
                   />
                   <DataRow label='Sort order' value={competition.sortOrder} />
                 </Tbody>

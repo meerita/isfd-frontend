@@ -21,6 +21,7 @@ import Text from '@/_components/typography/Text';
 import {
   getCompetitionScopeKindLabel,
   getParticipantScopeLabel,
+  parseCompetitionTierScopeKind,
 } from '@/_constants/enums/competition';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
@@ -125,7 +126,8 @@ export default async function CompetitionTiersPage({
   const competitionPyramidId = parseUuid(params?.competition_pyramid_id);
   const parentTierId = parseUuid(params?.parent_tier_id);
   const participantScope = parseString(params?.participant_scope);
-  const scopeKind = parseString(params?.scope_kind);
+  const scopeKind =
+    parseCompetitionTierScopeKind(parseString(params?.scope_kind)) ?? undefined;
 
   const [response, competitionPyramids, competitionTiers] = await Promise.all([
     getAdminCompetitionTiers({

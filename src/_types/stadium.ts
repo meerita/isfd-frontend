@@ -12,8 +12,8 @@ export type StadiumSort =
   | 'created_at_desc'
   | 'updated_at_asc'
   | 'updated_at_desc'
-  | 'is_active_asc'
-  | 'is_active_desc'
+  | 'is_public_asc'
+  | 'is_public_desc'
   | 'name_asc'
   | 'name_desc';
 

@@ -231,7 +231,7 @@ export function buildCreateCompetitionPyramidBody(formData: FormData): {
       branch_kind: branchKind,
       valid_from: validFrom,
       valid_to: validTo ?? null,
-      is_active: bool(formData, 'isActive', true),
+      is_public: bool(formData, 'isActive', true),
     },
   };
 }
@@ -415,7 +415,7 @@ export function buildUpdateCompetitionPyramidBody(formData: FormData): {
   const isActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);
   if (isActive !== originalIsActive) {
-    body.is_active = isActive;
+    body.is_public = isActive;
   }
 
   return { competitionPyramidId, body };
@@ -519,7 +519,7 @@ export function buildCreateCompetitionTierBody(formData: FormData): {
       level_order: levelOrder,
       scope_kind: scopeKind,
       participant_scope: participantScope,
-      is_active: bool(formData, 'isActive', true),
+      is_public: bool(formData, 'isActive', true),
     },
   };
 }
@@ -673,7 +673,7 @@ export function buildUpdateCompetitionTierBody(formData: FormData): {
   const isActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);
   if (isActive !== originalIsActive) {
-    body.is_active = isActive;
+    body.is_public = isActive;
   }
 
   return { competitionTierId, body };

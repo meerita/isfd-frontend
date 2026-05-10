@@ -47,6 +47,7 @@ export async function createCompetition(
     const result = {
       status: 'success' as const,
       competitionId: competition?.id,
+      competitionSlug: competition?.slug,
     };
 
     logCompetitionDebug('competition.create', 'response', {
@@ -65,7 +66,7 @@ export async function createCompetition(
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    const result = {
+    const result: CompetitionActionState = {
       status: 'error',
       error: normalized.data,
     };

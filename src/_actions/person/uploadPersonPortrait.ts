@@ -15,11 +15,20 @@ const MISSING_ID_RESPONSE: PersonActionState = {
   error: {
     reason: 'PERSON_ID_REQUIRED',
     message: 'Missing person identifier.',
-    error: 'Person identifier is required to toggle activation.',
+    error: 'Person identifier is required to upload the portrait.',
   },
 };
 
-export async function togglePersonActivation(
+const MISSING_FILE_RESPONSE: PersonActionState = {
+  status: 'error',
+  error: {
+    reason: 'INVALID_REQUEST',
+    message: 'request is invalid',
+    error: 'A portrait file is required.',
+  },
+};
+
+export async function uploadPersonPortrait(
   _prevState: PersonActionState,
   formData: FormData,
 ): Promise<PersonActionState> {
@@ -28,18 +37,21 @@ export async function togglePersonActivation(
     return MISSING_ID_RESPONSE;
   }
 
-  const rawIsPublic = formData.get('is_public');
-  const is_public =
-    typeof rawIsPublic === 'string'
-      ? rawIsPublic.toLowerCase() === 'true'
-      : false;
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) {
+    return MISSING_FILE_RESPONSE;
+  }
+
+  const payload = new FormData();
+  payload.append('file', file, file.name);
 
   const client = await getServerAxios();
 
   try {
-    await client.patch(API_ROUTES.PERSON_ADMIN_BY_ID(personId), { is_public });
+    await client.post(API_ROUTES.PERSON_ADMIN_PORTRAIT(personId), payload);
     revalidatePath(NAVIGATION.PERSONS);
     revalidatePath(NAVIGATION.PERSON_BY_ID(personId));
+
     return { status: 'success', personId } satisfies PersonActionState;
   } catch (error) {
     const normalized = normalizeApiError(error);

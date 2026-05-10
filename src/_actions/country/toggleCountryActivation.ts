@@ -45,12 +45,12 @@ export async function toggleCountryActivation(
     return FORM_ERROR_RESPONSE;
   }
 
-  const is_active = getBooleanValue(formData, 'isActive');
+  const is_public = getBooleanValue(formData, 'isActive');
   const client = await getServerAxios();
 
   try {
     await client.patch(API_ROUTES.COUNTRY_ADMIN_ACTIVATION(countryId), {
-      is_active,
+      is_public,
     });
     revalidatePath(NAVIGATION.COUNTRIES);
     revalidatePath(NAVIGATION.COUNTRY_BY_ID(countryId));

@@ -68,8 +68,8 @@ export default function ClubFilters({
           <option value='created_at_asc'>Created ↑</option>
           <option value='name_asc'>Name A-Z</option>
           <option value='name_desc'>Name Z-A</option>
-          <option value='is_active_desc'>Active first</option>
-          <option value='is_active_asc'>Inactive first</option>
+          <option value='is_public_desc'>Active first</option>
+          <option value='is_public_asc'>Inactive first</option>
         </Select>
         <Select
           label='Status'

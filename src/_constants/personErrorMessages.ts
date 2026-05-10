@@ -48,8 +48,7 @@ export const PERSON_ERROR_MESSAGES: PersonErrorMessageMap = {
     'Retirement date cannot be before professional debut date.',
   PERSON_INVALID_HEIGHT_CM: 'Enter a valid height in centimeters.',
   PERSON_INVALID_WEIGHT_KG: 'Enter a valid weight in kilograms.',
-  PERSON_INVALID_AVATAR_IMAGE_URL: 'Enter a valid avatar image URL.',
-  PERSON_INVALID_HERO_IMAGE_URL: 'Enter a valid hero image URL.',
+  PERSON_INVALID_PORTRAIT_ASSET_ID: 'Enter a valid portrait asset identifier.',
   PERSON_SLUG_GENERATION_FAILED:
     'The backend could not generate a person slug.',
   PERSON_HAS_REFERENCES:

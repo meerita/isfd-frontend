@@ -101,7 +101,7 @@ export function mapCompetitionPyramid(raw: Raw): CompetitionPyramid {
       parseCompetitionPyramidBranchKind(
         toNullableString(raw.branch_kind ?? raw.branchKind),
       ) ?? null,
-    isActive: toBooleanValue(raw.is_active ?? raw.isActive),
+    isActive: toBooleanValue(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive),
     validFrom: toDateOnlyValue(raw.valid_from ?? raw.validFrom),
     validTo: toNullableDateOnlyValue(raw.valid_to ?? raw.validTo),
     createdAt: toStringValue(raw.created_at ?? raw.createdAt),
@@ -137,7 +137,7 @@ export function mapCompetitionTier(raw: Raw): CompetitionTier {
       parseParticipantScope(
         toStringValue(raw.participant_scope ?? raw.participantScope),
       ) ?? 'CLUB',
-    isActive: toBooleanValue(raw.is_active ?? raw.isActive),
+    isActive: toBooleanValue(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive),
     createdAt: toStringValue(raw.created_at ?? raw.createdAt),
     updatedAt: toStringValue(raw.updated_at ?? raw.updatedAt),
   };

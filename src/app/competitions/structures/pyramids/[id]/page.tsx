@@ -1,6 +1,5 @@
 /** @format */
 
-import { getAllCompetitions } from '@/_actions/competition/getAllCompetitions';
 import { getAdminCompetitionPyramidById } from '@/_actions/competitionStructure/getAdminCompetitionPyramidById';
 import { getAdminCompetitionTiers } from '@/_actions/competitionStructure/getAdminCompetitionTiers';
 import { getAllCountries } from '@/_actions/country/getAllCountries';
@@ -127,7 +126,7 @@ export default async function CompetitionPyramidDetailsPage({
   const competitionPyramid = response.data;
   const detailHref = buildHref(competitionPyramid.id, section);
   const editHref = buildHref(competitionPyramid.id, section, true);
-  const [tiersResponse, allCompetitions] =
+  const [tiersResponse] =
     !edit && section !== 'profile'
       ? await Promise.all([
           getAdminCompetitionTiers({
@@ -137,15 +136,9 @@ export default async function CompetitionPyramidDetailsPage({
             status: 'all',
             competitionPyramidId: competitionPyramid.id,
           }),
-          getAllCompetitions(),
         ])
-      : [null, []];
-  const relatedCompetitions =
-    section === 'competitions'
-      ? allCompetitions.filter(
-          item => item.competitionPyramidId === competitionPyramid.id,
-        )
-      : [];
+      : [null];
+  const relatedCompetitions: ReadonlyArray<{ id: string; name: string }> = [];
   const countryLabel =
     countries.find(item => item.id === competitionPyramid.countryId)?.name ??
     competitionPyramid.countryId;

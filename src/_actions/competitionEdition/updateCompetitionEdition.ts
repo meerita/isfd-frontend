@@ -38,7 +38,7 @@ export async function updateCompetitionEdition(
   }
 
   if (Object.keys(body).length === 0) {
-    const result = {
+    const result: CompetitionEditionActionState = {
       status: 'success',
       competitionEditionId,
     };
@@ -65,7 +65,7 @@ export async function updateCompetitionEdition(
     revalidatePath(NAVIGATION.COMPETITION_EDITIONS);
     revalidatePath(NAVIGATION.COMPETITION_EDITION_BY_ID(competitionEditionId));
 
-    const result = {
+    const result: CompetitionEditionActionState = {
       status: 'success',
       competitionEditionId,
     };
@@ -79,7 +79,7 @@ export async function updateCompetitionEdition(
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    const result = {
+    const result: CompetitionEditionActionState = {
       status: 'error',
       error: normalized.data,
     };

@@ -60,6 +60,8 @@ export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
       'Competition code must be uppercase.',
     COMPETITION_CODE_INVALID_FORMAT:
       'Competition code must use uppercase letters, numbers, and underscores.',
+    COMPETITION_CODE_GENERATION_FAILED:
+      'The competition code could not be generated.',
     COMPETITION_COMPETITION_TYPE_ID_REQUIRED: 'Competition type is required.',
     COMPETITION_INVALID_COMPETITION_TYPE_ID: 'Select a valid competition type.',
     COMPETITION_INVALID_FEDERATION_ID: 'Select a valid federation.',
@@ -90,7 +92,8 @@ export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
     COMPETITION_ENDED_ON_BEFORE_STARTED_ON:
       'End date cannot be before the start date.',
     COMPETITION_INVALID_SORT_ORDER: 'Enter a valid sort order.',
-    COMPETITION_ACTIVE_VALUE_REQUIRED: 'Competition active value is required.',
+    COMPETITION_PUBLIC_VALUE_REQUIRED: 'Competition visibility is required.',
+    COMPETITION_ACTIVE_VALUE_REQUIRED: 'Competition visibility is required.',
     COMPETITION_CODE_ALREADY_EXISTS: 'This competition code is already in use.',
     COMPETITION_SLUG_ALREADY_EXISTS: 'This competition slug is already in use.',
     COMPETITION_SLUG_GENERATION_FAILED:
@@ -105,7 +108,6 @@ export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
     SEASON_INVALID_YEAR_RANGE: 'End year cannot be before start year.',
     COMPETITION_EDITION_NAME_REQUIRED: 'Competition edition name is required.',
     COMPETITION_EDITION_INVALID_COMPETITION_ID: 'Select a valid competition.',
-    COMPETITION_EDITION_INVALID_SEASON_ID: 'Select a valid season.',
     COMPETITION_EDITION_CODE_REQUIRED: 'Competition edition code is required.',
     COMPETITION_EDITION_CODE_TOO_LONG: 'Competition edition code is too long.',
     COMPETITION_EDITION_CODE_MUST_BE_UPPERCASE:
@@ -127,12 +129,12 @@ export const COMPETITION_ADMIN_ERROR_MESSAGES: CompetitionAdminErrorMessageMap =
       'Select a valid competition edition status.',
     COMPETITION_EDITION_INVALID_SORT_ORDER:
       'Enter a valid competition edition sort order.',
+    COMPETITION_EDITION_PUBLIC_VALUE_REQUIRED:
+      'Competition edition visibility is required.',
     COMPETITION_EDITION_ACTIVE_VALUE_REQUIRED:
-      'Competition edition active value is required.',
+      'Competition edition visibility is required.',
     COMPETITION_EDITION_COMPETITION_NOT_FOUND:
       'The selected competition could not be found.',
-    COMPETITION_EDITION_SEASON_NOT_FOUND:
-      'The selected season could not be found.',
     COMPETITION_EDITION_INVALID_STARTED_ON:
       'Enter a valid competition edition start date.',
     COMPETITION_EDITION_INVALID_ENDED_ON:

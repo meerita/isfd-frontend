@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getAdminFederations } from '@/_actions/federation/getAdminFederations';
+import Dot from '@/_components/Dot';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
@@ -235,7 +236,7 @@ export default async function FederationsPage({
                           : PLACEHOLDER}
                       </Cell>
                       <Cell align='center'>
-                        {federation.isActive ? 'Yes' : 'No'}
+                        {federation.isActive ? <Dot active inline /> : <Dot inline />}
                       </Cell>
                       <Cell className='padding-left--16'>
                         {formatDateTime(federation.createdAt)}

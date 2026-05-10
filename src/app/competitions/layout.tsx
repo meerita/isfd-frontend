@@ -41,10 +41,6 @@ export default async function CompetitionsLayout({
             label: dictionary.competitions.sidebar.tiers,
           },
           {
-            href: NAVIGATION.COMPETITION_SEASONS,
-            label: dictionary.competitions.sidebar.seasons,
-          },
-          {
             href: NAVIGATION.COMPETITION_EDITIONS,
             label: dictionary.competitions.sidebar.editions,
           },

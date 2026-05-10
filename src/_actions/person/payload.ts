@@ -39,8 +39,7 @@ type NullableStringField =
   | 'birth_location_id'
   | 'current_city_id'
   | 'primary_nationality_country_id'
-  | 'avatar_image_url'
-  | 'hero_image_url';
+  | 'portrait_asset_id';
 
 type NullableEnumField =
   | 'gender'
@@ -206,15 +205,6 @@ function isValidUuid(value: string): boolean {
   return UUID_PATTERN.test(value);
 }
 
-function isValidHttpUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
 function formError(
   reason: string,
   message: string,
@@ -253,18 +243,6 @@ function validateUuid(
   }
 
   return formError(reason, `${label} must be a valid UUID.`);
-}
-
-function validateUrl(
-  value: string | null,
-  reason: string,
-  label: string,
-): PersonActionState | null {
-  if (!value || isValidHttpUrl(value)) {
-    return null;
-  }
-
-  return formError(reason, `${label} must be an http or https URL.`);
 }
 
 function validateNumber(
@@ -408,8 +386,7 @@ function runSharedValidations(input: Readonly<{
   birth_location_id: string | null;
   current_city_id: string | null;
   primary_nationality_country_id: string | null;
-  avatar_image_url: string | null;
-  hero_image_url: string | null;
+  portrait_asset_id: string | null;
   height_cm: number | null;
   weight_kg: number | null;
   birth_date: string | null;
@@ -444,15 +421,10 @@ function runSharedValidations(input: Readonly<{
     ...UUID_FIELDS.map(field =>
       validateUuid(input[field.key], field.reason, field.label),
     ),
-    validateUrl(
-      input.avatar_image_url,
-      'PERSON_INVALID_AVATAR_IMAGE_URL',
-      'avatar image url',
-    ),
-    validateUrl(
-      input.hero_image_url,
-      'PERSON_INVALID_HERO_IMAGE_URL',
-      'hero image url',
+    validateUuid(
+      input.portrait_asset_id,
+      'PERSON_INVALID_PORTRAIT_ASSET_ID',
+      'portrait asset id',
     ),
     validateNumber(
       input.height_cm,
@@ -567,8 +539,7 @@ export function buildCreatePersonBody(
     primary_nationality_country_id: optionalString(
       getString(formData, 'primary_nationality_country_id'),
     ),
-    avatar_image_url: optionalString(getString(formData, 'avatar_image_url')),
-    hero_image_url: optionalString(getString(formData, 'hero_image_url')),
+    portrait_asset_id: optionalString(getString(formData, 'portrait_asset_id')),
     height_cm,
     weight_kg,
     birth_date,
@@ -586,7 +557,7 @@ export function buildCreatePersonBody(
   const body: Record<string, unknown> = {
     full_name,
     is_deceased,
-    is_active: getBoolean(formData, 'is_active', true),
+    is_public: getBoolean(formData, 'is_public', true),
   };
 
   const nullableStringFields: ReadonlyArray<NullableStringField> = [
@@ -600,8 +571,7 @@ export function buildCreatePersonBody(
     'birth_location_id',
     'current_city_id',
     'primary_nationality_country_id',
-    'avatar_image_url',
-    'hero_image_url',
+    'portrait_asset_id',
   ];
 
   for (const key of nullableStringFields) {
@@ -673,8 +643,8 @@ export function buildUpdatePersonBody(formData: FormData): {
 
   const currentIsDeceased = getBoolean(formData, 'is_deceased', false);
   const originalIsDeceased = getBoolean(formData, 'original_is_deceased', false);
-  const currentIsActive = getBoolean(formData, 'is_active', false);
-  const originalIsActive = getBoolean(formData, 'original_is_active', false);
+  const currentIsPublic = getBoolean(formData, 'is_public', false);
+  const originalIsPublic = getBoolean(formData, 'original_is_public', false);
 
   const birth_date_raw = getString(formData, 'birth_date');
   const death_date_raw = getString(formData, 'death_date');
@@ -756,15 +726,26 @@ export function buildUpdatePersonBody(formData: FormData): {
   >();
 
   for (const field of PERSON_ENUM_FIELDS) {
-    const currentResult = parseEnumField(getString(formData, field.key), field);
+    const currentRawValue = getString(formData, field.key);
+    const originalRawValue = getString(formData, `original_${field.key}`);
+
+    if (
+      field.key === 'gender' &&
+      currentRawValue.length === 0 &&
+      currentRawValue !== originalRawValue
+    ) {
+      return {
+        personId,
+        error: formError(field.reason, `${field.label} is invalid.`),
+      };
+    }
+
+    const currentResult = parseEnumField(currentRawValue, field);
     if (currentResult.error) {
       return { personId, error: currentResult.error };
     }
 
-    const originalResult = parseEnumField(
-      getString(formData, `original_${field.key}`),
-      field,
-    );
+    const originalResult = parseEnumField(originalRawValue, field);
     if (originalResult.error) {
       return { personId, error: originalResult.error };
     }
@@ -789,8 +770,7 @@ export function buildUpdatePersonBody(formData: FormData): {
     primary_nationality_country_id: optionalString(
       getString(formData, 'primary_nationality_country_id'),
     ),
-    avatar_image_url: optionalString(getString(formData, 'avatar_image_url')),
-    hero_image_url: optionalString(getString(formData, 'hero_image_url')),
+    portrait_asset_id: optionalString(getString(formData, 'portrait_asset_id')),
     height_cm,
     weight_kg,
     birth_date: effective_birth_date,
@@ -823,8 +803,7 @@ export function buildUpdatePersonBody(formData: FormData): {
     'birth_location_id',
     'current_city_id',
     'primary_nationality_country_id',
-    'avatar_image_url',
-    'hero_image_url',
+    'portrait_asset_id',
   ];
 
   for (const key of nullableStringFields) {
@@ -895,8 +874,8 @@ export function buildUpdatePersonBody(formData: FormData): {
     body.is_deceased = currentIsDeceased;
   }
 
-  if (currentIsActive !== originalIsActive) {
-    body.is_active = currentIsActive;
+  if (currentIsPublic !== originalIsPublic) {
+    body.is_public = currentIsPublic;
   }
 
   return { personId, body: body as UpdatePersonRequest };

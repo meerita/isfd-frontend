@@ -6,10 +6,10 @@ import API_ROUTES from '@/_constants/apiRoutes';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type {
-  CompetitionEditionActiveStatusFilter,
   CompetitionEditionListResponse,
   CompetitionEditionSort,
   CompetitionEditionStatusFilter,
+  CompetitionEditionVisibilityFilter,
 } from '@/_types/competitionEdition';
 import {
   mapCompetitionEdition,
@@ -22,8 +22,10 @@ const DEFAULT_PAGE_SIZE = 20;
 function buildEmptyResponse(filters?: {
   sort?: CompetitionEditionSort;
   status?: CompetitionEditionStatusFilter;
-  activeStatus?: CompetitionEditionActiveStatusFilter;
+  visibility?: CompetitionEditionVisibilityFilter;
   competitionId?: string;
+  competitionPyramidId?: string;
+  primaryCompetitionTierId?: string;
   year?: number;
   q?: string;
 }): CompetitionEditionListResponse {
@@ -47,8 +49,10 @@ export async function getAdminCompetitionEditions(
     pageSize?: number;
     sort?: CompetitionEditionSort;
     status?: CompetitionEditionStatusFilter;
-    activeStatus?: CompetitionEditionActiveStatusFilter;
+    visibility?: CompetitionEditionVisibilityFilter;
     competitionId?: string;
+    competitionPyramidId?: string;
+    primaryCompetitionTierId?: string;
     year?: number;
     q?: string;
   }> = {},
@@ -58,12 +62,23 @@ export async function getAdminCompetitionEditions(
     pageSize = DEFAULT_PAGE_SIZE,
     sort,
     status,
-    activeStatus,
+    visibility,
     competitionId,
+    competitionPyramidId,
+    primaryCompetitionTierId,
     year,
     q,
   } = query;
-  const filters = { sort, status, activeStatus, competitionId, year, q };
+  const filters = {
+    sort,
+    status,
+    visibility,
+    competitionId,
+    competitionPyramidId,
+    primaryCompetitionTierId,
+    year,
+    q,
+  };
   const params: Record<string, string | number> = {
     page,
     page_size: pageSize,
@@ -71,8 +86,12 @@ export async function getAdminCompetitionEditions(
 
   if (sort) params.sort = sort;
   if (status) params.status = status;
-  if (activeStatus) params.active_status = activeStatus;
+  if (visibility) params.visibility = visibility;
   if (competitionId) params.competition_id = competitionId;
+  if (competitionPyramidId) params.competition_pyramid_id = competitionPyramidId;
+  if (primaryCompetitionTierId) {
+    params.primary_competition_tier_id = primaryCompetitionTierId;
+  }
   if (typeof year === 'number') params.year = year;
   if (q) params.q = q;
 

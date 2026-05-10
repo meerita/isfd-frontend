@@ -194,7 +194,7 @@ export function buildCreateStadiumBody(
 
   const body: Record<string, unknown> = {
     name,
-    is_active: bool(formData, 'isActive', true),
+    is_public: bool(formData, 'isActive', true),
   };
 
   if (formerNames.length > 0) body.former_names = formerNames;
@@ -304,7 +304,7 @@ export function buildUpdateStadiumBody(formData: FormData): {
     primary_club_id: primaryClubId,
     image_url: imageUrl,
     seat_count: seatCount,
-    is_active: bool(formData, 'isActive', false),
+    is_public: bool(formData, 'isActive', false),
   };
 
   if (surfaceType !== originalSurfaceType) {

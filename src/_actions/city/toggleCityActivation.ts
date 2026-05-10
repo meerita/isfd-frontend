@@ -30,7 +30,7 @@ export async function toggleCityActivation(
   if (!cityId) return MISSING_ID_RESPONSE;
 
   const rawIsActive = formData.get('isActive');
-  const is_active =
+  const is_public =
     typeof rawIsActive === 'string'
       ? rawIsActive.toLowerCase() === 'true'
       : false;
@@ -38,7 +38,7 @@ export async function toggleCityActivation(
   const client = await getServerAxios();
 
   try {
-    await client.patch(API_ROUTES.CITY_ADMIN_ACTIVATION(cityId), { is_active });
+    await client.patch(API_ROUTES.CITY_ADMIN_ACTIVATION(cityId), { is_public });
     revalidatePath(NAVIGATION.CITIES);
     revalidatePath(NAVIGATION.CITY_BY_ID(cityId));
     return { status: 'success' } satisfies CityActionState;

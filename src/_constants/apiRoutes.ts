@@ -11,6 +11,7 @@ const API_ROUTES = {
   CLUB_ADMIN_BY_ID: (id: string) => `/admin/clubs/${id}`,
   PERSONS_ADMIN: '/admin/persons',
   PERSON_ADMIN_BY_ID: (id: string) => `/admin/persons/${id}`,
+  PERSON_ADMIN_PORTRAIT: (id: string) => `/admin/persons/${id}/portrait`,
   PERSON_BY_SLUG: (slug: string) => `/persons/${slug}`,
   BRANDS_ADMIN: '/admin/brands',
   BRAND_ADMIN_BY_ID: (id: string) => `/admin/brands/${id}`,
@@ -25,7 +26,8 @@ const API_ROUTES = {
   COMPETITION_TYPES: '/competition-types',
   COMPETITION_TYPE_BY_SLUG: (slug: string) => `/competition-types/${slug}`,
   COMPETITION_TYPES_ADMIN: '/admin/competition-types',
-  COMPETITION_TYPE_ADMIN_BY_ID: (id: string) => `/admin/competition-types/${id}`,
+  COMPETITION_TYPE_ADMIN_BY_ID: (id: string) =>
+    `/admin/competition-types/${id}`,
   COMPETITIONS: '/competitions',
   COMPETITION_BY_SLUG: (slug: string) => `/competitions/${slug}`,
   COMPETITIONS_ADMIN: '/admin/competitions',
@@ -35,7 +37,8 @@ const API_ROUTES = {
   COMPETITION_EDITIONS_ADMIN: '/admin/competition-editions',
   COMPETITION_EDITION_ADMIN_BY_ID: (id: string) =>
     `/admin/competition-editions/${id}`,
-  COMPETITION_EDITION_BY_SLUG: (slug: string) => `/competition-editions/${slug}`,
+  COMPETITION_EDITION_BY_SLUG: (slug: string) =>
+    `/competition-editions/${slug}`,
   COMPETITION_EDITIONS_BY_COMPETITION_SLUG: (competitionSlug: string) =>
     `/competitions/${competitionSlug}/editions`,
   COMPETITION_EDITION_CODE_ADMIN_BY_ID: (id: string) =>
@@ -44,7 +47,8 @@ const API_ROUTES = {
   COMPETITION_PYRAMID_ADMIN_BY_ID: (id: string) =>
     `/admin/competition-pyramids/${id}`,
   COMPETITION_TIERS_ADMIN: '/admin/competition-tiers',
-  COMPETITION_TIER_ADMIN_BY_ID: (id: string) => `/admin/competition-tiers/${id}`,
+  COMPETITION_TIER_ADMIN_BY_ID: (id: string) =>
+    `/admin/competition-tiers/${id}`,
   COUNTRIES: '/countries',
   COUNTRIES_ALL: '/countries/all',
   COUNTRY_BY_ID: (id: string) => `/countries/${id}`,

@@ -20,11 +20,11 @@ import Button from '@/_components/forms/Button';
 import CheckBoxInput from '@/_components/forms/CheckBoxInput';
 import Form from '@/_components/forms/Form';
 import Select from '@/_components/forms/Select';
-import TextArea from '@/_components/forms/TextArea';
 import TextInput from '@/_components/forms/TextInput';
 import Grid from '@/_components/layout/Grid';
 import Section from '@/_components/layout/Section';
 import ButtonGroup from '@/_components/navigation/ButtonGroup';
+import Text from '@/_components/typography/Text';
 import { resolveLocalizedFederationErrorMessage } from '@/_constants/federationErrorMessages';
 import NAVIGATION from '@/_constants/navigation';
 import { useI18n } from '@/_i18n/I18nProvider';
@@ -76,6 +76,10 @@ function resolveGeoErrorMessage(message?: string): string {
   return message || 'We could not load cities for the selected country.';
 }
 
+function getTodayDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function FederationForm({
   federation,
   countries,
@@ -102,6 +106,13 @@ export default function FederationForm({
   );
   const [isCitiesPending, setIsCitiesPending] = useState(false);
   const [citiesError, setCitiesError] = useState('');
+  const [foundationDate, setFoundationDate] = useState(
+    formatDateForInput(federation?.foundationDate),
+  );
+  const [dissolutionDate, setDissolutionDate] = useState(
+    formatDateForInput(federation?.dissolutionDate),
+  );
+  const [isActive, setIsActive] = useState(federation?.isActive ?? true);
 
   const [editState, editAction, editPending] = useActionState<
     FederationActionState,
@@ -149,6 +160,21 @@ export default function FederationForm({
       ...cityOptions,
     ];
   }, [cityOptions, selectedCityId, selectedCityLabel]);
+
+  const dissolutionDateError = useMemo(() => {
+    if (!dissolutionDate) return '';
+
+    if (dissolutionDate > getTodayDate()) {
+      return dictionary.federations.errors.FEDERATION_DISSOLUTION_DATE_IN_FUTURE;
+    }
+
+    if (foundationDate && dissolutionDate < foundationDate) {
+      return dictionary.federations.errors
+        .FEDERATION_DISSOLUTION_DATE_BEFORE_FOUNDATION_DATE;
+    }
+
+    return '';
+  }, [dictionary.federations.errors, dissolutionDate, foundationDate]);
 
   const loadCitiesForCountry = useCallback(async (countryId: string) => {
     const requestId = latestCitiesRequest.current + 1;
@@ -261,6 +287,27 @@ export default function FederationForm({
     [],
   );
 
+  const handleFoundationDateChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFoundationDate(event.target.value);
+    },
+    [],
+  );
+
+  const handleDissolutionDateChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setDissolutionDate(event.target.value);
+    },
+    [],
+  );
+
+  const handleIsActiveChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setIsActive(event.target.checked);
+    },
+    [],
+  );
+
   let cityHelperText: string | undefined;
   if (selectedCountryId === '') {
     cityHelperText = 'Select a country to enable cities.';
@@ -335,7 +382,21 @@ export default function FederationForm({
               label='Foundation date'
               name='foundationDate'
               type='date'
-              defaultValue={formatDateForInput(federation?.foundationDate)}
+              value={foundationDate}
+              onChange={handleFoundationDateChange}
+              max={getTodayDate()}
+              disabled={isPending}
+            />
+            <TextInput
+              label='Dissolution date'
+              name='dissolutionDate'
+              type='date'
+              value={dissolutionDate}
+              onChange={handleDissolutionDateChange}
+              max={getTodayDate()}
+              min={foundationDate || undefined}
+              helperText={dissolutionDateError || undefined}
+              error={Boolean(dissolutionDateError)}
               disabled={isPending}
             />
             <Select
@@ -394,22 +455,17 @@ export default function FederationForm({
               defaultValue={federation?.heroImageUrl ?? ''}
               disabled={isPending}
             />
-            <CheckBoxInput
-              label='Active'
-              name='isActive'
-              value='true'
-              defaultChecked={federation?.isActive ?? true}
-              disabled={isPending}
-            />
-            <TextArea
-              label='Description'
-              name='description'
-              placeholder='Optional description'
-              defaultValue={federation?.description ?? ''}
-              disabled={isPending}
-              rows={6}
-              className='grid-column--2'
-            />
+            <Grid gap={4}>
+              <CheckBoxInput
+                key={`federation-active-${isActive ? 'active' : 'inactive'}`}
+                label='Active'
+                name='isActive'
+                value='true'
+                defaultChecked={isActive}
+                onChange={handleIsActiveChange}
+                disabled={isPending}
+              />
+            </Grid>
           </Grid>
 
           {edit && federation ? (

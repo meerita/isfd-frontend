@@ -52,7 +52,7 @@ export async function updateCompetitionEditionCode(
     revalidatePath(NAVIGATION.COMPETITION_EDITIONS);
     revalidatePath(NAVIGATION.COMPETITION_EDITION_BY_ID(competitionEditionId));
 
-    const result = {
+    const result: CompetitionEditionActionState = {
       status: 'success',
       competitionEditionId,
     };
@@ -66,7 +66,7 @@ export async function updateCompetitionEditionCode(
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    const result = {
+    const result: CompetitionEditionActionState = {
       status: 'error',
       error: normalized.data,
     };

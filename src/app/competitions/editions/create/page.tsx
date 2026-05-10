@@ -1,7 +1,8 @@
 /** @format */
 
 import { getAllCompetitions } from '@/_actions/competition/getAllCompetitions';
-import { getAllSeasons } from '@/_actions/season/getAllSeasons';
+import { getAllCompetitionPyramids } from '@/_actions/competitionStructure/getAllCompetitionPyramids';
+import { getAllCompetitionTiers } from '@/_actions/competitionStructure/getAllCompetitionTiers';
 import Grid from '@/_components/layout/Grid';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Title from '@/_components/typography/Title';
@@ -12,9 +13,10 @@ import CompetitionEditionForm from '../_components/CompetitionEditionForm';
 export default async function CreateCompetitionEditionPage(): Promise<React.JSX.Element> {
   await requireAdminAccess();
 
-  const [seasons, competitions] = await Promise.all([
-    getAllSeasons(),
+  const [competitions, competitionPyramids, competitionTiers] = await Promise.all([
     getAllCompetitions(),
+    getAllCompetitionPyramids(),
+    getAllCompetitionTiers(),
   ]);
 
   return (
@@ -31,8 +33,12 @@ export default async function CreateCompetitionEditionPage(): Promise<React.JSX.
         <Title size='medium'>Create a new competition edition</Title>
       </Grid>
       <CompetitionEditionForm
-        seasons={seasons.map(item => ({ id: item.id, name: item.name }))}
         competitions={competitions.map(item => ({ id: item.id, name: item.name }))}
+        competitionPyramids={competitionPyramids.map(item => ({
+          id: item.id,
+          name: item.name,
+        }))}
+        competitionTiers={competitionTiers.map(item => ({ id: item.id, name: item.name }))}
       />
     </Grid>
   );

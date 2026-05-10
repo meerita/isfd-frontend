@@ -289,7 +289,7 @@ export function buildUpdateCityBody(formData: FormData): {
   const currentIsActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);
   if (currentIsActive !== originalIsActive) {
-    body.is_active = currentIsActive;
+    body.is_public = currentIsActive;
   }
 
   return {

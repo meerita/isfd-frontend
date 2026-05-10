@@ -25,7 +25,7 @@ export function mapBrandListItem(raw: RawBrand): BrandListItem {
     id: String(raw.id ?? ''),
     name: String(raw.name ?? ''),
     slug: String(raw.slug ?? ''),
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    isActive: Boolean(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive ?? false),
     createdAt: String(raw.created_at ?? raw.createdAt ?? ''),
     updatedAt: String(raw.updated_at ?? raw.updatedAt ?? ''),
   };

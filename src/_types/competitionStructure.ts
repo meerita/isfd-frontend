@@ -114,7 +114,7 @@ export type CreateCompetitionPyramidRequest = Readonly<{
   branch_kind: CompetitionPyramidBranchKind;
   valid_from: string;
   valid_to: string | null;
-  is_active: boolean;
+  is_public: boolean;
 }>;
 
 export type UpdateCompetitionPyramidRequest = Readonly<{
@@ -126,7 +126,7 @@ export type UpdateCompetitionPyramidRequest = Readonly<{
   branch_kind?: CompetitionPyramidBranchKind | null;
   valid_from?: string | null;
   valid_to?: string | null;
-  is_active?: boolean | null;
+  is_public?: boolean | null;
 }>;
 
 export type CreateCompetitionTierRequest = Readonly<{
@@ -138,7 +138,7 @@ export type CreateCompetitionTierRequest = Readonly<{
   level_order: number | null;
   scope_kind: CompetitionTierScopeKind;
   participant_scope: ParticipantScope;
-  is_active?: boolean | null;
+  is_public?: boolean | null;
 }>;
 
 export type UpdateCompetitionTierRequest = Readonly<{
@@ -150,7 +150,7 @@ export type UpdateCompetitionTierRequest = Readonly<{
   level_order?: number | null;
   scope_kind?: CompetitionTierScopeKind | null;
   participant_scope?: ParticipantScope | null;
-  is_active?: boolean | null;
+  is_public?: boolean | null;
 }>;
 
 export interface CompetitionPyramidActionState {

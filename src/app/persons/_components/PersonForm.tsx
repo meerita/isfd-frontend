@@ -283,20 +283,16 @@ export default function PersonForm({
             value={person.retirement_date ?? ''}
           />
           <OriginalField
-            name='avatar_image_url'
-            value={person.avatar_image_url ?? ''}
-          />
-          <OriginalField
-            name='hero_image_url'
-            value={person.hero_image_url ?? ''}
+            name='portrait_asset_id'
+            value={person.portrait_asset_id ?? ''}
           />
           <OriginalField
             name='is_deceased'
             value={person.is_deceased ? 'true' : 'false'}
           />
           <OriginalField
-            name='is_active'
-            value={person.is_active ? 'true' : 'false'}
+            name='is_public'
+            value={person.is_public ? 'true' : 'false'}
           />
         </>
       ) : null}
@@ -372,12 +368,12 @@ export default function PersonForm({
               </Grid>
             </FieldSet>
 
-            <input type='hidden' name='is_active' value='false' />
+            <input type='hidden' name='is_public' value='false' />
             <CheckBoxInput
               label={dictionary.persons.form.activeLabel}
-              name='is_active'
+              name='is_public'
               value='true'
-              defaultChecked={person?.is_active ?? true}
+              defaultChecked={person?.is_public ?? true}
               disabled={isPending}
               placeholder={dictionary.persons.form.activeHelper}
             />
@@ -422,7 +418,9 @@ export default function PersonForm({
                   defaultValue={person?.gender ?? ''}
                   disabled={isPending}
                 >
-                  <option value=''>{dictionary.persons.form.noGender}</option>
+                  {!edit ? (
+                    <option value=''>{dictionary.persons.form.noGender}</option>
+                  ) : null}
                   {getPersonGenderOptions().map(option => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -606,19 +604,10 @@ export default function PersonForm({
             <FieldSet>
               <Grid gap={8} columns={2}>
                 <TextInput
-                  label={dictionary.persons.form.avatarImageUrl}
-                  name='avatar_image_url'
-                  type='url'
-                  placeholder={dictionary.persons.form.placeholders.avatarImageUrl}
-                  defaultValue={person?.avatar_image_url ?? ''}
-                  disabled={isPending}
-                />
-                <TextInput
-                  label={dictionary.persons.form.heroImageUrl}
-                  name='hero_image_url'
-                  type='url'
-                  placeholder={dictionary.persons.form.placeholders.heroImageUrl}
-                  defaultValue={person?.hero_image_url ?? ''}
+                  label={dictionary.persons.form.portraitAssetId}
+                  name='portrait_asset_id'
+                  placeholder={dictionary.persons.form.placeholders.portraitAssetId}
+                  defaultValue={person?.portrait_asset_id ?? ''}
                   disabled={isPending}
                 />
               </Grid>

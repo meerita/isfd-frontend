@@ -37,10 +37,6 @@ function getSectionFromHref(href: string): string {
     return 'tiers';
   }
 
-  if (href.startsWith(NAVIGATION.COMPETITION_SEASONS)) {
-    return 'seasons';
-  }
-
   if (href.startsWith(NAVIGATION.COMPETITION_EDITIONS)) {
     return 'editions';
   }
@@ -71,10 +67,6 @@ function getCurrentSection(
 
   if (pathname.startsWith(NAVIGATION.COMPETITION_TIERS)) {
     return 'tiers';
-  }
-
-  if (pathname.startsWith(NAVIGATION.COMPETITION_SEASONS)) {
-    return 'seasons';
   }
 
   if (pathname.startsWith(NAVIGATION.COMPETITION_EDITIONS)) {

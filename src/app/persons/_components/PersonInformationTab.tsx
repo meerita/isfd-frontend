@@ -3,7 +3,7 @@
 'use client';
 
 import type { CountrySelectOption } from '@/_types/country';
-import type { PersonAdminDetail, PersonPublicDetail } from '@/_types/person';
+import type { PersonAdminDetail } from '@/_types/person';
 import PersonAchievementsSection from './PersonAchievementsSection';
 import PersonClubsSection from './PersonClubsSection';
 import PersonForm from './PersonForm';
@@ -15,7 +15,6 @@ export type PersonSection = 'profile' | 'media' | 'clubs' | 'games' | 'achieveme
 
 type PersonInformationTabProps = Readonly<{
   person: PersonAdminDetail;
-  publicPerson?: PersonPublicDetail | null;
   section: PersonSection;
   edit: boolean;
   countries: ReadonlyArray<CountrySelectOption>;
@@ -26,7 +25,6 @@ type PersonInformationTabProps = Readonly<{
 
 export default function PersonInformationTab({
   person,
-  publicPerson,
   section,
   edit,
   countries,
@@ -51,7 +49,7 @@ export default function PersonInformationTab({
 
   switch (section) {
     case 'media':
-      return <PersonMediaSection person={person} publicPerson={publicPerson} />;
+      return <PersonMediaSection person={person} />;
     case 'clubs':
       return <PersonClubsSection />;
     case 'games':
@@ -60,6 +58,6 @@ export default function PersonInformationTab({
       return <PersonAchievementsSection />;
     case 'profile':
     default:
-      return <PersonProfileSection person={person} publicPerson={publicPerson} />;
+      return <PersonProfileSection person={person} />;
   }
 }

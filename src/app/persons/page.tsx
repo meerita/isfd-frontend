@@ -111,7 +111,7 @@ function buildHref(
 
   params.set('page', String(page));
   params.set('page_size', String(pageSize));
-  params.set('sort', sort);
+    params.set('sort', sort);
 
   if (status) {
     params.set('status', status);
@@ -126,45 +126,6 @@ function buildHref(
   }
 
   return `${NAVIGATION.PERSONS}?${params.toString()}`;
-}
-
-function renderAvatarPreview(
-  name: string,
-  avatarImageUrl: string | null,
-  missingLabel: string,
-  availableLabel: string,
-): React.JSX.Element {
-  if (!avatarImageUrl) {
-    return (
-      <span
-        aria-label={missingLabel.replace('{name}', name)}
-        style={{
-          display: 'inline-block',
-          width: 32,
-          height: 32,
-          borderRadius: 999,
-          backgroundColor: '#f2f2f2',
-        }}
-      />
-    );
-  }
-
-  return (
-    <span
-      aria-label={availableLabel.replace('{name}', name)}
-      style={{
-        display: 'inline-block',
-        width: 32,
-        height: 32,
-        borderRadius: 999,
-        backgroundColor: '#f2f2f2',
-        backgroundImage: `url(${avatarImageUrl})`,
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'cover',
-      }}
-    />
-  );
 }
 
 function formatPaginationLabel(
@@ -256,7 +217,9 @@ export default async function PersonsPage({
             <Table>
               <Thead>
                 <Row>
-                  <Cell header>{dictionary.persons.headers.avatar}</Cell>
+                  <Cell header className='padding-left--16'>
+                    {dictionary.persons.headers.portraitAssetId}
+                  </Cell>
                   <Cell header className='padding-left--16'>
                     {dictionary.persons.headers.fullName}
                   </Cell>
@@ -276,7 +239,7 @@ export default async function PersonsPage({
                     {dictionary.persons.headers.primaryNationality}
                   </Cell>
                   <Cell header align='center'>
-                    {dictionary.persons.headers.active}
+                    {dictionary.persons.headers.public}
                   </Cell>
                   <Cell align='right' header className='padding-left--16'>
                     {dictionary.persons.headers.created}
@@ -311,17 +274,12 @@ export default async function PersonsPage({
                           key={person.id}
                           href={NAVIGATION.PERSON_BY_ID(person.id)}
                         >
-                           <Cell>
-                             {renderAvatarPreview(
-                               person.full_name,
-                               person.avatar_image_url ?? null,
-                               dictionary.persons.avatarMissing,
-                               dictionary.persons.avatarAvailable,
-                             )}
-                           </Cell>
-                           <Cell className='padding-left--16'>
-                             {person.full_name}
-                           </Cell>
+                            <Cell className='padding-left--16'>
+                              {person.portrait_asset_id ?? PLACEHOLDER}
+                            </Cell>
+                            <Cell className='padding-left--16'>
+                              {person.full_name}
+                            </Cell>
                           <Cell className='padding-left--16'>
                             {person.slug}
                           </Cell>
@@ -344,7 +302,7 @@ export default async function PersonsPage({
                                : PLACEHOLDER}
                            </Cell>
                            <Cell align='center'>
-                             {person.is_active ? (
+                              {person.is_public ? (
                                <Dot active inline />
                              ) : (
                                <Dot inline />

@@ -2,7 +2,6 @@
 
 import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getAdminPersonById } from '@/_actions/person/getAdminPersonById';
-import { getPublicPersonBySlug } from '@/_actions/person/getPublicPersonBySlug';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
@@ -125,10 +124,6 @@ export default async function PersonPage({
   }
 
   const person = personResponse.data;
-  const publicPersonResponse = person.slug
-    ? await getPublicPersonBySlug(person.slug)
-    : { data: null, error: undefined };
-  const publicPerson = publicPersonResponse.data;
   const selectedPrimaryNationalityCountryLabel =
     countries.find(country => country.id === person.primary_nationality_country_id)
       ?.name ?? null;
@@ -146,7 +141,7 @@ export default async function PersonPage({
       >
         <ButtonGroup gap={4}>
           <DeletePersonButton personId={person.id} personName={person.full_name} />
-          <PersonActivationToggle personId={person.id} isActive={person.is_active} />
+          <PersonActivationToggle personId={person.id} isPublic={person.is_public} />
           <Button
             icon='personEdit'
             type='button'
@@ -162,7 +157,6 @@ export default async function PersonPage({
           <PersonSidebarNavigation personId={person.id} activeSection={section} />
           <PersonInformationTab
             person={person}
-            publicPerson={publicPerson}
             section={section}
             edit={edit}
             countries={countries}

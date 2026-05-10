@@ -61,7 +61,7 @@ export function mapClubListItem(raw: RawClub): ClubListItem {
       raw.primary_stadium_id ?? raw.primaryStadiumId ?? raw.primary_stadium ?? raw.primaryStadium,
     ),
     logoUrl: toNullableString(raw.logo_url ?? raw.logoUrl),
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    isActive: Boolean(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive ?? false),
     createdAt: String(raw.created_at ?? raw.createdAt ?? ''),
     updatedAt: String(raw.updated_at ?? raw.updatedAt ?? ''),
   };

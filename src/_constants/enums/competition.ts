@@ -62,10 +62,10 @@ export const COMPETITION_SCOPE_KINDS = COMPETITION_TIER_SCOPE_KINDS;
 
 export const COMPETITION_EDITION_STATUSES = [
   'DRAFT',
-  'SCHEDULED',
-  'ACTIVE',
-  'FINISHED',
+  'REVIEW',
+  'PUBLISHED',
   'ARCHIVED',
+  'HIDDEN',
 ] as const;
 
 export type CompetitionTypeCategory =
@@ -84,7 +84,7 @@ export type CompetitionTierScopeKind =
 export type CompetitionScopeKind =
   | CompetitionPyramidScopeKind
   | CompetitionTierScopeKind;
-export type CompetitionEditionStatus =
+export type CompetitionEditionEditorialStatus =
   (typeof COMPETITION_EDITION_STATUSES)[number];
 
 export function parseCompetitionTypeCategory(
@@ -148,7 +148,7 @@ export function parseCompetitionScopeKind(
 
 export function parseCompetitionEditionStatus(
   value: string | null | undefined,
-): CompetitionEditionStatus | null {
+): CompetitionEditionEditorialStatus | null {
   return parseOptionalEnum(COMPETITION_EDITION_STATUSES, value);
 }
 
@@ -424,32 +424,33 @@ export function getCompetitionEditionStatusLabel(
 ): string {
   const labels: Record<
     AppLocale,
-    Partial<Record<CompetitionEditionStatus, string>>
+    Partial<Record<CompetitionEditionEditorialStatus, string>>
   > = {
     ja: {
       DRAFT: '下書き',
-      SCHEDULED: '予定',
-      ACTIVE: '進行中',
-      FINISHED: '終了',
+      REVIEW: 'レビュー中',
+      PUBLISHED: '公開済み',
       ARCHIVED: 'アーカイブ済み',
+      HIDDEN: '非表示',
     },
     es: {
       DRAFT: 'Borrador',
-      SCHEDULED: 'Programada',
-      ACTIVE: 'Activa',
-      FINISHED: 'Finalizada',
+      REVIEW: 'En revisión',
+      PUBLISHED: 'Publicada',
       ARCHIVED: 'Archivada',
+      HIDDEN: 'Oculta',
     },
     en: {
       DRAFT: 'Draft',
-      SCHEDULED: 'Scheduled',
-      ACTIVE: 'Active',
-      FINISHED: 'Finished',
+      REVIEW: 'Review',
+      PUBLISHED: 'Published',
       ARCHIVED: 'Archived',
+      HIDDEN: 'Hidden',
     },
   };
 
   return (
-    labels[locale][value as CompetitionEditionStatus] ?? formatEnumLabel(value)
+    labels[locale][value as CompetitionEditionEditorialStatus] ??
+    formatEnumLabel(value)
   );
 }

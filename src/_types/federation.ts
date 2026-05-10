@@ -10,8 +10,8 @@ export type FederationSort =
   | 'created_at_desc'
   | 'updated_at_asc'
   | 'updated_at_desc'
-  | 'is_active_asc'
-  | 'is_active_desc'
+  | 'is_public_asc'
+  | 'is_public_desc'
   | 'name_asc'
   | 'name_desc';
 
@@ -36,7 +36,7 @@ export type Federation = FederationListItem &
     shortName: string | null;
     acronym: string | null;
     foundationDate: string | null;
-    description: string | null;
+    dissolutionDate: string | null;
     officialWebsiteUrl: string | null;
     heroImageUrl: string | null;
   }>;

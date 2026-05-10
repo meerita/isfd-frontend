@@ -44,7 +44,7 @@ export function mapCountry(raw: RawCountry): Country {
     iso2Code: toNullableString(raw.iso2_code ?? raw.iso2Code),
     iso3Code: toNullableString(raw.iso3_code ?? raw.iso3Code),
     continentCode: parseContinentCode(raw.continent_code ?? raw.continentCode),
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    isActive: Boolean(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive ?? false),
     provinceCount: toOptionalNumber(raw.province_count ?? raw.provinceCount),
     cityCount: toOptionalNumber(raw.city_count ?? raw.cityCount),
   };

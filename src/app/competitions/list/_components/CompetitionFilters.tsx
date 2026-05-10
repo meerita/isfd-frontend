@@ -13,7 +13,7 @@ import NAVIGATION from '@/_constants/navigation';
 import { useI18n } from '@/_i18n/I18nProvider';
 import type {
   CompetitionSort,
-  CompetitionStatusFilter,
+  CompetitionVisibilityFilter,
 } from '@/_types/competition';
 
 type SelectorOption = Readonly<{
@@ -25,7 +25,7 @@ type SelectorOption = Readonly<{
 type CompetitionFiltersProps = Readonly<{
   pageSize: number;
   sort: CompetitionSort;
-  status?: CompetitionStatusFilter;
+  visibility?: CompetitionVisibilityFilter;
   competitionTypeId?: string;
   federationId?: string;
   countryId?: string;
@@ -39,7 +39,7 @@ const FILTERS_TOAST_ID = 'competitions-filters-loading';
 export default function CompetitionFilters({
   pageSize,
   sort,
-  status,
+  visibility,
   competitionTypeId,
   federationId,
   countryId,
@@ -66,7 +66,7 @@ export default function CompetitionFilters({
       federationId,
       pageSize,
       sort,
-      status,
+      visibility,
     ],
   );
 
@@ -129,23 +129,23 @@ export default function CompetitionFilters({
           <option value='sort_order_desc'>
             {dictionary.competitions.list.filters.sortOrderDesc}
           </option>
-          <option value='is_active_desc'>
-            {dictionary.competitions.list.filters.activeFirst}
+          <option value='is_public_desc'>
+            {dictionary.competitions.list.filters.publicFirst}
           </option>
-          <option value='is_active_asc'>
-            {dictionary.competitions.list.filters.inactiveFirst}
+          <option value='is_public_asc'>
+            {dictionary.competitions.list.filters.privateFirst}
           </option>
         </Select>
 
         <Select
-          label={dictionary.competitions.list.filters.status}
-          name='status'
-          defaultValue={status ?? 'all'}
+          label={dictionary.competitions.list.filters.visibility}
+          name='visibility'
+          defaultValue={visibility ?? 'all'}
           onChange={handleChange}
         >
           <option value='all'>{dictionary.common.all}</option>
-          <option value='active'>{dictionary.common.active}</option>
-          <option value='inactive'>{dictionary.common.inactive}</option>
+          <option value='public'>{dictionary.competitions.list.filters.publicOnly}</option>
+          <option value='private'>{dictionary.competitions.list.filters.privateOnly}</option>
         </Select>
 
         <Select

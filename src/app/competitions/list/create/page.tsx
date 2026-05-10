@@ -7,7 +7,6 @@ import Title from '@/_components/typography/Title';
 import NAVIGATION from '@/_constants/navigation';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
 import {
-  mapCompetitionPyramidOptions,
   mapCompetitionSelectOptions,
   mapCompetitionTypeOptions,
 } from '../_lib/competitionAdmin';
@@ -20,7 +19,6 @@ export default async function CreateCompetitionPage(): Promise<React.JSX.Element
     competitionTypes,
     federations,
     countries,
-    competitionPyramids,
     error,
   } = await getCompetitionBaseCatalogs();
 
@@ -41,7 +39,6 @@ export default async function CreateCompetitionPage(): Promise<React.JSX.Element
         competitionTypes={mapCompetitionTypeOptions(competitionTypes)}
         federations={mapCompetitionSelectOptions(federations)}
         countries={mapCompetitionSelectOptions(countries)}
-        competitionPyramids={mapCompetitionPyramidOptions(competitionPyramids)}
         catalogError={error}
       />
     </Grid>

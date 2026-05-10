@@ -116,11 +116,11 @@ export default function PersonFilters({
           <option value='display_name_desc'>
             {dictionary.persons.filters.displayNameDesc}
           </option>
-          <option value='is_active_desc'>
-            {dictionary.persons.filters.activeFirst}
+          <option value='is_public_desc'>
+            {dictionary.persons.filters.publicFirst}
           </option>
-          <option value='is_active_asc'>
-            {dictionary.persons.filters.inactiveFirst}
+          <option value='is_public_asc'>
+            {dictionary.persons.filters.privateFirst}
           </option>
         </Select>
 
@@ -131,8 +131,8 @@ export default function PersonFilters({
           onChange={handleChange}
         >
           <option value='all'>{dictionary.common.all}</option>
-          <option value='active'>{dictionary.common.active}</option>
-          <option value='inactive'>{dictionary.common.inactive}</option>
+          <option value='public'>{dictionary.persons.filters.publicStatus}</option>
+          <option value='private'>{dictionary.persons.filters.privateStatus}</option>
         </Select>
 
         <Select

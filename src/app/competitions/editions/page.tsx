@@ -4,9 +4,9 @@ import Link from 'next/link';
 
 import { getAllCompetitions } from '@/_actions/competition/getAllCompetitions';
 import { getAdminCompetitionEditions } from '@/_actions/competitionEdition/getAdminCompetitionEditions';
-import { getAllSeasons } from '@/_actions/season/getAllSeasons';
+import { getAllCompetitionPyramids } from '@/_actions/competitionStructure/getAllCompetitionPyramids';
+import { getAllCompetitionTiers } from '@/_actions/competitionStructure/getAllCompetitionTiers';
 import Card from '@/_components/Card';
-import Dot from '@/_components/Dot';
 import Icon from '@/_components/Icon';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
@@ -25,9 +25,9 @@ import { getDictionary } from '@/_i18n/getDictionary';
 import { resolveRequestLocale } from '@/_i18n/resolveRequestLocale';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
 import type {
-  CompetitionEditionActiveStatusFilter,
   CompetitionEditionSort,
   CompetitionEditionStatusFilter,
+  CompetitionEditionVisibilityFilter,
 } from '@/_types/competitionEdition';
 import {
   formatDateOnly,
@@ -41,14 +41,43 @@ import CompetitionEditionFilters from './_components/CompetitionEditionFilters';
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_SORT: CompetitionEditionSort = 'updated_at_desc';
+const SORT_OPTIONS = new Set<CompetitionEditionSort>([
+  'created_at_asc',
+  'created_at_desc',
+  'updated_at_asc',
+  'updated_at_desc',
+  'name_asc',
+  'name_desc',
+  'sort_order_asc',
+  'sort_order_desc',
+  'year_asc',
+  'year_desc',
+  'started_on_asc',
+  'started_on_desc',
+]);
+const STATUS_OPTIONS = new Set<CompetitionEditionStatusFilter>([
+  'all',
+  'DRAFT',
+  'REVIEW',
+  'PUBLISHED',
+  'ARCHIVED',
+  'HIDDEN',
+]);
+const VISIBILITY_OPTIONS = new Set<CompetitionEditionVisibilityFilter>([
+  'all',
+  'public',
+  'private',
+]);
 
 type SearchParams = Readonly<{
   page?: string | string[];
   page_size?: string | string[];
   sort?: string | string[];
   status?: string | string[];
-  active_status?: string | string[];
+  visibility?: string | string[];
   competition_id?: string | string[];
+  competition_pyramid_id?: string | string[];
+  primary_competition_tier_id?: string | string[];
   year?: string | string[];
   q?: string | string[];
 }>;
@@ -58,8 +87,10 @@ function buildHref(
   pageSize: number,
   sort: CompetitionEditionSort,
   status?: CompetitionEditionStatusFilter,
-  activeStatus?: CompetitionEditionActiveStatusFilter,
+  visibility?: CompetitionEditionVisibilityFilter,
   competitionId?: string,
+  competitionPyramidId?: string,
+  primaryCompetitionTierId?: string,
   year?: number,
   q?: string,
 ): string {
@@ -69,25 +100,17 @@ function buildHref(
   params.set('page_size', String(pageSize));
   params.set('sort', sort);
 
-  if (status) {
-    params.set('status', status);
+  if (status) params.set('status', status);
+  if (visibility) params.set('visibility', visibility);
+  if (competitionId) params.set('competition_id', competitionId);
+  if (competitionPyramidId) {
+    params.set('competition_pyramid_id', competitionPyramidId);
   }
-
-  if (activeStatus) {
-    params.set('active_status', activeStatus);
+  if (primaryCompetitionTierId) {
+    params.set('primary_competition_tier_id', primaryCompetitionTierId);
   }
-
-  if (competitionId) {
-    params.set('competition_id', competitionId);
-  }
-
-  if (typeof year === 'number') {
-    params.set('year', String(year));
-  }
-
-  if (q) {
-    params.set('q', q);
-  }
+  if (typeof year === 'number') params.set('year', String(year));
+  if (q) params.set('q', q);
 
   return `${NAVIGATION.COMPETITION_EDITIONS}?${params.toString()}`;
 }
@@ -114,40 +137,56 @@ export default async function CompetitionEditionsPage({
   const params = await searchParams;
   const page = parsePositiveInt(params?.page, DEFAULT_PAGE);
   const pageSize = parsePositiveInt(params?.page_size, DEFAULT_PAGE_SIZE, 100);
+  const rawSort = parseString(params?.sort);
   const sort =
-    (parseString(params?.sort) as CompetitionEditionSort | undefined) ??
-    DEFAULT_SORT;
-  const status = parseString(params?.status) as
-    | CompetitionEditionStatusFilter
-    | undefined;
-  const activeStatus = parseString(params?.active_status) as
-    | CompetitionEditionActiveStatusFilter
-    | undefined;
+    rawSort && SORT_OPTIONS.has(rawSort as CompetitionEditionSort)
+      ? (rawSort as CompetitionEditionSort)
+      : DEFAULT_SORT;
+  const rawStatus = parseString(params?.status);
+  const status =
+    rawStatus && STATUS_OPTIONS.has(rawStatus as CompetitionEditionStatusFilter)
+      ? (rawStatus as CompetitionEditionStatusFilter)
+      : undefined;
+  const rawVisibility = parseString(params?.visibility);
+  const visibility =
+    rawVisibility &&
+    VISIBILITY_OPTIONS.has(rawVisibility as CompetitionEditionVisibilityFilter)
+      ? (rawVisibility as CompetitionEditionVisibilityFilter)
+      : undefined;
   const competitionId = parseUuid(params?.competition_id);
+  const competitionPyramidId = parseUuid(params?.competition_pyramid_id);
+  const primaryCompetitionTierId = parseUuid(params?.primary_competition_tier_id);
   const rawYear = parseString(params?.year);
   const year =
     rawYear && Number.isFinite(Number(rawYear)) ? Number(rawYear) : undefined;
   const q = parseString(params?.q);
 
-  const [response, competitions, seasons] = await Promise.all([
-    getAdminCompetitionEditions({
-      page,
-      pageSize,
-      sort,
-      status,
-      activeStatus,
-      competitionId,
-      year,
-      q,
-    }),
-    getAllCompetitions(),
-    getAllSeasons(),
-  ]);
+  const [response, competitions, competitionPyramids, competitionTiers] =
+    await Promise.all([
+      getAdminCompetitionEditions({
+        page,
+        pageSize,
+        sort,
+        status,
+        visibility,
+        competitionId,
+        competitionPyramidId,
+        primaryCompetitionTierId,
+        year,
+        q,
+      }),
+      getAllCompetitions(),
+      getAllCompetitionPyramids(),
+      getAllCompetitionTiers(),
+    ]);
 
-  const competitionLabels = new Map(
-    competitions.map(item => [item.id, item.name]),
+  const competitionLabels = new Map(competitions.map(item => [item.id, item.name]));
+  const competitionPyramidLabels = new Map(
+    competitionPyramids.map(item => [item.id, item.name]),
   );
-  const seasonLabels = new Map(seasons.map(item => [item.id, item.name]));
+  const competitionTierLabels = new Map(
+    competitionTiers.map(item => [item.id, item.name]),
+  );
 
   return (
     <Grid gap={16}>
@@ -162,11 +201,21 @@ export default async function CompetitionEditionsPage({
           pageSize={pageSize}
           sort={sort}
           status={status}
-          activeStatus={activeStatus}
+          visibility={visibility}
           competitionId={competitionId}
+          competitionPyramidId={competitionPyramidId}
+          primaryCompetitionTierId={primaryCompetitionTierId}
           year={year}
           q={q}
           competitions={competitions.map(item => ({ id: item.id, name: item.name }))}
+          competitionPyramids={competitionPyramids.map(item => ({
+            id: item.id,
+            name: item.name,
+          }))}
+          competitionTiers={competitionTiers.map(item => ({
+            id: item.id,
+            name: item.name,
+          }))}
         />
 
         {response.error ? (
@@ -174,10 +223,7 @@ export default async function CompetitionEditionsPage({
             <Grid gap={8}>
               <Text weight='bold'>{dictionary.competitions.editions.loadErrorTitle}</Text>
               <Text size='small' color='gray'>
-                {resolveCompetitionAdminErrorMessage(
-                  response.error,
-                  dictionary.common.unexpectedError,
-                )}
+                {resolveCompetitionAdminErrorMessage(response.error)}
               </Text>
             </Grid>
           </Main>
@@ -188,20 +234,15 @@ export default async function CompetitionEditionsPage({
                 <Thead>
                   <Row>
                     <Cell header>{dictionary.competitions.editions.headers.name}</Cell>
-                    <Cell header className='padding-left--16'>
-                      {dictionary.competitions.editions.headers.competition}
-                    </Cell>
-                    <Cell header className='padding-left--16'>
-                      {dictionary.competitions.editions.headers.season}
-                    </Cell>
+                    <Cell header className='padding-left--16'>Competition</Cell>
+                    <Cell header className='padding-left--16'>Competition pyramid</Cell>
+                    <Cell header className='padding-left--16'>Primary tier</Cell>
                     <Cell header className='padding-left--16'>
                       {dictionary.competitions.editions.headers.status}
                     </Cell>
+                    <Cell header align='center'>Visibility</Cell>
                     <Cell header align='right' className='padding-left--16'>
                       {dictionary.competitions.editions.headers.year}
-                    </Cell>
-                    <Cell header align='center'>
-                      {dictionary.competitions.editions.headers.active}
                     </Cell>
                     <Cell header align='right' className='padding-left--16'>
                       {dictionary.competitions.editions.headers.updated}
@@ -212,7 +253,7 @@ export default async function CompetitionEditionsPage({
                   {response.data.length === 0 ? (
                     <Row>
                       <Cell>{dictionary.competitions.editions.emptyState}</Cell>
-                      {Array.from({ length: 6 }).map((_, index) => (
+                      {Array.from({ length: 7 }).map((_, index) => (
                         <Cell
                           key={`empty-${index}`}
                           className='padding-left--16'
@@ -229,24 +270,30 @@ export default async function CompetitionEditionsPage({
                       >
                         <Cell>{item.name}</Cell>
                         <Cell className='padding-left--16'>
-                          {item.competitionId
-                            ? (competitionLabels.get(item.competitionId) ??
-                              item.competitionId)
+                          {competitionLabels.get(item.competitionId) ??
+                            item.competitionName ??
+                            item.competitionId}
+                        </Cell>
+                        <Cell className='padding-left--16'>
+                          {item.competitionPyramidId
+                            ? competitionPyramidLabels.get(item.competitionPyramidId) ??
+                              item.competitionPyramidId
                             : PLACEHOLDER}
                         </Cell>
                         <Cell className='padding-left--16'>
-                          {item.seasonId
-                            ? seasonLabels.get(item.seasonId) ?? item.seasonId
+                          {item.primaryCompetitionTierId
+                            ? competitionTierLabels.get(item.primaryCompetitionTierId) ??
+                              item.primaryCompetitionTierId
                             : PLACEHOLDER}
                         </Cell>
                         <Cell className='padding-left--16'>
-                          {getCompetitionEditionStatusLabel(item.status, locale)}
+                          {getCompetitionEditionStatusLabel(item.editorialStatus, locale)}
+                        </Cell>
+                        <Cell align='center'>
+                          {item.isPublic ? 'Public' : 'Private'}
                         </Cell>
                         <Cell align='right' className='padding-left--16'>
                           {item.year ?? PLACEHOLDER}
-                        </Cell>
-                        <Cell align='center'>
-                          <Dot inline active={item.isActive} />
                         </Cell>
                         <Cell align='right' className='padding-left--16'>
                           {formatDateOnly(item.updatedAt)}
@@ -267,8 +314,10 @@ export default async function CompetitionEditionsPage({
                       pageSize,
                       sort,
                       status,
-                      activeStatus,
+                      visibility,
                       competitionId,
+                      competitionPyramidId,
+                      primaryCompetitionTierId,
                       year,
                       q,
                     )}
@@ -291,8 +340,10 @@ export default async function CompetitionEditionsPage({
                       pageSize,
                       sort,
                       status,
-                      activeStatus,
+                      visibility,
                       competitionId,
+                      competitionPyramidId,
+                      primaryCompetitionTierId,
                       year,
                       q,
                     )}

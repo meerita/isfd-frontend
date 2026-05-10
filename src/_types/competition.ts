@@ -8,23 +8,20 @@ export type CompetitionSort =
   | 'created_at_asc'
   | 'updated_at_desc'
   | 'updated_at_asc'
-  | 'is_active_desc'
-  | 'is_active_asc'
+  | 'is_public_desc'
+  | 'is_public_asc'
   | 'name_desc'
   | 'name_asc'
   | 'sort_order_desc'
   | 'sort_order_asc';
 
-export type CompetitionStatusFilter = 'all' | 'active' | 'inactive';
+export type CompetitionVisibilityFilter = 'all' | 'public' | 'private';
 
 export type CompetitionAdmin = Readonly<{
   id: string;
   competitionTypeId: string;
   federationId: string | null;
   countryId: string | null;
-  competitionPyramidId: string | null;
-  primaryCompetitionTierId: string | null;
-  allowedCompetitionTierIds: ReadonlyArray<string>;
   code: string;
   slug: string;
   name: string;
@@ -32,7 +29,7 @@ export type CompetitionAdmin = Readonly<{
   startedOn: string | null;
   endedOn: string | null;
   sortOrder: number;
-  isActive: boolean;
+  isPublic: boolean;
   createdAt: string;
   updatedAt: string;
 }>;
@@ -43,11 +40,12 @@ export type Competition = CompetitionAdmin;
 export type CompetitionPublic = Readonly<{
   slug: string;
   name: string;
+  originalName: string | null;
   competitionType: Readonly<{
     slug: string;
     code: string;
     name: string;
-  }> | null;
+  }>;
   federation: Readonly<{
     slug: string;
     name: string;
@@ -65,7 +63,7 @@ export type CompetitionListMetadata = GeoMetadata &
   Readonly<{
     filters?: Readonly<{
       sort?: CompetitionSort;
-      status?: CompetitionStatusFilter;
+      visibility?: CompetitionVisibilityFilter;
       competitionTypeId?: string;
       federationId?: string;
       countryId?: string;
@@ -87,36 +85,29 @@ export type CreateCompetitionRequest = Readonly<{
   competition_type_id: string;
   federation_id: string | null;
   country_id: string | null;
-  competition_pyramid_id: string | null;
-  primary_competition_tier_id: string | null;
-  allowed_competition_tier_ids: ReadonlyArray<string>;
-  code: string;
   name: string;
   original_name: string | null;
   started_on: string | null;
   ended_on: string | null;
   sort_order: number | null;
-  is_active: boolean | null;
+  is_public: boolean | null;
 }>;
 
 export type UpdateCompetitionRequest = Readonly<{
-  competition_type_id?: string | null;
+  competition_type_id?: string;
   federation_id?: string | null;
   country_id?: string | null;
-  competition_pyramid_id?: string | null;
-  primary_competition_tier_id?: string | null;
-  allowed_competition_tier_ids?: ReadonlyArray<string> | null;
-  code?: string;
   name?: string;
   original_name?: string | null;
   started_on?: string | null;
   ended_on?: string | null;
   sort_order?: number | null;
-  is_active?: boolean | null;
+  is_public?: boolean;
 }>;
 
 export interface CompetitionActionState {
   status: 'idle' | 'success' | 'error';
   error?: ApiErrorResponse;
   competitionId?: string;
+  competitionSlug?: string;
 }

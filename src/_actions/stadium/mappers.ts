@@ -70,7 +70,7 @@ export function mapStadiumListItem(raw: RawStadium): StadiumListItem {
     imageUrl: toNullableString(raw.image_url ?? raw.imageUrl),
     seatCount: toNullableNumber(raw.seat_count ?? raw.seatCount),
     surfaceType: parseStadiumSurfaceType(raw.surface_type ?? raw.surfaceType),
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    isActive: Boolean(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive ?? false),
     createdAt: String(raw.created_at ?? raw.createdAt ?? ''),
     updatedAt: String(raw.updated_at ?? raw.updatedAt ?? ''),
   };

@@ -7,7 +7,6 @@ import { getAllCompetitionTypes } from '@/_actions/competitionType/getAllCompeti
 import { getAllCountries } from '@/_actions/country/getAllCountries';
 import { getAllFederations } from '@/_actions/federation/getAllFederations';
 import Card from '@/_components/Card';
-import Dot from '@/_components/Dot';
 import Icon from '@/_components/Icon';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
@@ -27,7 +26,7 @@ import { resolveRequestLocale } from '@/_i18n/resolveRequestLocale';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
 import type {
   CompetitionSort,
-  CompetitionStatusFilter,
+  CompetitionVisibilityFilter,
 } from '@/_types/competition';
 import {
   formatDateOnly,
@@ -46,17 +45,36 @@ type SearchParams = Readonly<{
   page?: string | string[];
   page_size?: string | string[];
   sort?: string | string[];
-  status?: string | string[];
+  visibility?: string | string[];
   competition_type_id?: string | string[];
   federation_id?: string | string[];
   country_id?: string | string[];
 }>;
 
+const SORT_OPTIONS = new Set<CompetitionSort>([
+  'created_at_asc',
+  'created_at_desc',
+  'updated_at_asc',
+  'updated_at_desc',
+  'is_public_asc',
+  'is_public_desc',
+  'name_asc',
+  'name_desc',
+  'sort_order_asc',
+  'sort_order_desc',
+]);
+
+const VISIBILITY_OPTIONS = new Set<CompetitionVisibilityFilter>([
+  'all',
+  'public',
+  'private',
+]);
+
 function buildHref(
   page: number,
   pageSize: number,
   sort: CompetitionSort,
-  status?: CompetitionStatusFilter,
+  visibility?: CompetitionVisibilityFilter,
   competitionTypeId?: string,
   federationId?: string,
   countryId?: string,
@@ -67,8 +85,8 @@ function buildHref(
   params.set('page_size', String(pageSize));
   params.set('sort', sort);
 
-  if (status) {
-    params.set('status', status);
+  if (visibility) {
+    params.set('visibility', visibility);
   }
 
   if (competitionTypeId) {
@@ -108,24 +126,29 @@ export default async function CompetitionsListPage({
   const params = await searchParams;
   const page = parsePositiveInt(params?.page, DEFAULT_PAGE);
   const pageSize = parsePositiveInt(params?.page_size, DEFAULT_PAGE_SIZE, 100);
+  const rawSort = parseString(params?.sort);
   const sort =
-    (parseString(params?.sort) as CompetitionSort | undefined) ?? DEFAULT_SORT;
-  const status = parseString(params?.status) as
-    | CompetitionStatusFilter
-    | undefined;
+    rawSort && SORT_OPTIONS.has(rawSort as CompetitionSort)
+      ? (rawSort as CompetitionSort)
+      : DEFAULT_SORT;
+  const rawVisibility = parseString(params?.visibility);
+  const visibility =
+    rawVisibility && VISIBILITY_OPTIONS.has(rawVisibility as CompetitionVisibilityFilter)
+      ? (rawVisibility as CompetitionVisibilityFilter)
+      : undefined;
   const competitionTypeId = parseUuid(params?.competition_type_id);
   const federationId = parseUuid(params?.federation_id);
   const countryId = parseUuid(params?.country_id);
 
   const [response, competitionTypes, federations, countries] =
     await Promise.all([
-      getAdminCompetitions({
-        page,
-        pageSize,
-        sort,
-        status,
-        competitionTypeId,
-        federationId,
+        getAdminCompetitions({
+          page,
+          pageSize,
+          sort,
+          visibility,
+          competitionTypeId,
+          federationId,
         countryId,
       }),
       getAllCompetitionTypes(),
@@ -153,7 +176,7 @@ export default async function CompetitionsListPage({
         <CompetitionFilters
           pageSize={pageSize}
           sort={sort}
-          status={status}
+          visibility={visibility}
           competitionTypeId={competitionTypeId}
           federationId={federationId}
           countryId={countryId}
@@ -197,7 +220,7 @@ export default async function CompetitionsListPage({
                       {dictionary.competitions.list.headers.country}
                     </Cell>
                     <Cell header align='center'>
-                      {dictionary.competitions.list.headers.active}
+                      {dictionary.competitions.list.headers.visibility}
                     </Cell>
                     <Cell header align='right' className='padding-left--16'>
                       {dictionary.competitions.list.headers.created}
@@ -247,7 +270,9 @@ export default async function CompetitionsListPage({
                             : PLACEHOLDER}
                         </Cell>
                         <Cell align='center'>
-                          <Dot inline active={item.isActive} />
+                          {item.isPublic
+                            ? dictionary.competitions.list.visibility.public
+                            : dictionary.competitions.list.visibility.private}
                         </Cell>
                         <Cell align='right' className='padding-left--16'>
                           {formatDateOnly(item.createdAt)}
@@ -267,11 +292,11 @@ export default async function CompetitionsListPage({
                 {response.metadata.hasPreviousPage ? (
                   <Link
                     href={buildHref(
-                      response.metadata.page - 1,
-                      pageSize,
-                      sort,
-                      status,
-                      competitionTypeId,
+                        response.metadata.page - 1,
+                        pageSize,
+                        sort,
+                        visibility,
+                        competitionTypeId,
                       federationId,
                       countryId,
                     )}
@@ -293,7 +318,7 @@ export default async function CompetitionsListPage({
                       response.metadata.page + 1,
                       pageSize,
                       sort,
-                      status,
+                      visibility,
                       competitionTypeId,
                       federationId,
                       countryId,

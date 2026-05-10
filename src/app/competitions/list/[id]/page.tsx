@@ -1,10 +1,7 @@
 /** @format */
 
 import { getAdminCompetitionById } from '@/_actions/competition/getAdminCompetitionById';
-import {
-  getCompetitionBaseCatalogs,
-  getCompetitionTierCatalog,
-} from '@/_actions/competition/getCompetitionCatalogs';
+import { getCompetitionBaseCatalogs } from '@/_actions/competition/getCompetitionCatalogs';
 import { getAdminCompetitionEditions } from '@/_actions/competitionEdition/getAdminCompetitionEditions';
 import Button from '@/_components/forms/Button';
 import Card from '@/_components/Card';
@@ -17,9 +14,7 @@ import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
 import {
-  mapCompetitionPyramidOptions,
   mapCompetitionSelectOptions,
-  mapCompetitionTierOptions,
   mapCompetitionTypeOptions,
   resolveCompetitionLabels,
 } from '../_lib/competitionAdmin';
@@ -87,7 +82,7 @@ export default async function CompetitionDetailsPage({
 
   const [
     response,
-    { competitionTypes, federations, countries, competitionPyramids, error },
+    { competitionTypes, federations, countries, error },
   ] = await Promise.all([
     getAdminCompetitionById(competitionId),
     getCompetitionBaseCatalogs(),
@@ -117,17 +112,6 @@ export default async function CompetitionDetailsPage({
   const mappedCompetitionTypes = mapCompetitionTypeOptions(competitionTypes);
   const mappedFederations = mapCompetitionSelectOptions(federations);
   const mappedCountries = mapCompetitionSelectOptions(countries);
-  const mappedCompetitionPyramids = mapCompetitionPyramidOptions(competitionPyramids);
-  const selectedCompetitionType =
-    competitionTypes.find(item => item.id === competition.competitionTypeId) ?? null;
-  const { competitionTiers, error: initialTierError } =
-    competition.competitionPyramidId
-      ? await getCompetitionTierCatalog(
-          competition.competitionPyramidId,
-          selectedCompetitionType?.participantScope ?? null,
-        )
-      : { competitionTiers: [], error: undefined };
-  const mappedCompetitionTiers = mapCompetitionTierOptions(competitionTiers);
   const detailHref = buildHref(competition.id, section);
   const editHref = buildHref(competition.id, section, true);
   const editionsResponse =
@@ -138,15 +122,13 @@ export default async function CompetitionDetailsPage({
           sort: 'updated_at_desc',
           competitionId: competition.id,
           status: 'all',
-          activeStatus: 'all',
+          visibility: 'all',
         })
       : null;
   const labels = resolveCompetitionLabels(competition, {
     competitionTypes: mappedCompetitionTypes,
     federations: mappedFederations,
     countries: mappedCountries,
-    competitionPyramids: mappedCompetitionPyramids,
-    competitionTiers: mappedCompetitionTiers,
   });
 
   return (
@@ -191,10 +173,7 @@ export default async function CompetitionDetailsPage({
               competitionTypes={mappedCompetitionTypes}
               federations={mappedFederations}
               countries={mappedCountries}
-              competitionPyramids={mappedCompetitionPyramids}
-              competitionTiers={mappedCompetitionTiers}
               catalogError={error}
-              initialTierError={initialTierError}
               edit
               cancelHref={detailHref}
               successHref={detailHref}
@@ -232,9 +211,6 @@ export default async function CompetitionDetailsPage({
               competitionTypeLabel={labels.competitionTypeLabel}
               federationLabel={labels.federationLabel}
               countryLabel={labels.countryLabel}
-              pyramidLabel={labels.pyramidLabel}
-              primaryTierLabel={labels.primaryTierLabel}
-              allowedTierLabels={labels.allowedTierLabels}
             />
           )}
         </Grid>

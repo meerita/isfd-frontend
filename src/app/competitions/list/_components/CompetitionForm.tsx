@@ -7,7 +7,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
@@ -16,13 +15,9 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { createCompetition } from '@/_actions/competition/createCompetition';
-import {
-  getCompetitionTierCatalog,
-} from '@/_actions/competition/getCompetitionCatalogs';
 import { updateCompetition } from '@/_actions/competition/updateCompetition';
 import Button from '@/_components/forms/Button';
 import CheckBoxInput from '@/_components/forms/CheckBoxInput';
-import FieldSet from '@/_components/forms/Fieldset';
 import Form from '@/_components/forms/Form';
 import NumberInput from '@/_components/forms/NumberInput';
 import Select from '@/_components/forms/Select';
@@ -41,22 +36,14 @@ import type { Competition, CompetitionActionState } from '@/_types/competition';
 import {
   createCompetitionFormValues,
   ensureOption,
-  ensureTierOptions,
-  filterCompetitionPyramids,
-  normalizeCompetitionCode,
   resolveCompetitionFormFieldErrors,
   resolveCompetitionFormGlobalError,
   type CompetitionFormField,
-  type CompetitionPyramidOption,
   type CompetitionSelectOption,
-  type CompetitionTierOption,
   type CompetitionTypeOption,
   validateCompetitionFormValues,
 } from '../_lib/competitionAdmin';
-import {
-  formatDateForInput,
-  formatDateTime,
-} from '../../_components/utils';
+import { formatDateForInput, formatDateTime } from '../../_components/utils';
 
 const INITIAL_STATE: CompetitionActionState = { status: 'idle' };
 
@@ -65,35 +52,14 @@ type CompetitionFormProps = Readonly<{
   competitionTypes: ReadonlyArray<CompetitionTypeOption>;
   federations: ReadonlyArray<CompetitionSelectOption>;
   countries: ReadonlyArray<CompetitionSelectOption>;
-  competitionPyramids: ReadonlyArray<CompetitionPyramidOption>;
-  competitionTiers?: ReadonlyArray<CompetitionTierOption>;
   catalogError?: ApiErrorResponse;
-  initialTierError?: ApiErrorResponse;
   edit?: boolean;
   cancelHref?: string;
   successHref?: string;
 }>;
 
-type SelectField =
-  | 'competitionTypeId'
-  | 'federationId'
-  | 'countryId'
-  | 'competitionPyramidId';
-
-type TextField =
-  | 'code'
-  | 'name'
-  | 'originalName'
-  | 'startedOn'
-  | 'endedOn'
-  | 'sortOrder';
-
-function buildTierSignature(
-  competitionPyramidId: string,
-  participantScope: string | null,
-): string {
-  return `${competitionPyramidId}::${participantScope ?? ''}`;
-}
+type SelectField = 'competitionTypeId' | 'federationId' | 'countryId';
+type TextField = 'name' | 'originalName' | 'startedOn' | 'endedOn' | 'sortOrder';
 
 function getFieldError(
   fieldErrors: Partial<Record<CompetitionFormField, string>>,
@@ -107,10 +73,7 @@ export default function CompetitionForm({
   competitionTypes,
   federations,
   countries,
-  competitionPyramids,
-  competitionTiers = [],
   catalogError,
-  initialTierError,
   edit = false,
   cancelHref,
   successHref,
@@ -119,25 +82,7 @@ export default function CompetitionForm({
   const [values, setValues] = useState(() =>
     createCompetitionFormValues(competition),
   );
-  const [tierOptions, setTierOptions] = useState<ReadonlyArray<CompetitionTierOption>>(
-    competitionTiers,
-  );
-  const [tierError, setTierError] = useState<string | null>(
-    initialTierError ? resolveCompetitionAdminErrorMessage(initialTierError) : null,
-  );
-  const [isTierPending, setIsTierPending] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
-  const latestTierRequest = useRef(0);
-  const lastLoadedTierSignature = useRef(
-    values.competitionPyramidId
-      ? buildTierSignature(
-          values.competitionPyramidId,
-          competitionTypes.find(
-            option => option.value === values.competitionTypeId,
-          )?.participantScope ?? null,
-        )
-      : '',
-  );
   const [editState, editAction, editPending] = useActionState<
     CompetitionActionState,
     FormData
@@ -150,13 +95,6 @@ export default function CompetitionForm({
   const actionState = edit ? editState : createState;
   const formAction = edit ? editAction : createAction;
   const isPending = edit ? editPending : createPending;
-
-  const selectedCompetitionType = useMemo(
-    () =>
-      competitionTypes.find(option => option.value === values.competitionTypeId) ??
-      null,
-    [competitionTypes, values.competitionTypeId],
-  );
 
   const clientFieldErrors = useMemo(
     () => validateCompetitionFormValues(values),
@@ -188,7 +126,6 @@ export default function CompetitionForm({
       ? {
           value: competition.competitionTypeId,
           label: competition.competitionTypeId,
-          participantScope: null,
         }
       : null,
   );
@@ -210,132 +147,6 @@ export default function CompetitionForm({
         }
       : null,
   );
-  const availablePyramidOptions = ensureOption(
-    filterCompetitionPyramids(
-      competitionPyramids,
-      values.countryId,
-      values.federationId,
-    ),
-    competition?.competitionPyramidId &&
-    values.countryId === (competition.countryId ?? '') &&
-    values.federationId === (competition.federationId ?? '')
-      ? {
-          value: competition.competitionPyramidId,
-          label: competition.competitionPyramidId,
-          countryId: competition.countryId ?? '',
-          federationId: competition.federationId,
-          scopeKind: null,
-          branchKind: null,
-        }
-      : null,
-  );
-  const tierOptionsWithFallback = ensureTierOptions(
-    tierOptions,
-    [
-      values.primaryCompetitionTierId,
-      ...values.allowedCompetitionTierIds,
-    ].filter(Boolean),
-    competition?.competitionPyramidId ?? values.competitionPyramidId,
-  );
-  const visibleTierOptions = useMemo(
-    () =>
-      tierOptionsWithFallback.filter(
-        option => option.competitionPyramidId === values.competitionPyramidId,
-      ),
-    [tierOptionsWithFallback, values.competitionPyramidId],
-  );
-  const visibleTierIds = useMemo(
-    () => new Set(visibleTierOptions.map(option => option.value)),
-    [visibleTierOptions],
-  );
-
-  useEffect(() => {
-    if (!values.competitionPyramidId) {
-      return;
-    }
-
-    const participantScope = selectedCompetitionType?.participantScope ?? null;
-    const signature = buildTierSignature(
-      values.competitionPyramidId,
-      participantScope,
-    );
-
-    if (signature === lastLoadedTierSignature.current) {
-      return;
-    }
-
-    const requestId = latestTierRequest.current + 1;
-    latestTierRequest.current = requestId;
-    lastLoadedTierSignature.current = signature;
-    setIsTierPending(true);
-    setTierError(null);
-
-    queueMicrotask(() => {
-      void (async () => {
-        try {
-          const response = await getCompetitionTierCatalog(
-            values.competitionPyramidId,
-            participantScope,
-          );
-
-          if (latestTierRequest.current !== requestId) {
-            return;
-          }
-
-          const nextTierOptions = response.competitionTiers.map(item => ({
-            value: item.id,
-            label:
-              item.levelOrder !== null
-                ? `${item.levelOrder} · ${item.name}`
-                : item.name,
-            competitionPyramidId: item.competitionPyramidId,
-            participantScope: item.participantScope,
-            scopeKind: item.scopeKind,
-            branchKind: item.branchKind,
-            levelOrder: item.levelOrder,
-          }));
-
-          setTierOptions(nextTierOptions);
-          setTierError(
-            response.error ? resolveCompetitionAdminErrorMessage(response.error) : null,
-          );
-          setValues(previousValues => {
-            const nextAllowedTierIds =
-              previousValues.allowedCompetitionTierIds.filter(tierId =>
-                nextTierOptions.some(option => option.value === tierId),
-              );
-            const nextPrimaryTierId = nextTierOptions.some(
-              option => option.value === previousValues.primaryCompetitionTierId,
-            )
-              ? previousValues.primaryCompetitionTierId
-              : '';
-
-            return {
-              ...previousValues,
-              primaryCompetitionTierId: nextPrimaryTierId,
-              allowedCompetitionTierIds:
-                nextPrimaryTierId &&
-                !nextAllowedTierIds.includes(nextPrimaryTierId)
-                  ? [...nextAllowedTierIds, nextPrimaryTierId]
-                  : nextAllowedTierIds,
-            };
-          });
-        } catch (error) {
-          if (latestTierRequest.current !== requestId) {
-            return;
-          }
-
-          console.error('Failed to load competition tiers for the selected pyramid', error);
-          setTierOptions([]);
-          setTierError('We could not load competition tiers for the selected pyramid.');
-        } finally {
-          if (latestTierRequest.current === requestId) {
-            setIsTierPending(false);
-          }
-        }
-      })();
-    });
-  }, [selectedCompetitionType?.participantScope, values.competitionPyramidId]);
 
   useEffect(() => {
     if (actionState.status === 'idle') {
@@ -347,6 +158,7 @@ export default function CompetitionForm({
       status: actionState.status,
       error: actionState.error,
       competitionId: actionState.competitionId,
+      competitionSlug: actionState.competitionSlug,
     });
 
     if (actionState.status === 'error') {
@@ -377,6 +189,7 @@ export default function CompetitionForm({
     router.refresh();
   }, [
     actionState.competitionId,
+    actionState.competitionSlug,
     actionState.error,
     actionState.status,
     competition?.id,
@@ -397,119 +210,31 @@ export default function CompetitionForm({
   const handleSelectChange = useCallback(
     (field: SelectField) =>
       (event: ChangeEvent<HTMLSelectElement>) => {
-        const nextValue = event.target.value;
-
-        setValues(previousValues => {
-          if (field === 'competitionPyramidId') {
-            lastLoadedTierSignature.current = '';
-            setTierOptions([]);
-            setTierError(null);
-
-            return {
-              ...previousValues,
-              competitionPyramidId: nextValue,
-              primaryCompetitionTierId: '',
-              allowedCompetitionTierIds: [],
-            };
-          }
-
-          const nextValues = {
-            ...previousValues,
-            [field]: nextValue,
-          };
-
-          if (
-            previousValues.competitionPyramidId &&
-            !filterCompetitionPyramids(
-              competitionPyramids,
-              nextValues.countryId,
-              nextValues.federationId,
-            ).some(option => option.value === previousValues.competitionPyramidId)
-          ) {
-            lastLoadedTierSignature.current = '';
-            setTierOptions([]);
-            setTierError(null);
-
-            return {
-              ...nextValues,
-              competitionPyramidId: '',
-              primaryCompetitionTierId: '',
-              allowedCompetitionTierIds: [],
-            };
-          }
-
-          return nextValues;
-        });
-      },
-    [competitionPyramids],
-  );
-
-  const handleTextChange = useCallback(
-    (field: TextField) =>
-      (event: ChangeEvent<HTMLInputElement>) => {
-        const nextValue =
-          field === 'code' ? event.target.value.toUpperCase() : event.target.value;
-
         setValues(previousValues => ({
           ...previousValues,
-          [field]: nextValue,
+          [field]: event.target.value,
         }));
       },
     [],
   );
 
-  const handleCodeBlur = useCallback(() => {
-    setValues(previousValues => ({
-      ...previousValues,
-      code: normalizeCompetitionCode(previousValues.code),
-    }));
-  }, []);
+  const handleTextChange = useCallback(
+    (field: TextField) =>
+      (event: ChangeEvent<HTMLInputElement>) => {
+        setValues(previousValues => ({
+          ...previousValues,
+          [field]: event.target.value,
+        }));
+      },
+    [],
+  );
 
-  const handleActiveChange = useCallback(
+  const handleVisibilityChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       setValues(previousValues => ({
         ...previousValues,
-        isActive: event.target.checked,
+        isPublic: event.target.checked,
       }));
-    },
-    [],
-  );
-
-  const handlePrimaryTierChange = useCallback(
-    (event: ChangeEvent<HTMLSelectElement>) => {
-      const nextPrimaryTierId = event.target.value;
-
-      setValues(previousValues => ({
-        ...previousValues,
-        primaryCompetitionTierId: nextPrimaryTierId,
-        allowedCompetitionTierIds:
-          nextPrimaryTierId &&
-          !previousValues.allowedCompetitionTierIds.includes(nextPrimaryTierId)
-            ? [...previousValues.allowedCompetitionTierIds, nextPrimaryTierId]
-            : previousValues.allowedCompetitionTierIds,
-      }));
-    },
-    [],
-  );
-
-  const handleAllowedTierChange = useCallback(
-    (tierId: string, checked: boolean) => {
-      setValues(previousValues => {
-        const nextAllowedTierIds = checked
-          ? previousValues.allowedCompetitionTierIds.includes(tierId)
-            ? previousValues.allowedCompetitionTierIds
-            : [...previousValues.allowedCompetitionTierIds, tierId]
-          : previousValues.allowedCompetitionTierIds.filter(id => id !== tierId);
-
-        return {
-          ...previousValues,
-          allowedCompetitionTierIds: nextAllowedTierIds,
-          primaryCompetitionTierId:
-            !checked && previousValues.primaryCompetitionTierId === tierId
-              ? ''
-              : previousValues.primaryCompetitionTierId,
-        };
-      });
     },
     [],
   );
@@ -525,8 +250,7 @@ export default function CompetitionForm({
     [clientFieldErrors],
   );
 
-  const globalErrorMessage =
-    globalActionError ?? globalCatalogError ?? null;
+  const globalErrorMessage = globalActionError ?? globalCatalogError ?? null;
 
   return (
     <Form action={formAction} onSubmit={handleSubmit}>
@@ -538,7 +262,6 @@ export default function CompetitionForm({
             name='original_competitionTypeId'
             value={competition.competitionTypeId}
           />
-          <input type='hidden' name='original_code' value={competition.code} />
           <input type='hidden' name='original_name' value={competition.name} />
           <input
             type='hidden'
@@ -557,21 +280,6 @@ export default function CompetitionForm({
           />
           <input
             type='hidden'
-            name='original_competitionPyramidId'
-            value={competition.competitionPyramidId ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_primaryCompetitionTierId'
-            value={competition.primaryCompetitionTierId ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_allowedCompetitionTierIds'
-            value={JSON.stringify(competition.allowedCompetitionTierIds)}
-          />
-          <input
-            type='hidden'
             name='original_startedOn'
             value={competition.startedOn ?? ''}
           />
@@ -587,8 +295,8 @@ export default function CompetitionForm({
           />
           <input
             type='hidden'
-            name='original_isActive'
-            value={competition.isActive ? 'true' : 'false'}
+            name='original_isPublic'
+            value={competition.isPublic ? 'true' : 'false'}
           />
         </>
       ) : null}
@@ -598,6 +306,11 @@ export default function CompetitionForm({
           <Title size='small'>
             {edit ? 'Competition configuration' : 'Create competition'}
           </Title>
+
+          <Text size='small' color='gray'>
+            Code and slug are generated by the backend from the canonical competition
+            name.
+          </Text>
 
           {globalErrorMessage ? (
             <Text size='small' color='red'>
@@ -623,25 +336,11 @@ export default function CompetitionForm({
                   </option>
                 ))}
               </Select>
-              <TextInput
-                label='Code'
-                name='code'
-                placeholder='LA_LIGA'
-                value={values.code}
-                onChange={handleTextChange('code')}
-                onBlur={handleCodeBlur}
-                required
-                disabled={isPending}
-                error={Boolean(getFieldError(displayedFieldErrors, 'code'))}
-                helperText={
-                  getFieldError(displayedFieldErrors, 'code') ??
-                  'Use uppercase letters, numbers, and underscores.'
-                }
-              />
+
               <TextInput
                 label='Name'
                 name='name'
-                placeholder='La Liga'
+                placeholder='Primera División'
                 value={values.name}
                 onChange={handleTextChange('name')}
                 required
@@ -649,6 +348,7 @@ export default function CompetitionForm({
                 error={Boolean(getFieldError(displayedFieldErrors, 'name'))}
                 helperText={getFieldError(displayedFieldErrors, 'name')}
               />
+
               <TextInput
                 label='Original name'
                 name='originalName'
@@ -659,6 +359,7 @@ export default function CompetitionForm({
                 error={Boolean(getFieldError(displayedFieldErrors, 'original_name'))}
                 helperText={getFieldError(displayedFieldErrors, 'original_name')}
               />
+
               <Select
                 label='Federation'
                 name='federationId'
@@ -675,6 +376,7 @@ export default function CompetitionForm({
                   </option>
                 ))}
               </Select>
+
               <Select
                 label='Country'
                 name='countryId'
@@ -691,104 +393,7 @@ export default function CompetitionForm({
                   </option>
                 ))}
               </Select>
-              <Select
-                label='Competition pyramid'
-                name='competitionPyramidId'
-                value={values.competitionPyramidId}
-                onChange={handleSelectChange('competitionPyramidId')}
-                disabled={isPending}
-                error={Boolean(
-                  getFieldError(displayedFieldErrors, 'competition_pyramid_id'),
-                )}
-                helperText={getFieldError(
-                  displayedFieldErrors,
-                  'competition_pyramid_id',
-                )}
-              >
-                <option value=''>No competition pyramid</option>
-                {availablePyramidOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-              <Select
-                label='Primary competition tier'
-                name='primaryCompetitionTierId'
-                value={values.primaryCompetitionTierId}
-                onChange={handlePrimaryTierChange}
-                disabled={isPending || !values.competitionPyramidId || isTierPending}
-                error={Boolean(
-                  getFieldError(
-                    displayedFieldErrors,
-                    'primary_competition_tier_id',
-                  ),
-                )}
-                helperText={
-                  getFieldError(
-                    displayedFieldErrors,
-                    'primary_competition_tier_id',
-                  ) ??
-                  (!values.competitionPyramidId
-                    ? 'Select a competition pyramid first.'
-                    : undefined)
-                }
-              >
-                <option value=''>No primary tier</option>
-                {visibleTierOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-              <FieldSet disabled={isPending || !values.competitionPyramidId || isTierPending} display='grid' gap={8}>
-                <Text size='small' weight='semibold'>
-                  Allowed competition tiers
-                </Text>
-                {getFieldError(displayedFieldErrors, 'allowed_competition_tier_ids') ? (
-                  <Text size='small' color='red'>
-                    {getFieldError(displayedFieldErrors, 'allowed_competition_tier_ids')}
-                  </Text>
-                ) : null}
-                {!values.competitionPyramidId ? (
-                  <Text size='small' color='gray'>
-                    Select a competition pyramid to choose the allowed tiers.
-                  </Text>
-                ) : isTierPending ? (
-                  <Text size='small' color='gray'>
-                    Loading competition tiers...
-                  </Text>
-                ) : tierError ? (
-                  <Text size='small' color='red'>
-                    {tierError}
-                  </Text>
-                ) : visibleTierOptions.length === 0 ? (
-                  <Text size='small' color='gray'>
-                    No tiers are available for the selected competition pyramid.
-                  </Text>
-                ) : (
-                  <Grid gap={8}>
-                    {visibleTierOptions.map(option => {
-                      const isChecked = values.allowedCompetitionTierIds.includes(
-                        option.value,
-                      );
 
-                      return (
-                        <CheckBoxInput
-                          key={`${option.value}-${isChecked ? 'checked' : 'unchecked'}`}
-                          label={option.label}
-                          name='allowedCompetitionTierIds'
-                          value={option.value}
-                          defaultChecked={isChecked}
-                          onChange={event =>
-                            handleAllowedTierChange(option.value, event.target.checked)
-                          }
-                        />
-                      );
-                    })}
-                  </Grid>
-                )}
-              </FieldSet>
               <TextInput
                 label='Started on'
                 name='startedOn'
@@ -799,6 +404,7 @@ export default function CompetitionForm({
                 error={Boolean(getFieldError(displayedFieldErrors, 'started_on'))}
                 helperText={getFieldError(displayedFieldErrors, 'started_on')}
               />
+
               <TextInput
                 label='Ended on'
                 name='endedOn'
@@ -809,6 +415,7 @@ export default function CompetitionForm({
                 error={Boolean(getFieldError(displayedFieldErrors, 'ended_on'))}
                 helperText={getFieldError(displayedFieldErrors, 'ended_on')}
               />
+
               <NumberInput
                 label='Sort order'
                 name='sortOrder'
@@ -820,19 +427,20 @@ export default function CompetitionForm({
                 error={Boolean(getFieldError(displayedFieldErrors, 'sort_order'))}
                 helperText={getFieldError(displayedFieldErrors, 'sort_order')}
               />
+
               <Grid gap={8}>
                 <CheckBoxInput
-                  key={values.isActive ? 'active-true' : 'active-false'}
-                  label='Active'
-                  name='isActive'
+                  key={values.isPublic ? 'public-true' : 'public-false'}
+                  label='Public visibility'
+                  name='isPublic'
                   value='true'
-                  defaultChecked={values.isActive}
+                  defaultChecked={values.isPublic}
                   disabled={isPending}
-                  onChange={handleActiveChange}
+                  onChange={handleVisibilityChange}
                 />
-                {getFieldError(displayedFieldErrors, 'is_active') ? (
+                {getFieldError(displayedFieldErrors, 'is_public') ? (
                   <Text size='small' color='red'>
-                    {getFieldError(displayedFieldErrors, 'is_active')}
+                    {getFieldError(displayedFieldErrors, 'is_public')}
                   </Text>
                 ) : null}
               </Grid>
@@ -841,12 +449,8 @@ export default function CompetitionForm({
             {edit && competition ? (
               <Section gap={16}>
                 <TextInput label='ID' defaultValue={competition.id} readOnly disabled />
-                <TextInput
-                  label='Slug'
-                  defaultValue={competition.slug}
-                  readOnly
-                  disabled
-                />
+                <TextInput label='Code' defaultValue={competition.code} readOnly disabled />
+                <TextInput label='Slug' defaultValue={competition.slug} readOnly disabled />
                 <TextInput
                   label='Created at'
                   defaultValue={formatDateTime(competition.createdAt)}
@@ -859,13 +463,6 @@ export default function CompetitionForm({
                   readOnly
                   disabled
                 />
-                {values.competitionPyramidId &&
-                values.primaryCompetitionTierId &&
-                !visibleTierIds.has(values.primaryCompetitionTierId) ? (
-                  <Text size='small' color='gray'>
-                    The selected primary tier no longer belongs to the active pyramid catalog.
-                  </Text>
-                ) : null}
               </Section>
             ) : null}
           </Grid>

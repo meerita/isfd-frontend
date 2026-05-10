@@ -16,7 +16,7 @@ export async function getAllCompetitions(): Promise<ReadonlyArray<Competition>> 
       page,
       pageSize: PAGE_SIZE,
       sort: 'name_asc',
-      status: 'all',
+      visibility: 'all',
     });
 
     if (response.error) {

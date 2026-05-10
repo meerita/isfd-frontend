@@ -245,7 +245,7 @@ export function buildCreateClubBody(
 
   const body: Record<string, unknown> = {
     name,
-    is_active: bool(formData, 'isActive', true),
+    is_public: bool(formData, 'isActive', true),
     is_dissolved: isDissolved,
   };
 
@@ -467,7 +467,7 @@ export function buildUpdateClubBody(formData: FormData): {
   const currentIsActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);
   if (currentIsActive !== originalIsActive) {
-    body.is_active = currentIsActive;
+    body.is_public = currentIsActive;
   }
 
   if (Object.keys(body).length === 0) {
