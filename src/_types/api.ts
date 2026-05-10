@@ -12,7 +12,18 @@ export interface ApiErrorResponse {
   statusCode?: number;
 }
 
+export type ApiError = Readonly<{
+  code: string;
+  message: string;
+  details?: string;
+}>;
+
 export interface NormalizedApiError {
   statusCode: number;
   data: ApiErrorResponse;
+}
+
+export interface NormalizedBackendApiError {
+  statusCode: number;
+  data: ApiError;
 }

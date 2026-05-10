@@ -6,6 +6,7 @@ import { getAdminContributions } from '@/_actions/contribution/getAdminContribut
 import Icon from '@/_components/Icon';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
+import SensitiveValue from '@/_components/SensitiveValue';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Cell from '@/_components/tables/Cell';
 import Row from '@/_components/tables/Row';
@@ -231,17 +232,14 @@ export default async function ContributionsPage({
                         <Cell className='padding-left--16'>
                           {getTargetEntityTypeLabel(item.targetEntityType, dictionary)}
                         </Cell>
-                        <Cell className='padding-left--16' title={item.targetEntityId}>
-                          {item.targetEntityId}
+                        <Cell className='padding-left--16'>
+                          <SensitiveValue value={item.targetEntityId} />
                         </Cell>
-                        <Cell className='padding-left--16' title={item.assetId}>
-                          {item.assetId}
+                        <Cell className='padding-left--16'>
+                          <SensitiveValue value={item.assetId} />
                         </Cell>
-                        <Cell
-                          className='padding-left--16'
-                          title={item.submittedByUserId}
-                        >
-                          {item.submittedByUserId}
+                        <Cell className='padding-left--16'>
+                          <SensitiveValue value={item.submittedByUserId} />
                         </Cell>
                         <Cell className='padding-left--16'>
                           <ContributionStatusBadge status={item.reviewStatus} />

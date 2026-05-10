@@ -15,6 +15,7 @@ import Dot from '@/_components/Dot';
 import Icon from '@/_components/Icon';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
+import SensitiveValue from '@/_components/SensitiveValue';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Cell from '@/_components/tables/Cell';
 import Row from '@/_components/tables/Row';
@@ -260,7 +261,7 @@ export default async function PersonsPage({
                           href={NAVIGATION.PERSON_BY_ID(person.id)}
                         >
                             <Cell className='padding-left--16'>
-                              {person.portrait_asset_id ?? PLACEHOLDER}
+                              <SensitiveValue value={person.portrait_asset_id} />
                             </Cell>
                             <Cell className='padding-left--16'>
                               {person.full_name}

@@ -137,6 +137,8 @@ const API_ROUTES = {
   USER_BY_USERNAME: '/users/username',
   ME: '/me',
   ME_PROFILE: '/me/profile',
+  ME_CONTRIBUTIONS: '/me/contributions',
+  ME_POINTS: '/me/points',
   MY_PARTICIPATIONS: '/me/participations',
 } as const;
 

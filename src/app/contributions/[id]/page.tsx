@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getAdminContributionById } from '@/_actions/contribution/getAdminContributionById';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
+import SensitiveValue from '@/_components/SensitiveValue';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Text from '@/_components/typography/Text';
 import { resolveContributionErrorMessage } from '@/_constants/contributionErrorMessages';
@@ -67,10 +68,10 @@ function DetailField({
       <Text size='small' color='gray'>
         {label}
       </Text>
-      {typeof value === 'string' || typeof value === 'number' ? (
-        <Text
-          size='small'
-          weight='bold'
+          {typeof value === 'string' || typeof value === 'number' ? (
+            <Text
+              size='small'
+              weight='bold'
           className='font-family--monospace word-break--break-all'
         >
           {value}
@@ -147,11 +148,11 @@ export default async function ContributionDetailPage({
     <Grid gap={16}>
       <SectionHeader
         navigation={[
-          {
-            label: dictionary.navigation.contributions,
-            href: NAVIGATION.CONTRIBUTIONS,
-          },
-          { label: contribution.id },
+            {
+              label: dictionary.navigation.contributions,
+              href: NAVIGATION.CONTRIBUTIONS,
+            },
+          { label: dictionary.contributions.actions.view },
         ]}
         icon='uploadFile'
       >
@@ -174,7 +175,7 @@ export default async function ContributionDetailPage({
           <Grid columns={2} gap={16}>
             <DetailField
               label={dictionary.contributions.fields.id}
-              value={contribution.id}
+              value={<SensitiveValue value={contribution.id} />}
             />
             <DetailField
               label={dictionary.contributions.fields.reviewStatus}
@@ -197,28 +198,33 @@ export default async function ContributionDetailPage({
             <DetailField
               label={dictionary.contributions.fields.targetEntityId}
               value={
-                <Link href={targetHref}>
-                  <Text
-                    size='small'
-                    weight='bold'
-                    className='font-family--monospace word-break--break-all'
-                  >
-                    {contribution.targetEntityId}
-                  </Text>
-                </Link>
+                <Grid gap={8}>
+                  <SensitiveValue value={contribution.targetEntityId} />
+                  <Link href={targetHref}>
+                    <Text size='small' weight='bold'>
+                      {dictionary.contributions.actions.view}
+                    </Text>
+                  </Link>
+                </Grid>
               }
             />
             <DetailField
               label={dictionary.contributions.fields.assetId}
-              value={contribution.assetId}
+              value={<SensitiveValue value={contribution.assetId} />}
             />
             <DetailField
               label={dictionary.contributions.fields.submittedByUserId}
-              value={contribution.submittedByUserId}
+              value={<SensitiveValue value={contribution.submittedByUserId} />}
             />
             <DetailField
               label={dictionary.contributions.fields.reviewedByUserId}
-              value={contribution.reviewedByUserId ?? PLACEHOLDER}
+              value={
+                contribution.reviewedByUserId ? (
+                  <SensitiveValue value={contribution.reviewedByUserId} />
+                ) : (
+                  PLACEHOLDER
+                )
+              }
             />
             <DetailField
               label={dictionary.contributions.fields.reviewedAt}
