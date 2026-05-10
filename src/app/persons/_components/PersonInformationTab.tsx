@@ -2,6 +2,7 @@
 
 'use client';
 
+import type { City } from '@/_types/city';
 import type { CountrySelectOption } from '@/_types/country';
 import type { PersonAdminDetail } from '@/_types/person';
 import PersonAchievementsSection from './PersonAchievementsSection';
@@ -19,6 +20,22 @@ type PersonInformationTabProps = Readonly<{
   edit: boolean;
   countries: ReadonlyArray<CountrySelectOption>;
   selectedPrimaryNationalityCountryLabel?: string | null;
+  initialBirthLocation?: Readonly<{
+    countryId?: string | null;
+    countryLabel?: string | null;
+    provinceName?: string | null;
+    cityId?: string | null;
+    cityLabel?: string | null;
+    initialCities?: ReadonlyArray<Pick<City, 'id' | 'name'>>;
+  }>;
+  initialCurrentLocation?: Readonly<{
+    countryId?: string | null;
+    countryLabel?: string | null;
+    provinceName?: string | null;
+    cityId?: string | null;
+    cityLabel?: string | null;
+    initialCities?: ReadonlyArray<Pick<City, 'id' | 'name'>>;
+  }>;
   cancelHref: string;
   successHref: string;
 }>;
@@ -29,6 +46,8 @@ export default function PersonInformationTab({
   edit,
   countries,
   selectedPrimaryNationalityCountryLabel,
+  initialBirthLocation,
+  initialCurrentLocation,
   cancelHref,
   successHref,
 }: PersonInformationTabProps): React.JSX.Element {
@@ -40,6 +59,8 @@ export default function PersonInformationTab({
         selectedPrimaryNationalityCountryLabel={
           selectedPrimaryNationalityCountryLabel
         }
+        initialBirthLocation={initialBirthLocation}
+        initialCurrentLocation={initialCurrentLocation}
         edit
         cancelHref={cancelHref}
         successHref={successHref}

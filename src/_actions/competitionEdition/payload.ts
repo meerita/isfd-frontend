@@ -2,10 +2,9 @@
 
 import type { CompetitionEditionActionState } from '@/_types/competitionEdition';
 import { parseCompetitionEditionStatus } from '@/_constants/enums/competition';
+import { isUuid } from '@/_helpers/uuid';
 
 const UNSET = Symbol('unset');
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const CODE_PATTERN = /^[A-Z0-9_]+$/;
 
@@ -60,7 +59,7 @@ function validateNullableUuid(
   reason: string,
   message: string,
 ): CompetitionEditionActionState | null {
-  if (!value || UUID_PATTERN.test(value)) return null;
+  if (!value || isUuid(value)) return null;
   return formError(reason, message);
 }
 

@@ -6,6 +6,7 @@ import {
   parseCompetitionTierScopeKind,
   parseParticipantScope,
 } from '@/_constants/enums/competition';
+import { isUuid } from '@/_helpers/uuid';
 import type {
   CompetitionPyramidActionState,
   CompetitionTierActionState,
@@ -14,8 +15,6 @@ import type {
 const UNSET = Symbol('unset');
 const CODE_PATTERN = /^[A-Z0-9_]+$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function str(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -79,7 +78,7 @@ function validateNullableUuid<TState>(
   message: string,
   buildError: (reason: string, message: string) => TState,
 ): TState | null {
-  if (!value || UUID_PATTERN.test(value)) return null;
+  if (!value || isUuid(value)) return null;
   return buildError(reason, message);
 }
 

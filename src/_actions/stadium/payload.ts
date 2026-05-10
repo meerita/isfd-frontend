@@ -5,12 +5,11 @@ import {
   STADIUM_SURFACE_TYPES,
   type StadiumSurfaceType,
 } from '@/_constants/enums/stadium';
+import { isUuid } from '@/_helpers/uuid';
 import {
   type StadiumActionState,
 } from '@/_types/stadium';
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const INVALID_NUMBER = Symbol('invalid-number');
 
 function str(formData: FormData, key: string): string {
@@ -57,10 +56,6 @@ function parseSeatCount(value: string): number | null | typeof INVALID_NUMBER {
   return Number.isSafeInteger(parsed) ? parsed : INVALID_NUMBER;
 }
 
-function isValidUuid(value: string): boolean {
-  return UUID_PATTERN.test(value);
-}
-
 function isValidHttpUrl(value: string): boolean {
   try {
     const parsed = new URL(value);
@@ -90,7 +85,7 @@ function validateNullableUuid(
   reason: string,
   message: string,
 ): StadiumActionState | null {
-  if (!value || isValidUuid(value)) return null;
+  if (!value || isUuid(value)) return null;
   return formError(reason, message, message);
 }
 

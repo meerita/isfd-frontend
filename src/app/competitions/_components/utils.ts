@@ -1,7 +1,6 @@
 /** @format */
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export { parseUuid } from '@/_helpers/uuid';
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export const PLACEHOLDER = '--';
@@ -24,11 +23,6 @@ export function parseString(
 ): string | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
   return raw && raw.length > 0 ? raw : undefined;
-}
-
-export function parseUuid(value: string | string[] | undefined): string | undefined {
-  const parsed = parseString(value);
-  return parsed && UUID_PATTERN.test(parsed) ? parsed : undefined;
 }
 
 export function formatDateOnly(value: string | null | undefined): string {

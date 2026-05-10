@@ -675,8 +675,11 @@ const es = {
       hairColor: 'Color de pelo',
       ethnicity: 'Etnia',
       skinColor: 'Color de piel',
-      birthLocationId: 'ID de lugar de nacimiento',
-      currentCityId: 'ID de ciudad actual',
+      birthLocation: 'Lugar de nacimiento',
+      currentLocation: 'Ubicación actual',
+      country: 'País',
+      province: 'Provincia',
+      city: 'Ciudad',
       primaryNationalityCountry: 'País de nacionalidad principal',
       primaryNationalityCountryTitle: 'El país donde nació la persona.',
       currentProfession: 'Profesión actual',
@@ -694,6 +697,24 @@ const es = {
       noEthnicity: 'Sin etnia',
       noSkinColor: 'Sin color de piel',
       noCountry: 'Sin país',
+      noProvince: 'Sin provincia',
+      noCity: 'Sin ciudad',
+      selectCountryToEnableProvinces:
+        'Selecciona un país para habilitar las provincias.',
+      loadingProvinces: 'Cargando provincias...',
+      provincesLoadError:
+        'No hemos podido cargar las provincias del país seleccionado.',
+      noProvincesAvailable:
+        'No hay provincias disponibles para el país seleccionado.',
+      selectCountryToEnableCities:
+        'Selecciona un país para habilitar las ciudades.',
+      selectProvinceToEnableCities:
+        'Selecciona una provincia para habilitar las ciudades.',
+      loadingCities: 'Cargando ciudades...',
+      citiesLoadError:
+        'No hemos podido cargar las ciudades de la provincia seleccionada.',
+      noCitiesAvailable:
+        'No hay ciudades disponibles para la provincia seleccionada.',
       noCurrentProfession: 'Sin profesión actual',
       noDominantFoot: 'Sin pie dominante',
       createPending: 'Creando persona...',
@@ -745,9 +766,9 @@ const es = {
         'El nombre completo nativo es demasiado largo.',
       PERSON_INVALID_GENDER: 'Introduce un género válido.',
       PERSON_INVALID_BIRTH_LOCATION_ID:
-        'Introduce un identificador válido para el lugar de nacimiento.',
+        'Selecciona una ciudad de nacimiento válida.',
       PERSON_INVALID_CURRENT_CITY_ID:
-        'Introduce un identificador válido para la ciudad actual.',
+        'Selecciona una ciudad actual válida.',
       PERSON_INVALID_PRIMARY_NATIONALITY_COUNTRY_ID:
         'Selecciona un país de nacionalidad principal válido.',
       PERSON_INVALID_HAIR_COLOR: 'Introduce un color de pelo válido.',

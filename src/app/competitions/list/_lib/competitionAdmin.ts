@@ -1,6 +1,7 @@
 /** @format */
 
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { isUuid } from '@/_helpers/uuid';
 import type { ApiErrorResponse } from '@/_types/api';
 import type { Competition } from '@/_types/competition';
 import type { CompetitionType } from '@/_types/competitionType';
@@ -8,8 +9,6 @@ import type { Country } from '@/_types/country';
 import type { FederationListItem } from '@/_types/federation';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type CompetitionFormField =
   | 'competition_type_id'
@@ -142,7 +141,7 @@ export function validateCompetitionFormValues(
 
   if (!values.competitionTypeId.trim()) {
     errors.competition_type_id = 'Competition type is required.';
-  } else if (!UUID_PATTERN.test(values.competitionTypeId.trim())) {
+  } else if (!isUuid(values.competitionTypeId)) {
     errors.competition_type_id = 'Select a valid competition type.';
   }
 
@@ -158,11 +157,11 @@ export function validateCompetitionFormValues(
     errors.original_name = 'Original name is too long.';
   }
 
-  if (values.federationId && !UUID_PATTERN.test(values.federationId)) {
+  if (values.federationId && !isUuid(values.federationId)) {
     errors.federation_id = 'Select a valid federation.';
   }
 
-  if (values.countryId && !UUID_PATTERN.test(values.countryId)) {
+  if (values.countryId && !isUuid(values.countryId)) {
     errors.country_id = 'Select a valid country.';
   }
 

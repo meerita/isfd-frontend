@@ -5,13 +5,12 @@
 import API_ROUTES from '@/_constants/apiRoutes';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
+import { isUuid } from '@/_helpers/uuid';
 import type { ApiErrorResponse } from '@/_types/api';
 import type { City } from '@/_types/city';
 import { mapCity } from '@/_actions/city/mappers';
 
 const GEO_CITIES_PAGE_SIZE = 100;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type GeoCitiesResponse = Readonly<{
   data: ReadonlyArray<City>;
@@ -25,7 +24,7 @@ export async function getGeoCitiesByCountry(
     return { data: [] };
   }
 
-  if (!UUID_PATTERN.test(countryId)) {
+  if (!isUuid(countryId)) {
     return { data: [] };
   }
 

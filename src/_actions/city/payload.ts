@@ -1,10 +1,9 @@
 /** @format */
 
+import { isUuid } from '@/_helpers/uuid';
 import type { CityActionState } from '@/_types/city';
 
 const UNSET = Symbol('unset');
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function str(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -48,10 +47,6 @@ function parseOptionalNumber(value: string): {
     value: Number.isFinite(parsed) ? parsed : null,
     valid: Number.isFinite(parsed),
   };
-}
-
-function isValidUuid(value: string): boolean {
-  return UUID_PATTERN.test(value);
 }
 
 function formError(reason: string, message: string, error: string): CityActionState {
@@ -123,7 +118,7 @@ export function buildCreateCityBody(
     };
   }
 
-  if (!isValidUuid(countryId)) {
+  if (!isUuid(countryId)) {
     return {
       error: formError(
         'CITY_COUNTRY_ID_INVALID',
@@ -184,7 +179,7 @@ export function buildUpdateCityBody(formData: FormData): {
     };
   }
 
-  if (!isValidUuid(countryId)) {
+  if (!isUuid(countryId)) {
     return {
       cityId,
       originalCountryId: originalCountryId ?? undefined,

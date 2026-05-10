@@ -26,8 +26,8 @@ export const PERSON_ERROR_MESSAGES: PersonErrorMessageMap = {
   PERSON_KNOWN_AS_TOO_LONG: 'Known as is too long.',
   PERSON_NATIVE_FULL_NAME_TOO_LONG: 'Native full name is too long.',
   PERSON_INVALID_GENDER: 'Enter a valid gender.',
-  PERSON_INVALID_BIRTH_LOCATION_ID: 'Enter a valid birth location identifier.',
-  PERSON_INVALID_CURRENT_CITY_ID: 'Enter a valid current city identifier.',
+  PERSON_INVALID_BIRTH_LOCATION_ID: 'Select a valid birth city.',
+  PERSON_INVALID_CURRENT_CITY_ID: 'Select a valid current city.',
   PERSON_INVALID_PRIMARY_NATIONALITY_COUNTRY_ID:
     'Select a valid primary nationality country.',
   PERSON_INVALID_HAIR_COLOR: 'Enter a valid hair color.',

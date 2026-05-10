@@ -5,10 +5,9 @@ import type {
   CreateCompetitionRequest,
   UpdateCompetitionRequest,
 } from '@/_types/competition';
+import { isUuid } from '@/_helpers/uuid';
 
 const UNSET = Symbol('unset');
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function str(formData: FormData, key: string): string {
@@ -58,7 +57,7 @@ function validateNullableUuid(
   reason: string,
   message: string,
 ): CompetitionActionState | null {
-  if (!value || UUID_PATTERN.test(value)) return null;
+  if (!value || isUuid(value)) return null;
 
   return formError(reason, message);
 }
@@ -135,7 +134,7 @@ function validateCompetitionInput(
     return formError('COMPETITION_TYPE_ID_REQUIRED', 'Competition type is required.');
   }
 
-  if (!UUID_PATTERN.test(input.competitionTypeId)) {
+  if (!isUuid(input.competitionTypeId)) {
     return formError(
       'COMPETITION_INVALID_COMPETITION_TYPE_ID',
       'Select a valid competition type.',

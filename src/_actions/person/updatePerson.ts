@@ -11,12 +11,20 @@ import getServerAxios from '@/_lib/getServerAxios';
 import type { PersonActionState } from '@/_types/person';
 import { buildUpdatePersonBody } from './payload';
 
+function serializeFormData(
+  formData: FormData,
+): Record<string, FormDataEntryValue> {
+  return Object.fromEntries(formData.entries());
+}
+
 export async function updatePerson(
   _prevState: PersonActionState,
   formData: FormData,
 ): Promise<PersonActionState> {
   const { body, error, personId } = buildUpdatePersonBody(formData);
   if (error || !personId || !body) {
+    console.log('[updatePerson] submitted form data', serializeFormData(formData));
+    console.log('[updatePerson] PATCH /admin/persons/:id response', error);
     return (
       error ?? {
         status: 'error',
@@ -39,21 +47,17 @@ export async function updatePerson(
   const client = await getServerAxios();
 
   try {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[updatePerson] PATCH /admin/persons/:id payload', {
-        personId,
-        body,
-      });
-    }
+    console.log('[updatePerson] PATCH /admin/persons/:id payload', {
+      personId,
+      body,
+    });
 
     const { data } = await client.patch<unknown>(
       API_ROUTES.PERSON_ADMIN_BY_ID(personId),
       body,
     );
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[updatePerson] PATCH /admin/persons/:id response', data);
-    }
+    console.log('[updatePerson] PATCH /admin/persons/:id response', data);
 
     revalidatePath(NAVIGATION.PERSONS);
     revalidatePath(NAVIGATION.PERSON_BY_ID(personId));
@@ -64,6 +68,7 @@ export async function updatePerson(
     } satisfies PersonActionState;
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
+    console.log('[updatePerson] PATCH /admin/persons/:id response', normalized.data);
     logApiError(normalized);
     return {
       status: 'error',

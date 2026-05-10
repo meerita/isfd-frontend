@@ -1,6 +1,8 @@
 /** @format */
 
 import { getAllCountries } from '@/_actions/country/getAllCountries';
+import { getAdminCitiesByCountryIdAndProvince } from '@/_actions/city/getCities';
+import { getCityById } from '@/_actions/city/getCityById';
 import { getAdminPersonById } from '@/_actions/person/getAdminPersonById';
 import Button from '@/_components/forms/Button';
 import Grid from '@/_components/layout/Grid';
@@ -127,6 +129,26 @@ export default async function PersonPage({
   const selectedPrimaryNationalityCountryLabel =
     countries.find(country => country.id === person.primary_nationality_country_id)
       ?.name ?? null;
+  const [birthCity, currentCity] = await Promise.all([
+    person.birth_location_id
+      ? getCityById(person.birth_location_id)
+      : Promise.resolve(null),
+    person.current_city_id ? getCityById(person.current_city_id) : Promise.resolve(null),
+  ]);
+  const [initialBirthCities, initialCurrentCities] = await Promise.all([
+    birthCity?.countryId && birthCity.provinceName
+      ? getAdminCitiesByCountryIdAndProvince(
+          birthCity.countryId,
+          birthCity.provinceName,
+        )
+      : Promise.resolve([]),
+    currentCity?.countryId && currentCity.provinceName
+      ? getAdminCitiesByCountryIdAndProvince(
+          currentCity.countryId,
+          currentCity.provinceName,
+        )
+      : Promise.resolve([]),
+  ]);
   const detailHref = buildPersonHref(person.id, section);
   const editHref = buildPersonHref(person.id, section, true);
 
@@ -162,6 +184,48 @@ export default async function PersonPage({
             countries={countries}
             selectedPrimaryNationalityCountryLabel={
               selectedPrimaryNationalityCountryLabel
+            }
+            initialBirthLocation={
+              birthCity
+                ? {
+                    countryId: birthCity.countryId,
+                    countryLabel:
+                      birthCity.countryName ??
+                      countries.find(country => country.id === birthCity.countryId)?.name ??
+                      birthCity.countryId,
+                    provinceName: birthCity.provinceName,
+                    cityId: birthCity.id,
+                    cityLabel: birthCity.name,
+                    initialCities: initialBirthCities,
+                  }
+                : person.birth_location_id
+                  ? {
+                      cityId: person.birth_location_id,
+                      cityLabel: person.birth_location_id,
+                    }
+                  : undefined
+            }
+            initialCurrentLocation={
+              currentCity
+                ? {
+                    countryId: currentCity.countryId,
+                    countryLabel:
+                      currentCity.countryName ??
+                      countries.find(
+                        country => country.id === currentCity.countryId,
+                      )?.name ??
+                      currentCity.countryId,
+                    provinceName: currentCity.provinceName,
+                    cityId: currentCity.id,
+                    cityLabel: currentCity.name,
+                    initialCities: initialCurrentCities,
+                  }
+                : person.current_city_id
+                  ? {
+                      cityId: person.current_city_id,
+                      cityLabel: person.current_city_id,
+                    }
+                  : undefined
             }
             cancelHref={detailHref}
             successHref={detailHref}

@@ -20,6 +20,7 @@ import Text from '@/_components/typography/Text';
 import { resolveCityErrorMessage } from '@/_constants/cityErrorMessages';
 import NAVIGATION from '@/_constants/navigation';
 import SECTIONS from '@/_constants/sections';
+import { parseUuid } from '@/_helpers/uuid';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
 import type { AdminCitySort, CityStatusFilter } from '@/_types/city';
 import CityFilters from './_components/CityFilters';
@@ -28,8 +29,6 @@ const PLACEHOLDER = '--';
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_SORT: AdminCitySort = 'updated_at_desc';
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type SearchParams = Readonly<{
   country_id?: string | string[];
@@ -58,11 +57,6 @@ function parsePositiveInt(
 function parseString(value: QueryParam): string | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
   return raw && raw.length > 0 ? raw : undefined;
-}
-
-function parseUuid(value: QueryParam): string | undefined {
-  const parsed = parseString(value);
-  return parsed && UUID_PATTERN.test(parsed) ? parsed : undefined;
 }
 
 function buildHref(
