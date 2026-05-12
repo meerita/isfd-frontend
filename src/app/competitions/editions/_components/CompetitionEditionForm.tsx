@@ -42,8 +42,9 @@ type SelectorOption = Readonly<{
 
 type CompetitionEditionFormProps = Readonly<{
   competitionEdition?: CompetitionEdition | null;
-  seasons: ReadonlyArray<SelectorOption>;
   competitions: ReadonlyArray<SelectorOption>;
+  competitionPyramids: ReadonlyArray<SelectorOption>;
+  competitionTiers: ReadonlyArray<SelectorOption>;
   edit?: boolean;
   cancelHref?: string;
   successHref?: string;
@@ -51,8 +52,9 @@ type CompetitionEditionFormProps = Readonly<{
 
 export default function CompetitionEditionForm({
   competitionEdition,
-  seasons,
   competitions,
+  competitionPyramids,
+  competitionTiers,
   edit = false,
   cancelHref,
   successHref,
@@ -79,6 +81,7 @@ export default function CompetitionEditionForm({
       status: actionState.status,
       error: actionState.error,
       competitionEditionId: actionState.competitionEditionId,
+      competitionEditionSlug: actionState.competitionEditionSlug,
     });
 
     if (actionState.status === 'error') {
@@ -113,6 +116,7 @@ export default function CompetitionEditionForm({
     router.refresh();
   }, [
     actionState.competitionEditionId,
+    actionState.competitionEditionSlug,
     actionState.error,
     actionState.status,
     competitionEdition?.id,
@@ -139,16 +143,20 @@ export default function CompetitionEditionForm({
             name='competitionEditionId'
             value={competitionEdition.id}
           />
-          <input type='hidden' name='original_name' value={competitionEdition.name} />
           <input
             type='hidden'
             name='original_competitionId'
-            value={competitionEdition.competitionId ?? ''}
+            value={competitionEdition.competitionId}
           />
           <input
             type='hidden'
-            name='original_seasonId'
-            value={competitionEdition.seasonId ?? ''}
+            name='original_competitionPyramidId'
+            value={competitionEdition.competitionPyramidId ?? ''}
+          />
+          <input
+            type='hidden'
+            name='original_primaryCompetitionTierId'
+            value={competitionEdition.primaryCompetitionTierId ?? ''}
           />
           <input
             type='hidden'
@@ -177,8 +185,8 @@ export default function CompetitionEditionForm({
           />
           <input
             type='hidden'
-            name='original_status'
-            value={competitionEdition.status}
+            name='original_editorialStatus'
+            value={competitionEdition.editorialStatus}
           />
           <input
             type='hidden'
@@ -187,8 +195,8 @@ export default function CompetitionEditionForm({
           />
           <input
             type='hidden'
-            name='original_isActive'
-            value={competitionEdition.isActive ? 'true' : 'false'}
+            name='original_isPublic'
+            value={competitionEdition.isPublic ? 'true' : 'false'}
           />
         </>
       ) : null}
@@ -198,74 +206,89 @@ export default function CompetitionEditionForm({
           <Title size='small'>
             {edit ? 'Competition edition configuration' : 'Create competition edition'}
           </Title>
-          {!edit ? (
-            <Text size='small' color='gray'>
-              Competition editions are created with name and season first. Competition,
-              code, lifecycle status, and additional metadata can be completed from the
-              detail page afterward.
-            </Text>
-          ) : null}
+
+          <Text size='small' color='gray'>
+            Competition editions carry time-bound structure and editorial state. Public
+            visibility is managed separately from editorial status.
+          </Text>
+
           <Grid gap={16} columns={2}>
             <Section gap={16}>
-              <TextInput
-                label='Name'
-                name='name'
-                placeholder='UEFA Champions League 2025/26'
-                defaultValue={competitionEdition?.name ?? ''}
-                required
-                disabled={isPending}
-              />
               <Select
-                label='Season'
-                name='seasonId'
-                defaultValue={competitionEdition?.seasonId ?? ''}
+                label='Competition'
+                name='competitionId'
+                defaultValue={competitionEdition?.competitionId ?? ''}
                 disabled={isPending}
+                required
               >
-                <option value=''>No season</option>
-                {seasons.map(option => (
+                <option value=''>Select a competition</option>
+                {competitions.map(option => (
                   <option key={option.id} value={option.id}>
                     {option.name}
                   </option>
                 ))}
               </Select>
+
+              <TextInput
+                label='Edition label'
+                name='editionLabel'
+                placeholder='2025/26'
+                defaultValue={competitionEdition?.editionLabel ?? ''}
+                required
+                disabled={isPending}
+              />
+
+              <Select
+                label='Competition pyramid'
+                name='competitionPyramidId'
+                defaultValue={competitionEdition?.competitionPyramidId ?? ''}
+                disabled={isPending}
+              >
+                <option value=''>No competition pyramid</option>
+                {competitionPyramids.map(option => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </Select>
+
+              <Select
+                label='Primary competition tier'
+                name='primaryCompetitionTierId'
+                defaultValue={competitionEdition?.primaryCompetitionTierId ?? ''}
+                disabled={isPending}
+              >
+                <option value=''>No primary competition tier</option>
+                {competitionTiers.map(option => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </Select>
+
               {edit ? (
                 <>
-                  <Select
-                    label='Competition'
-                    name='competitionId'
-                    defaultValue={competitionEdition?.competitionId ?? ''}
-                    disabled={isPending}
-                  >
-                    <option value=''>No competition</option>
-                    {competitions.map(option => (
-                      <option key={option.id} value={option.id}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <TextInput
-                    label='Edition label'
-                    name='editionLabel'
-                    defaultValue={competitionEdition?.editionLabel ?? ''}
-                    disabled={isPending}
-                  />
                   <TextInput
                     label='Short name'
                     name='shortName'
                     defaultValue={competitionEdition?.shortName ?? ''}
                     disabled={isPending}
                   />
+
                   <NumberInput
                     label='Year'
                     name='year'
                     type='number'
+                    min='0'
                     defaultValue={
-                      competitionEdition?.year === null
+                      competitionEdition?.year === null ||
+                      typeof competitionEdition?.year === 'undefined'
                         ? ''
-                        : String(competitionEdition?.year)
+                        : String(competitionEdition.year)
                     }
                     disabled={isPending}
                   />
+
                   <TextInput
                     label='Started on'
                     name='startedOn'
@@ -273,6 +296,7 @@ export default function CompetitionEditionForm({
                     defaultValue={formatDateForInput(competitionEdition?.startedOn)}
                     disabled={isPending}
                   />
+
                   <TextInput
                     label='Ended on'
                     name='endedOn'
@@ -280,18 +304,20 @@ export default function CompetitionEditionForm({
                     defaultValue={formatDateForInput(competitionEdition?.endedOn)}
                     disabled={isPending}
                   />
+
                   <Select
-                    label='Lifecycle status'
-                    name='status'
-                    defaultValue={competitionEdition?.status ?? 'DRAFT'}
+                    label='Editorial status'
+                    name='editorialStatus'
+                    defaultValue={competitionEdition?.editorialStatus ?? 'DRAFT'}
                     disabled={isPending}
                   >
-                    {COMPETITION_EDITION_STATUSES.map(value => (
-                      <option key={value} value={value}>
-                        {getCompetitionEditionStatusLabel(value)}
+                    {COMPETITION_EDITION_STATUSES.map(status => (
+                      <option key={status} value={status}>
+                        {getCompetitionEditionStatusLabel(status)}
                       </option>
                     ))}
                   </Select>
+
                   <NumberInput
                     label='Sort order'
                     name='sortOrder'
@@ -300,34 +326,45 @@ export default function CompetitionEditionForm({
                     defaultValue={String(competitionEdition?.sortOrder ?? 0)}
                     disabled={isPending}
                   />
+
                   <CheckBoxInput
-                    label='Active'
-                    name='isActive'
+                    key={competitionEdition?.isPublic ? 'edition-public' : 'edition-private'}
+                    label='Public visibility'
+                    name='isPublic'
                     value='true'
-                    defaultChecked={competitionEdition?.isActive ?? true}
+                    defaultChecked={competitionEdition?.isPublic ?? true}
                     disabled={isPending}
                   />
                 </>
-              ) : null}
+              ) : (
+                <CheckBoxInput
+                  label='Public visibility'
+                  name='isPublic'
+                  value='true'
+                  defaultChecked
+                  disabled
+                />
+              )}
             </Section>
 
             {edit && competitionEdition ? (
               <Section gap={16}>
+                <TextInput label='ID' defaultValue={competitionEdition.id} readOnly disabled />
                 <TextInput
-                  label='ID'
-                  defaultValue={competitionEdition.id}
+                  label='Name'
+                  defaultValue={competitionEdition.name}
+                  readOnly
+                  disabled
+                />
+                <TextInput
+                  label='Code'
+                  defaultValue={competitionEdition.code ?? ''}
                   readOnly
                   disabled
                 />
                 <TextInput
                   label='Slug'
                   defaultValue={competitionEdition.slug}
-                  readOnly
-                  disabled
-                />
-                <TextInput
-                  label='Current code'
-                  defaultValue={competitionEdition.code ?? ''}
                   readOnly
                   disabled
                 />

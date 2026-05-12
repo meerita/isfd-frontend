@@ -98,8 +98,10 @@ export function mapPersonAdminListItem(raw: RawRecord): PersonAdminListItem {
     primary_nationality_country_id: toNullableString(
       raw.primary_nationality_country_id,
     ),
-    avatar_image_url: toNullableString(raw.avatar_image_url),
-    is_active: Boolean(raw.is_active ?? false),
+    portrait_asset_id: toNullableString(
+      raw.portrait_asset_id ?? raw.portraitAssetId,
+    ),
+    is_public: Boolean(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive ?? false),
     created_at: String(raw.created_at ?? ''),
     updated_at: String(raw.updated_at ?? ''),
   };
@@ -133,8 +135,9 @@ export function mapPersonAdminDetail(raw: RawRecord): PersonAdminDetail {
       raw.professional_division_debut_date,
     ),
     retirement_date: toNullableString(raw.retirement_date),
-    avatar_image_url: toNullableString(raw.avatar_image_url),
-    hero_image_url: toNullableString(raw.hero_image_url),
+    portrait_asset_id: toNullableString(
+      raw.portrait_asset_id ?? raw.portraitAssetId,
+    ),
   };
 }
 
@@ -169,8 +172,9 @@ export function mapPersonPublicDetail(raw: RawRecord): PersonPublicDetail {
       raw.professional_division_debut_date,
     ),
     retirement_date: toNullableString(raw.retirement_date),
-    avatar_image_url: toNullableString(raw.avatar_image_url),
-    hero_image_url: toNullableString(raw.hero_image_url),
+    portrait_asset_id: toNullableString(
+      raw.portrait_asset_id ?? raw.portraitAssetId,
+    ),
   };
 }
 

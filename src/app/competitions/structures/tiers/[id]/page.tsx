@@ -1,6 +1,5 @@
 /** @format */
 
-import { getAllCompetitions } from '@/_actions/competition/getAllCompetitions';
 import { getAdminCompetitionTierById } from '@/_actions/competitionStructure/getAdminCompetitionTierById';
 import { getAllCompetitionPyramids } from '@/_actions/competitionStructure/getAllCompetitionPyramids';
 import { getAllCompetitionTiers } from '@/_actions/competitionStructure/getAllCompetitionTiers';
@@ -112,14 +111,7 @@ export default async function CompetitionTierDetailsPage({
   const detailHref = buildHref(competitionTier.id, section);
   const editHref = buildHref(competitionTier.id, section, true);
   const childTiers = competitionTiers.filter(item => item.parentTierId === competitionTier.id);
-  const relatedCompetitions =
-    !edit && section === 'competitions'
-      ? (await getAllCompetitions()).filter(
-          item =>
-            item.primaryCompetitionTierId === competitionTier.id ||
-            item.allowedCompetitionTierIds.includes(competitionTier.id),
-        )
-      : [];
+  const relatedCompetitions: ReadonlyArray<{ id: string; name: string }> = [];
   const pyramidLabel =
     competitionPyramids.find(item => item.id === competitionTier.competitionPyramidId)?.name ??
     competitionTier.competitionPyramidId;

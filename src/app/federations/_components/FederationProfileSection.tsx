@@ -120,8 +120,8 @@ export default function FederationProfileSection({
                     value={formatDate(federation.foundationDate, locale)}
                   />
                   <DataRow
-                    label={dictionary.federations.form.description}
-                    value={formatText(federation.description)}
+                    label={dictionary.federations.form.dissolutionDate}
+                    value={formatDate(federation.dissolutionDate, locale)}
                   />
                 </Tbody>
               </Table>

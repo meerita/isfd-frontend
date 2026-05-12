@@ -37,7 +37,7 @@ export function mapFederationListItem(raw: RawFederation): FederationListItem {
     iconUrl: toNullableString(raw.icon_url ?? raw.iconUrl),
     countryId: toNullableString(raw.country_id ?? raw.countryId),
     cityId: toNullableString(raw.city_id ?? raw.cityId),
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    isActive: Boolean(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive ?? false),
     createdAt: String(raw.created_at ?? raw.createdAt ?? ''),
     updatedAt: String(raw.updated_at ?? raw.updatedAt ?? ''),
   };
@@ -52,7 +52,9 @@ export function mapFederation(raw: RawFederation): Federation {
     shortName: toNullableString(raw.short_name ?? raw.shortName),
     acronym: toNullableString(raw.acronym),
     foundationDate: toNullableString(raw.foundation_date ?? raw.foundationDate),
-    description: toNullableString(raw.description),
+    dissolutionDate: toNullableString(
+      raw.dissolution_date ?? raw.dissolutionDate,
+    ),
     officialWebsiteUrl: toNullableString(
       raw.official_website_url ?? raw.officialWebsiteUrl,
     ),

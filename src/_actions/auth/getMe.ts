@@ -7,23 +7,10 @@
 // Author: Diego M. Lafuente
 // Email: dlafuente@gmail.com
 
-import API_ROUTES from '@/_constants/apiRoutes';
-import { getAuthenticatedRequestHeaders } from '@/_lib/authTokens';
-import api from '@/_lib/axiosInstance';
+import { getMe as getAccountMe } from '@/_actions/account/getMe';
 import type { AuthUser } from '@/_types/auth';
 
 export async function getMe(): Promise<AuthUser | null> {
-  const headers = await getAuthenticatedRequestHeaders({ refreshIfNeeded: false });
-
-  if (!headers) {
-    return null;
-  }
-
-  try {
-    const { data } = await api.get<AuthUser>(API_ROUTES.ME, { headers });
-    return data;
-  } catch (error) {
-    console.error('Failed to fetch /me', error);
-    return null;
-  }
+  const result = await getAccountMe();
+  return result.data;
 }

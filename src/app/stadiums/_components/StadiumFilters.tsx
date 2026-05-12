@@ -20,7 +20,7 @@ import TextInput from '@/_components/forms/TextInput';
 import Grid from '@/_components/layout/Grid';
 import NAVIGATION from '@/_constants/navigation';
 import type {
-  StadiumSort,
+  StadiumAdminSort,
   StadiumStatusFilter,
 } from '@/_types/stadium';
 
@@ -36,7 +36,7 @@ type SelectorOption = Readonly<{
 
 type StadiumFiltersProps = Readonly<{
   pageSize: number;
-  sort: StadiumSort;
+  sort: StadiumAdminSort;
   status?: StadiumStatusFilter;
   countryId?: string;
   cityId?: string;
@@ -236,8 +236,8 @@ export default function StadiumFilters({
           <option value='created_at_asc'>Created ↑</option>
           <option value='name_asc'>Name A-Z</option>
           <option value='name_desc'>Name Z-A</option>
-          <option value='is_active_desc'>Active first</option>
-          <option value='is_active_asc'>Inactive first</option>
+          <option value='is_public_desc'>Active first</option>
+          <option value='is_public_asc'>Inactive first</option>
         </Select>
         <Select
           label='Status'
@@ -246,8 +246,8 @@ export default function StadiumFilters({
           onChange={handleSelectChange}
         >
           <option value='all'>All</option>
-          <option value='active'>Active</option>
-          <option value='inactive'>Inactive</option>
+          <option value='public'>Public</option>
+          <option value='private'>Private</option>
         </Select>
         <Select
           label='Country'

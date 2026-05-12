@@ -28,16 +28,16 @@ export async function togglePersonActivation(
     return MISSING_ID_RESPONSE;
   }
 
-  const rawIsActive = formData.get('is_active');
-  const is_active =
-    typeof rawIsActive === 'string'
-      ? rawIsActive.toLowerCase() === 'true'
+  const rawIsPublic = formData.get('is_public');
+  const is_public =
+    typeof rawIsPublic === 'string'
+      ? rawIsPublic.toLowerCase() === 'true'
       : false;
 
   const client = await getServerAxios();
 
   try {
-    await client.patch(API_ROUTES.PERSON_ADMIN_BY_ID(personId), { is_active });
+    await client.patch(API_ROUTES.PERSON_ADMIN_BY_ID(personId), { is_public });
     revalidatePath(NAVIGATION.PERSONS);
     revalidatePath(NAVIGATION.PERSON_BY_ID(personId));
     return { status: 'success', personId } satisfies PersonActionState;

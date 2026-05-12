@@ -18,6 +18,7 @@ import Icon from '@/_components/Icon';
 import Text from '@/_components/typography/Text';
 import NAVIGATION from '@/_constants/navigation';
 import SECTIONS from '@/_constants/sections';
+import { parseUuid } from '@/_helpers/uuid';
 import { resolveClubErrorMessage } from '@/_constants/clubErrorMessages';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
 import type { ClubSort, ClubStatusFilter } from '@/_types/club';
@@ -39,8 +40,6 @@ const EMPTY_CLUB_ROW_KEYS = [
   'created',
   'updated',
 ] as const;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type SearchParams = Readonly<{
   page?: string | string[];
@@ -68,11 +67,6 @@ function parsePositiveInt(
 function parseString(value: QueryParam): string | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
   return raw && raw.length > 0 ? raw : undefined;
-}
-
-function parseUuid(value: QueryParam): string | undefined {
-  const parsed = parseString(value);
-  return parsed && UUID_PATTERN.test(parsed) ? parsed : undefined;
 }
 
 function formatDateOnly(value: string): string {

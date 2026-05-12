@@ -14,6 +14,7 @@ import {
   type PersonHairColor,
   type PersonSkinColor,
 } from '@/_constants/enums/person';
+import { isUuid } from '@/_helpers/uuid';
 import type {
   CreatePersonRequest,
   PersonActionState,
@@ -22,8 +23,6 @@ import type {
 
 const UNSET = Symbol('unset');
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_FULL_NAME_LENGTH = 200;
 const MAX_DISPLAY_NAME_LENGTH = 200;
 const MAX_SHORT_NAME_LENGTH = 120;
@@ -39,8 +38,7 @@ type NullableStringField =
   | 'birth_location_id'
   | 'current_city_id'
   | 'primary_nationality_country_id'
-  | 'avatar_image_url'
-  | 'hero_image_url';
+  | 'portrait_asset_id';
 
 type NullableEnumField =
   | 'gender'
@@ -202,19 +200,6 @@ function isFutureDate(value: string): boolean {
   return value > new Date().toISOString().slice(0, 10);
 }
 
-function isValidUuid(value: string): boolean {
-  return UUID_PATTERN.test(value);
-}
-
-function isValidHttpUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
 function formError(
   reason: string,
   message: string,
@@ -248,23 +233,11 @@ function validateUuid(
   reason: string,
   label: string,
 ): PersonActionState | null {
-  if (!value || isValidUuid(value)) {
+  if (!value || isUuid(value)) {
     return null;
   }
 
   return formError(reason, `${label} must be a valid UUID.`);
-}
-
-function validateUrl(
-  value: string | null,
-  reason: string,
-  label: string,
-): PersonActionState | null {
-  if (!value || isValidHttpUrl(value)) {
-    return null;
-  }
-
-  return formError(reason, `${label} must be an http or https URL.`);
 }
 
 function validateNumber(
@@ -408,8 +381,7 @@ function runSharedValidations(input: Readonly<{
   birth_location_id: string | null;
   current_city_id: string | null;
   primary_nationality_country_id: string | null;
-  avatar_image_url: string | null;
-  hero_image_url: string | null;
+  portrait_asset_id: string | null;
   height_cm: number | null;
   weight_kg: number | null;
   birth_date: string | null;
@@ -444,15 +416,10 @@ function runSharedValidations(input: Readonly<{
     ...UUID_FIELDS.map(field =>
       validateUuid(input[field.key], field.reason, field.label),
     ),
-    validateUrl(
-      input.avatar_image_url,
-      'PERSON_INVALID_AVATAR_IMAGE_URL',
-      'avatar image url',
-    ),
-    validateUrl(
-      input.hero_image_url,
-      'PERSON_INVALID_HERO_IMAGE_URL',
-      'hero image url',
+    validateUuid(
+      input.portrait_asset_id,
+      'PERSON_INVALID_PORTRAIT_ASSET_ID',
+      'portrait asset id',
     ),
     validateNumber(
       input.height_cm,
@@ -567,8 +534,7 @@ export function buildCreatePersonBody(
     primary_nationality_country_id: optionalString(
       getString(formData, 'primary_nationality_country_id'),
     ),
-    avatar_image_url: optionalString(getString(formData, 'avatar_image_url')),
-    hero_image_url: optionalString(getString(formData, 'hero_image_url')),
+    portrait_asset_id: optionalString(getString(formData, 'portrait_asset_id')),
     height_cm,
     weight_kg,
     birth_date,
@@ -586,7 +552,7 @@ export function buildCreatePersonBody(
   const body: Record<string, unknown> = {
     full_name,
     is_deceased,
-    is_active: getBoolean(formData, 'is_active', true),
+    is_public: getBoolean(formData, 'is_public', true),
   };
 
   const nullableStringFields: ReadonlyArray<NullableStringField> = [
@@ -600,8 +566,7 @@ export function buildCreatePersonBody(
     'birth_location_id',
     'current_city_id',
     'primary_nationality_country_id',
-    'avatar_image_url',
-    'hero_image_url',
+    'portrait_asset_id',
   ];
 
   for (const key of nullableStringFields) {
@@ -673,8 +638,8 @@ export function buildUpdatePersonBody(formData: FormData): {
 
   const currentIsDeceased = getBoolean(formData, 'is_deceased', false);
   const originalIsDeceased = getBoolean(formData, 'original_is_deceased', false);
-  const currentIsActive = getBoolean(formData, 'is_active', false);
-  const originalIsActive = getBoolean(formData, 'original_is_active', false);
+  const currentIsPublic = getBoolean(formData, 'is_public', false);
+  const originalIsPublic = getBoolean(formData, 'original_is_public', false);
 
   const birth_date_raw = getString(formData, 'birth_date');
   const death_date_raw = getString(formData, 'death_date');
@@ -756,15 +721,26 @@ export function buildUpdatePersonBody(formData: FormData): {
   >();
 
   for (const field of PERSON_ENUM_FIELDS) {
-    const currentResult = parseEnumField(getString(formData, field.key), field);
+    const currentRawValue = getString(formData, field.key);
+    const originalRawValue = getString(formData, `original_${field.key}`);
+
+    if (
+      field.key === 'gender' &&
+      currentRawValue.length === 0 &&
+      currentRawValue !== originalRawValue
+    ) {
+      return {
+        personId,
+        error: formError(field.reason, `${field.label} is invalid.`),
+      };
+    }
+
+    const currentResult = parseEnumField(currentRawValue, field);
     if (currentResult.error) {
       return { personId, error: currentResult.error };
     }
 
-    const originalResult = parseEnumField(
-      getString(formData, `original_${field.key}`),
-      field,
-    );
+    const originalResult = parseEnumField(originalRawValue, field);
     if (originalResult.error) {
       return { personId, error: originalResult.error };
     }
@@ -773,43 +749,6 @@ export function buildUpdatePersonBody(formData: FormData): {
       current: currentResult.value,
       original: originalResult.value,
     });
-  }
-
-  const values = {
-    full_name: fullNameResult === UNSET ? original_full_name : fullNameResult,
-    display_name: optionalString(getString(formData, 'display_name')),
-    first_name: optionalString(getString(formData, 'first_name')),
-    middle_name: optionalString(getString(formData, 'middle_name')),
-    last_name: optionalString(getString(formData, 'last_name')),
-    second_surname: optionalString(getString(formData, 'second_surname')),
-    known_as: optionalString(getString(formData, 'known_as')),
-    native_full_name: optionalString(getString(formData, 'native_full_name')),
-    birth_location_id: optionalString(getString(formData, 'birth_location_id')),
-    current_city_id: optionalString(getString(formData, 'current_city_id')),
-    primary_nationality_country_id: optionalString(
-      getString(formData, 'primary_nationality_country_id'),
-    ),
-    avatar_image_url: optionalString(getString(formData, 'avatar_image_url')),
-    hero_image_url: optionalString(getString(formData, 'hero_image_url')),
-    height_cm,
-    weight_kg,
-    birth_date: effective_birth_date,
-    death_date: effective_death_date,
-    is_deceased: currentIsDeceased,
-    professional_division_debut_date:
-      effective_professional_division_debut_date,
-    retirement_date: effective_retirement_date,
-  } as const;
-
-  const validationError = runSharedValidations(values);
-  if (validationError) {
-    return { personId, error: validationError };
-  }
-
-  const body: Record<string, unknown> = {};
-
-  if (fullNameResult !== UNSET) {
-    body.full_name = fullNameResult;
   }
 
   const nullableStringFields: ReadonlyArray<NullableStringField> = [
@@ -823,19 +762,26 @@ export function buildUpdatePersonBody(formData: FormData): {
     'birth_location_id',
     'current_city_id',
     'primary_nationality_country_id',
-    'avatar_image_url',
-    'hero_image_url',
+    'portrait_asset_id',
   ];
+
+  const changedNullableStrings = new Map<
+    NullableStringField,
+    string | null | typeof UNSET
+  >();
 
   for (const key of nullableStringFields) {
     const result = partialNullable(
       optionalString(getString(formData, key)),
       optionalString(getString(formData, `original_${key}`)),
     );
-    if (result !== UNSET) {
-      body[key] = result;
-    }
+    changedNullableStrings.set(key, result);
   }
+
+  const changedEnumValues = new Map<
+    NullableEnumField,
+    PersonEnumValue | null | typeof UNSET
+  >();
 
   for (const field of PERSON_ENUM_FIELDS) {
     const value = enumValues.get(field.key);
@@ -844,12 +790,100 @@ export function buildUpdatePersonBody(formData: FormData): {
     }
 
     const result = partialNullable(value.current, value.original);
+    changedEnumValues.set(field.key, result);
+  }
+
+  const birthDateResult = partialNullable(birth_date, original_birth_date);
+  const debutDateResult = partialNullable(
+    professional_division_debut_date,
+    original_professional_division_debut_date,
+  );
+  const retirementDateResult = partialNullable(
+    retirement_date,
+    original_retirement_date,
+  );
+  const heightResult = partialNullable(height_cm, original_height_cm);
+  const weightResult = partialNullable(weight_kg, original_weight_kg);
+
+  const validationError = runSharedValidations({
+    full_name: fullNameResult === UNSET ? null : fullNameResult,
+    display_name:
+      changedNullableStrings.get('display_name') === UNSET
+        ? null
+        : (changedNullableStrings.get('display_name') ?? null),
+    first_name:
+      changedNullableStrings.get('first_name') === UNSET
+        ? null
+        : (changedNullableStrings.get('first_name') ?? null),
+    middle_name:
+      changedNullableStrings.get('middle_name') === UNSET
+        ? null
+        : (changedNullableStrings.get('middle_name') ?? null),
+    last_name:
+      changedNullableStrings.get('last_name') === UNSET
+        ? null
+        : (changedNullableStrings.get('last_name') ?? null),
+    second_surname:
+      changedNullableStrings.get('second_surname') === UNSET
+        ? null
+        : (changedNullableStrings.get('second_surname') ?? null),
+    known_as:
+      changedNullableStrings.get('known_as') === UNSET
+        ? null
+        : (changedNullableStrings.get('known_as') ?? null),
+    native_full_name:
+      changedNullableStrings.get('native_full_name') === UNSET
+        ? null
+        : (changedNullableStrings.get('native_full_name') ?? null),
+    birth_location_id:
+      changedNullableStrings.get('birth_location_id') === UNSET
+        ? null
+        : (changedNullableStrings.get('birth_location_id') ?? null),
+    current_city_id:
+      changedNullableStrings.get('current_city_id') === UNSET
+        ? null
+        : (changedNullableStrings.get('current_city_id') ?? null),
+    primary_nationality_country_id:
+      changedNullableStrings.get('primary_nationality_country_id') === UNSET
+        ? null
+        : (changedNullableStrings.get('primary_nationality_country_id') ?? null),
+    portrait_asset_id:
+      changedNullableStrings.get('portrait_asset_id') === UNSET
+        ? null
+        : (changedNullableStrings.get('portrait_asset_id') ?? null),
+    height_cm: heightResult === UNSET ? null : heightResult,
+    weight_kg: weightResult === UNSET ? null : weightResult,
+    birth_date: effective_birth_date,
+    death_date: effective_death_date,
+    is_deceased: currentIsDeceased,
+    professional_division_debut_date:
+      effective_professional_division_debut_date,
+    retirement_date: effective_retirement_date,
+  });
+  if (validationError) {
+    return { personId, error: validationError };
+  }
+
+  const body: Record<string, unknown> = {};
+
+  if (fullNameResult !== UNSET) {
+    body.full_name = fullNameResult;
+  }
+
+  for (const key of nullableStringFields) {
+    const result = changedNullableStrings.get(key);
+    if (result !== UNSET) {
+      body[key] = result;
+    }
+  }
+
+  for (const field of PERSON_ENUM_FIELDS) {
+    const result = changedEnumValues.get(field.key);
     if (result !== UNSET) {
       body[field.key] = result;
     }
   }
 
-  const birthDateResult = partialNullable(birth_date, original_birth_date);
   if (birthDateResult !== UNSET) {
     body.birth_date = birthDateResult;
   }
@@ -865,28 +899,18 @@ export function buildUpdatePersonBody(formData: FormData): {
     }
   }
 
-  const debutDateResult = partialNullable(
-    professional_division_debut_date,
-    original_professional_division_debut_date,
-  );
   if (debutDateResult !== UNSET) {
     body.professional_division_debut_date = debutDateResult;
   }
 
-  const retirementDateResult = partialNullable(
-    retirement_date,
-    original_retirement_date,
-  );
   if (retirementDateResult !== UNSET) {
     body.retirement_date = retirementDateResult;
   }
 
-  const heightResult = partialNullable(height_cm, original_height_cm);
   if (heightResult !== UNSET) {
     body.height_cm = heightResult;
   }
 
-  const weightResult = partialNullable(weight_kg, original_weight_kg);
   if (weightResult !== UNSET) {
     body.weight_kg = weightResult;
   }
@@ -895,8 +919,8 @@ export function buildUpdatePersonBody(formData: FormData): {
     body.is_deceased = currentIsDeceased;
   }
 
-  if (currentIsActive !== originalIsActive) {
-    body.is_active = currentIsActive;
+  if (currentIsPublic !== originalIsPublic) {
+    body.is_public = currentIsPublic;
   }
 
   return { personId, body: body as UpdatePersonRequest };

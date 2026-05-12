@@ -1,8 +1,11 @@
 /** @format */
-"use client";
-import React, { useState, forwardRef, InputHTMLAttributes } from "react";
-import Icon from "../Icon";
-import Text from "../typography/Text";
+
+'use client';
+
+import React, { useState, forwardRef, InputHTMLAttributes } from 'react';
+
+import Icon from '../Icon';
+import Text from '../typography/Text';
 
 interface CheckBoxInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -15,41 +18,47 @@ function CheckBoxInput(
   props: Readonly<CheckBoxInputProps>,
   ref: React.Ref<HTMLInputElement>,
 ) {
-  const { label, line, ...inputProps } = props;
-  const [checked, setChecked] = useState(inputProps.defaultChecked ?? false);
+  const { label, line, checked, defaultChecked, onChange, ...inputProps } = props;
+  const isControlled = checked !== undefined;
+  const [internalChecked, setInternalChecked] = useState(defaultChecked ?? false);
+  const resolvedChecked = isControlled ? checked : internalChecked;
 
-  // function to handle checkbox change event and pass it to parent component if provided.
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setChecked(event.target.checked);
-    if (inputProps.onChange) inputProps.onChange(event);
+    if (!isControlled) {
+      setInternalChecked(event.target.checked);
+    }
+
+    onChange?.(event);
   }
 
   return (
     <label
       className={`padding-block--4 display--flex gap--8 align-items--center cursor--pointer ${
         line
-          ? "border-bottom-width--1 border-bottom-style--solid border-bottom-color--lightest-gray"
+          ? 'border-bottom-width--1 border-bottom-style--solid border-bottom-color--lightest-gray'
           : ""
       }`}
     >
       <input
         {...inputProps}
-        type="checkbox"
+        type='checkbox'
         ref={ref}
-        className="hidden"
+        checked={checked}
+        defaultChecked={defaultChecked}
+        className='hidden'
         onChange={handleChange}
         hidden
       />
       <Icon
         size={24}
-        name={checked ? "checkboxOn" : "checkboxOff"}
-        fill={checked ? "green" : "lighterGray"}
+        name={resolvedChecked ? 'checkboxOn' : 'checkboxOff'}
+        fill={resolvedChecked ? 'green' : 'lighterGray'}
       />
       <Text
-        size="small"
-        weight="semibold"
-        lineHeight="noLineHeight"
-        className={`${checked ? "color--black" : "color--gray"}`}
+        size='small'
+        weight='semibold'
+        lineHeight='noLineHeight'
+        className={`${resolvedChecked ? 'color--black' : 'color--gray'}`}
       >
         {label}
       </Text>
@@ -57,6 +66,6 @@ function CheckBoxInput(
   );
 }
 
-CheckBoxInput.displayName = "CheckBoxInput";
+CheckBoxInput.displayName = 'CheckBoxInput';
 
 export default forwardRef(CheckBoxInput);

@@ -29,6 +29,10 @@ function normalizeDateInput(value: string): string | null {
   return parsed.toISOString().slice(0, 10);
 }
 
+function isFutureDate(value: string): boolean {
+  return value > new Date().toISOString().slice(0, 10);
+}
+
 function validateLevel(level: string): FederationLevel | null {
   if (level === 'WORLD' || level === 'CONTINENTAL' || level === 'NATIONAL') {
     return level;
@@ -50,6 +54,31 @@ function formError(
       error,
     },
   };
+}
+
+function validateDissolutionRules(
+  foundationDate: string | null,
+  dissolutionDate: string | null,
+): FederationActionState | undefined {
+  if (!dissolutionDate) return undefined;
+
+  if (isFutureDate(dissolutionDate)) {
+    return formError(
+      'FEDERATION_DISSOLUTION_DATE_IN_FUTURE',
+      'Dissolution date cannot be in the future.',
+      'Dissolution date cannot be in the future.',
+    );
+  }
+
+  if (foundationDate && dissolutionDate < foundationDate) {
+    return formError(
+      'FEDERATION_DISSOLUTION_DATE_BEFORE_FOUNDATION_DATE',
+      'Dissolution date cannot be before foundation date.',
+      'Dissolution date cannot be before foundation date.',
+    );
+  }
+
+  return undefined;
 }
 
 export function buildCreateFederationBody(
@@ -101,16 +130,33 @@ export function buildCreateFederationBody(
     };
   }
 
+  const rawDissolutionDate = str(formData, 'dissolutionDate');
+  const dissolutionDate = normalizeDateInput(rawDissolutionDate);
+  if (rawDissolutionDate && !dissolutionDate) {
+    return {
+      error: formError(
+        'FORM_VALIDATION_ERROR',
+        'Dissolution date must use YYYY-MM-DD.',
+        'Enter a valid dissolution date in YYYY-MM-DD format.',
+      ),
+    };
+  }
+
+  const isActive = bool(formData, 'isActive', false);
+  const dissolutionError = validateDissolutionRules(foundationDate, dissolutionDate);
+  if (dissolutionError) {
+    return { error: dissolutionError };
+  }
+
   const body: Record<string, unknown> = {
     name,
     federation_level: federationLevel,
-    is_active: bool(formData, 'isActive', true),
+    is_public: isActive,
   };
 
   const nativeName = optionalString(str(formData, 'nativeName'));
   const shortName = optionalString(str(formData, 'shortName'));
   const acronym = optionalString(str(formData, 'acronym'));
-  const description = optionalString(str(formData, 'description'));
   const officialWebsiteUrl = optionalString(str(formData, 'officialWebsiteUrl'));
   const iconUrl = optionalString(str(formData, 'iconUrl'));
   const heroImageUrl = optionalString(str(formData, 'heroImageUrl'));
@@ -121,7 +167,7 @@ export function buildCreateFederationBody(
   if (countryId) body.country_id = countryId;
   if (countryId && cityId) body.city_id = cityId;
   if (foundationDate !== null) body.foundation_date = foundationDate;
-  if (description !== null) body.description = description;
+  if (dissolutionDate !== null) body.dissolution_date = dissolutionDate;
   if (officialWebsiteUrl !== null) body.official_website_url = officialWebsiteUrl;
   if (iconUrl !== null) body.icon_url = iconUrl;
   if (heroImageUrl !== null) body.hero_image_url = heroImageUrl;
@@ -193,6 +239,28 @@ export function buildUpdateFederationBody(
     };
   }
 
+  const rawDissolutionDate = str(formData, 'dissolutionDate');
+  const dissolutionDate = normalizeDateInput(rawDissolutionDate);
+  if (rawDissolutionDate && !dissolutionDate) {
+    return {
+      error: formError(
+        'FORM_VALIDATION_ERROR',
+        'Dissolution date must use YYYY-MM-DD.',
+        'Enter a valid dissolution date in YYYY-MM-DD format.',
+      ),
+      federationId,
+    };
+  }
+
+  const isActive = bool(formData, 'isActive', false);
+  const dissolutionError = validateDissolutionRules(foundationDate, dissolutionDate);
+  if (dissolutionError) {
+    return {
+      error: dissolutionError,
+      federationId,
+    };
+  }
+
   return {
     federationId,
     body: {
@@ -204,11 +272,11 @@ export function buildUpdateFederationBody(
       country_id: countryId,
       city_id: countryId ? cityId : null,
       foundation_date: rawFoundationDate ? foundationDate : null,
-      description: optionalString(str(formData, 'description')),
+      dissolution_date: rawDissolutionDate ? dissolutionDate : null,
       official_website_url: optionalString(str(formData, 'officialWebsiteUrl')),
       icon_url: optionalString(str(formData, 'iconUrl')),
       hero_image_url: optionalString(str(formData, 'heroImageUrl')),
-      is_active: bool(formData, 'isActive', false),
+      is_public: isActive,
     },
   };
 }

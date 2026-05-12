@@ -1,28 +1,26 @@
 /** @format */
 
-import { getAllCompetitionTypes } from '@/_actions/competitionType/getAllCompetitionTypes';
-import { getAllCompetitionPyramids } from '@/_actions/competitionStructure/getAllCompetitionPyramids';
-import { getAllCompetitionTiers } from '@/_actions/competitionStructure/getAllCompetitionTiers';
-import { getAllCountries } from '@/_actions/country/getAllCountries';
-import { getAllFederations } from '@/_actions/federation/getAllFederations';
+import { getCompetitionBaseCatalogs } from '@/_actions/competition/getCompetitionCatalogs';
 import Grid from '@/_components/layout/Grid';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Title from '@/_components/typography/Title';
 import NAVIGATION from '@/_constants/navigation';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
+import {
+  mapCompetitionSelectOptions,
+  mapCompetitionTypeOptions,
+} from '../_lib/competitionAdmin';
 import CompetitionForm from '../_components/CompetitionForm';
 
 export default async function CreateCompetitionPage(): Promise<React.JSX.Element> {
   await requireAdminAccess();
 
-  const [competitionTypes, federations, countries, competitionPyramids, competitionTiers] =
-    await Promise.all([
-    getAllCompetitionTypes(),
-    getAllFederations(),
-    getAllCountries(),
-    getAllCompetitionPyramids(),
-    getAllCompetitionTiers(),
-    ]);
+  const {
+    competitionTypes,
+    federations,
+    countries,
+    error,
+  } = await getCompetitionBaseCatalogs();
 
   return (
     <Grid gap={24}>
@@ -38,20 +36,10 @@ export default async function CreateCompetitionPage(): Promise<React.JSX.Element
         <Title size='medium'>Create a new competition</Title>
       </Grid>
       <CompetitionForm
-        competitionTypes={competitionTypes.map(item => ({ id: item.id, name: item.name }))}
-        federations={federations.map(item => ({ id: item.id, name: item.name }))}
-        countries={countries.map(item => ({ id: item.id, name: item.name }))}
-        competitionPyramids={competitionPyramids.map(item => ({
-          id: item.id,
-          name: item.name,
-          countryId: item.countryId,
-          federationId: item.federationId,
-        }))}
-        competitionTiers={competitionTiers.map(item => ({
-          id: item.id,
-          competitionPyramidId: item.competitionPyramidId,
-          name: item.name,
-        }))}
+        competitionTypes={mapCompetitionTypeOptions(competitionTypes)}
+        federations={mapCompetitionSelectOptions(federations)}
+        countries={mapCompetitionSelectOptions(countries)}
+        catalogError={error}
       />
     </Grid>
   );

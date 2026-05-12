@@ -12,8 +12,8 @@ export type CompetitionTypeSort =
   | 'created_at_desc'
   | 'updated_at_asc'
   | 'updated_at_desc'
-  | 'is_active_asc'
-  | 'is_active_desc'
+  | 'is_public_asc'
+  | 'is_public_desc'
   | 'name_asc'
   | 'name_desc'
   | 'sort_order_asc'
@@ -62,7 +62,7 @@ export type CreateCompetitionTypeRequest = Readonly<{
   competition_type_category: CompetitionTypeCategory;
   participant_scope: ParticipantScope;
   sort_order?: number | null;
-  is_active?: boolean | null;
+  is_public?: boolean | null;
 }>;
 
 export type UpdateCompetitionTypeRequest = Readonly<{
@@ -70,7 +70,7 @@ export type UpdateCompetitionTypeRequest = Readonly<{
   competition_type_category?: CompetitionTypeCategory | null;
   participant_scope?: ParticipantScope | null;
   sort_order?: number | null;
-  is_active?: boolean | null;
+  is_public?: boolean | null;
 }>;
 
 export interface CompetitionTypeActionState {

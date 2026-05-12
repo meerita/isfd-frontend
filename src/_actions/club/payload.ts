@@ -1,10 +1,9 @@
 /** @format */
 
+import { isUuid } from '@/_helpers/uuid';
 import type { ClubActionState } from '@/_types/club';
 
 const UNSET = Symbol('unset');
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function str(formData: FormData, key: string): string {
@@ -32,10 +31,6 @@ function normalizeDateInput(value: string): string | null {
   if (Number.isNaN(parsed.getTime())) return null;
 
   return parsed.toISOString().slice(0, 10);
-}
-
-function isValidUuid(value: string): boolean {
-  return UUID_PATTERN.test(value);
 }
 
 function isFutureDate(value: string): boolean {
@@ -71,7 +66,7 @@ function validateNullableUuid(
   reason: string,
   message: string,
 ): ClubActionState | null {
-  if (!value || isValidUuid(value)) return null;
+  if (!value || isUuid(value)) return null;
   return formError(reason, message, message);
 }
 
@@ -245,7 +240,7 @@ export function buildCreateClubBody(
 
   const body: Record<string, unknown> = {
     name,
-    is_active: bool(formData, 'isActive', true),
+    is_public: bool(formData, 'isActive', true),
     is_dissolved: isDissolved,
   };
 
@@ -467,7 +462,7 @@ export function buildUpdateClubBody(formData: FormData): {
   const currentIsActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);
   if (currentIsActive !== originalIsActive) {
-    body.is_active = currentIsActive;
+    body.is_public = currentIsActive;
   }
 
   if (Object.keys(body).length === 0) {

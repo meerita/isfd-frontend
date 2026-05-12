@@ -8,7 +8,7 @@ import getServerAxios from '@/_lib/getServerAxios';
 import type {
   CompetitionListResponse,
   CompetitionSort,
-  CompetitionStatusFilter,
+  CompetitionVisibilityFilter,
 } from '@/_types/competition';
 import { mapCompetitionListItem, mapCompetitionMetadata } from './mappers';
 
@@ -17,7 +17,7 @@ const DEFAULT_PAGE_SIZE = 20;
 
 function buildEmptyResponse(filters?: {
   sort?: CompetitionSort;
-  status?: CompetitionStatusFilter;
+  visibility?: CompetitionVisibilityFilter;
   competitionTypeId?: string;
   federationId?: string;
   countryId?: string;
@@ -41,7 +41,7 @@ export async function getAdminCompetitions(
     page?: number;
     pageSize?: number;
     sort?: CompetitionSort;
-    status?: CompetitionStatusFilter;
+    visibility?: CompetitionVisibilityFilter;
     competitionTypeId?: string;
     federationId?: string;
     countryId?: string;
@@ -51,19 +51,25 @@ export async function getAdminCompetitions(
     page = DEFAULT_PAGE,
     pageSize = DEFAULT_PAGE_SIZE,
     sort,
-    status,
+    visibility,
     competitionTypeId,
     federationId,
     countryId,
   } = query;
-  const filters = { sort, status, competitionTypeId, federationId, countryId };
+  const filters = {
+    sort,
+    visibility,
+    competitionTypeId,
+    federationId,
+    countryId,
+  };
   const params: Record<string, string | number> = {
     page,
     page_size: pageSize,
   };
 
   if (sort) params.sort = sort;
-  if (status) params.status = status;
+  if (visibility) params.visibility = visibility;
   if (competitionTypeId) params.competition_type_id = competitionTypeId;
   if (federationId) params.federation_id = federationId;
   if (countryId) params.country_id = countryId;

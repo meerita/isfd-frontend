@@ -15,6 +15,38 @@ export type DeletePersonResult = Readonly<{
   reason?: string;
 }>;
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+function extractDeleteFunctionalError(payload: unknown): {
+  reason: string;
+  error?: string;
+} | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const reason =
+    typeof payload.reason === 'string'
+      ? payload.reason
+      : typeof payload.code === 'string'
+        ? payload.code
+        : '';
+
+  if (reason !== 'PERSON_HAS_REFERENCES') {
+    return null;
+  }
+
+  const error =
+    typeof payload.error === 'string'
+      ? payload.error
+      : typeof payload.message === 'string'
+        ? payload.message
+        : undefined;
+
+  return { reason, error };
+}
+
 export async function deletePerson(
   personId: string,
 ): Promise<DeletePersonResult> {
@@ -33,7 +65,16 @@ export async function deletePerson(
       console.log('[deletePerson] DELETE /admin/persons/:id', { personId });
     }
 
-    await client.delete(API_ROUTES.PERSON_ADMIN_BY_ID(personId));
+    const { data } = await client.delete<unknown>(API_ROUTES.PERSON_ADMIN_BY_ID(personId));
+    const functionalError = extractDeleteFunctionalError(data);
+
+    if (functionalError) {
+      return {
+        success: false,
+        reason: functionalError.reason,
+        error: functionalError.error,
+      };
+    }
 
     revalidatePath(NAVIGATION.PERSONS);
     revalidatePath(NAVIGATION.PERSON_BY_ID(personId));

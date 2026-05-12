@@ -1,10 +1,12 @@
 /** @format */
 
 import {
+  parseCompetitionPyramidBranchKind,
   parseCompetitionPyramidScopeKind,
   parseCompetitionTierScopeKind,
   parseParticipantScope,
 } from '@/_constants/enums/competition';
+import { isUuid } from '@/_helpers/uuid';
 import type {
   CompetitionPyramidActionState,
   CompetitionTierActionState,
@@ -12,8 +14,7 @@ import type {
 
 const UNSET = Symbol('unset');
 const CODE_PATTERN = /^[A-Z0-9_]+$/;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function str(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -35,6 +36,12 @@ function optionalString(value: string): string | null {
 function optionalNumber(value: string): number | null {
   if (!value) return null;
   return Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
+function normalizeDateInput(value: string): string | null {
+  if (!value) return null;
+  if (DATE_PATTERN.test(value)) return value;
+  return null;
 }
 
 function formPyramidError(
@@ -71,7 +78,7 @@ function validateNullableUuid<TState>(
   message: string,
   buildError: (reason: string, message: string) => TState,
 ): TState | null {
-  if (!value || UUID_PATTERN.test(value)) return null;
+  if (!value || isUuid(value)) return null;
   return buildError(reason, message);
 }
 
@@ -107,6 +114,11 @@ export function buildCreateCompetitionPyramidBody(formData: FormData): {
   const scopeKind = parseCompetitionPyramidScopeKind(
     str(formData, 'scopeKind'),
   );
+  const branchKind = parseCompetitionPyramidBranchKind(str(formData, 'branchKind'));
+  const rawValidFrom = str(formData, 'validFrom');
+  const validFrom = normalizeDateInput(rawValidFrom);
+  const rawValidTo = str(formData, 'validTo');
+  const validTo = normalizeDateInput(rawValidTo);
 
   if (!countryId) {
     return {
@@ -148,7 +160,7 @@ export function buildCreateCompetitionPyramidBody(formData: FormData): {
   if (!CODE_PATTERN.test(code)) {
     return {
       error: formPyramidError(
-        'FORM_VALIDATION_ERROR',
+        'INVALID_COMPETITION_PYRAMID_CODE_FORMAT',
         'Competition pyramid code must use A-Z, 0-9, and _.',
       ),
     };
@@ -172,6 +184,42 @@ export function buildCreateCompetitionPyramidBody(formData: FormData): {
     };
   }
 
+  if (!branchKind) {
+    return {
+      error: formPyramidError(
+        'INVALID_COMPETITION_PYRAMID_BRANCH_KIND',
+        'Select a valid competition pyramid branch kind.',
+      ),
+    };
+  }
+
+  if (!validFrom) {
+    return {
+      error: formPyramidError(
+        'INVALID_REQUEST_DATE',
+        'Enter a valid competition pyramid start date.',
+      ),
+    };
+  }
+
+  if (rawValidTo && !validTo) {
+    return {
+      error: formPyramidError(
+        'INVALID_REQUEST_DATE',
+        'Enter a valid competition pyramid end date.',
+      ),
+    };
+  }
+
+  if (validTo && validFrom >= validTo) {
+    return {
+      error: formPyramidError(
+        'INVALID_COMPETITION_PYRAMID_VALID_RANGE',
+        'Competition pyramid end date must be after the start date.',
+      ),
+    };
+  }
+
   return {
     body: {
       country_id: countryId,
@@ -179,7 +227,10 @@ export function buildCreateCompetitionPyramidBody(formData: FormData): {
       code,
       name,
       scope_kind: scopeKind,
-      is_active: bool(formData, 'isActive', true),
+      branch_kind: branchKind,
+      valid_from: validFrom,
+      valid_to: validTo ?? null,
+      is_public: bool(formData, 'isActive', true),
     },
   };
 }
@@ -206,6 +257,11 @@ export function buildUpdateCompetitionPyramidBody(formData: FormData): {
   const scopeKind = parseCompetitionPyramidScopeKind(
     str(formData, 'scopeKind'),
   );
+  const branchKind = parseCompetitionPyramidBranchKind(str(formData, 'branchKind'));
+  const rawValidFrom = str(formData, 'validFrom');
+  const validFrom = normalizeDateInput(rawValidFrom);
+  const rawValidTo = str(formData, 'validTo');
+  const validTo = normalizeDateInput(rawValidTo);
 
   if (!countryId) {
     return {
@@ -250,7 +306,7 @@ export function buildUpdateCompetitionPyramidBody(formData: FormData): {
     return {
       competitionPyramidId,
       error: formPyramidError(
-        'FORM_VALIDATION_ERROR',
+        'INVALID_COMPETITION_PYRAMID_CODE_FORMAT',
         'Competition pyramid code must use A-Z, 0-9, and _.',
       ),
     };
@@ -276,6 +332,54 @@ export function buildUpdateCompetitionPyramidBody(formData: FormData): {
     };
   }
 
+  if (!branchKind) {
+    return {
+      competitionPyramidId,
+      error: formPyramidError(
+        'INVALID_COMPETITION_PYRAMID_BRANCH_KIND',
+        'Select a valid competition pyramid branch kind.',
+      ),
+    };
+  }
+
+  if (!validFrom) {
+    return {
+      competitionPyramidId,
+      error: formPyramidError(
+        'INVALID_REQUEST_DATE',
+        'Enter a valid competition pyramid start date.',
+      ),
+    };
+  }
+
+  if (rawValidTo && !validTo) {
+    return {
+      competitionPyramidId,
+      error: formPyramidError(
+        'INVALID_REQUEST_DATE',
+        'Enter a valid competition pyramid end date.',
+      ),
+    };
+  }
+
+  const originalBranchKind = parseCompetitionPyramidBranchKind(
+    str(formData, 'original_branchKind'),
+  );
+  const originalValidFrom = normalizeDateInput(str(formData, 'original_validFrom'));
+  const originalValidTo = normalizeDateInput(str(formData, 'original_validTo'));
+  const effectiveValidFrom = validFrom;
+  const effectiveValidTo = rawValidTo ? validTo : validTo ?? null;
+
+  if (effectiveValidTo && effectiveValidFrom >= effectiveValidTo) {
+    return {
+      competitionPyramidId,
+      error: formPyramidError(
+        'INVALID_COMPETITION_PYRAMID_VALID_RANGE',
+        'Competition pyramid end date must be after the start date.',
+      ),
+    };
+  }
+
   const body: Record<string, unknown> = {};
   const countryResult = partialRequired(
     countryId,
@@ -291,17 +395,26 @@ export function buildUpdateCompetitionPyramidBody(formData: FormData): {
     scopeKind,
     str(formData, 'original_scopeKind'),
   );
+  const branchKindResult = partialNullable(branchKind, originalBranchKind);
+  const validFromResult = partialRequired(
+    validFrom,
+    originalValidFrom ?? '',
+  );
+  const validToResult = partialNullable(validTo, originalValidTo);
 
   if (countryResult !== UNSET) body.country_id = countryResult;
   if (federationResult !== UNSET) body.federation_id = federationResult;
   if (codeResult !== UNSET) body.code = codeResult;
   if (nameResult !== UNSET) body.name = nameResult;
   if (scopeKindResult !== UNSET) body.scope_kind = scopeKindResult;
+  if (branchKindResult !== UNSET) body.branch_kind = branchKindResult;
+  if (validFromResult !== UNSET) body.valid_from = validFromResult;
+  if (validToResult !== UNSET) body.valid_to = validToResult;
 
   const isActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);
   if (isActive !== originalIsActive) {
-    body.is_active = isActive;
+    body.is_public = isActive;
   }
 
   return { competitionPyramidId, body };
@@ -405,7 +518,7 @@ export function buildCreateCompetitionTierBody(formData: FormData): {
       level_order: levelOrder,
       scope_kind: scopeKind,
       participant_scope: participantScope,
-      is_active: bool(formData, 'isActive', true),
+      is_public: bool(formData, 'isActive', true),
     },
   };
 }
@@ -559,7 +672,7 @@ export function buildUpdateCompetitionTierBody(formData: FormData): {
   const isActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);
   if (isActive !== originalIsActive) {
-    body.is_active = isActive;
+    body.is_public = isActive;
   }
 
   return { competitionTierId, body };

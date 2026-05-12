@@ -87,10 +87,10 @@ export default function CompetitionTypeFilters({
           <option value='sort_order_desc'>
             {dictionary.competitions.types.filters.sortOrderDesc}
           </option>
-          <option value='is_active_desc'>
+          <option value='is_public_desc'>
             {dictionary.competitions.types.filters.activeFirst}
           </option>
-          <option value='is_active_asc'>
+          <option value='is_public_asc'>
             {dictionary.competitions.types.filters.inactiveFirst}
           </option>
         </Select>

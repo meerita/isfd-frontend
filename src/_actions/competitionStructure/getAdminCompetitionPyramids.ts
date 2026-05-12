@@ -2,7 +2,12 @@
 
 'use server';
 
-import { parseCompetitionScopeKind } from '@/_constants/enums/competition';
+import {
+  parseCompetitionPyramidBranchKind,
+  parseCompetitionPyramidScopeKind,
+  type CompetitionPyramidBranchKind,
+  type CompetitionPyramidScopeKind,
+} from '@/_constants/enums/competition';
 import API_ROUTES from '@/_constants/apiRoutes';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
@@ -24,7 +29,9 @@ function buildEmptyResponse(filters?: {
   status?: CompetitionStructureStatusFilter;
   countryId?: string;
   federationId?: string;
-  scopeKind?: string;
+  scopeKind?: CompetitionPyramidScopeKind;
+  branchKind?: CompetitionPyramidBranchKind;
+  asOfDate?: string;
 }): CompetitionPyramidListResponse {
   return {
     data: [],
@@ -38,7 +45,10 @@ function buildEmptyResponse(filters?: {
       filters: filters
         ? {
             ...filters,
-            scopeKind: parseCompetitionScopeKind(filters.scopeKind) ?? undefined,
+            scopeKind:
+              parseCompetitionPyramidScopeKind(filters.scopeKind) ?? undefined,
+            branchKind:
+              parseCompetitionPyramidBranchKind(filters.branchKind) ?? undefined,
           }
         : undefined,
     },
@@ -53,7 +63,9 @@ export async function getAdminCompetitionPyramids(
     status?: CompetitionStructureStatusFilter;
     countryId?: string;
     federationId?: string;
-    scopeKind?: string;
+    scopeKind?: CompetitionPyramidScopeKind;
+    branchKind?: CompetitionPyramidBranchKind;
+    asOfDate?: string;
   }> = {},
 ): Promise<CompetitionPyramidListResponse> {
   const {
@@ -64,8 +76,18 @@ export async function getAdminCompetitionPyramids(
     countryId,
     federationId,
     scopeKind,
+    branchKind,
+    asOfDate,
   } = query;
-  const filters = { sort, status, countryId, federationId, scopeKind };
+  const filters = {
+    sort,
+    status,
+    countryId,
+    federationId,
+    scopeKind,
+    branchKind,
+    asOfDate,
+  };
   const params: Record<string, string | number> = {
     page,
     page_size: pageSize,
@@ -76,6 +98,8 @@ export async function getAdminCompetitionPyramids(
   if (countryId) params.country_id = countryId;
   if (federationId) params.federation_id = federationId;
   if (scopeKind) params.scope_kind = scopeKind;
+  if (branchKind) params.branch_kind = branchKind;
+  if (asOfDate) params.as_of_date = asOfDate;
 
   const client = await getServerAxios();
 

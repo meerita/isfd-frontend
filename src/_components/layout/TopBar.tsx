@@ -76,6 +76,11 @@ export default function TopBar({
       icon: 'club',
     },
     {
+      href: NAVIGATION.CONTRIBUTIONS,
+      label: dictionary.navigation.contributions,
+      icon: 'uploadFile',
+    },
+    {
       href: NAVIGATION.COMPETITIONS,
       label: dictionary.navigation.competitions,
       icon: 'trophy',

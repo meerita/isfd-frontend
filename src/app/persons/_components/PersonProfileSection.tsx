@@ -21,13 +21,12 @@ import {
   getPersonSkinColorLabel,
 } from '@/_constants/enums/person';
 import { useI18n } from '@/_i18n/I18nProvider';
-import type { GeoRef, PersonAdminDetail, PersonPublicDetail } from '@/_types/person';
+import type { PersonAdminDetail } from '@/_types/person';
 
 const PLACEHOLDER = '--';
 
 type PersonProfileSectionProps = Readonly<{
   person: PersonAdminDetail;
-  publicPerson?: PersonPublicDetail | null;
 }>;
 
 function formatText(value: string | null | undefined): string {
@@ -63,28 +62,8 @@ function formatNumber(value: number | null | undefined, suffix?: string): string
   return suffix ? `${value} ${suffix}` : String(value);
 }
 
-function formatGeoRef(value: GeoRef | null | undefined): string {
-  return value ? value.name : PLACEHOLDER;
-}
-
-function formatCurrentLocation(person: PersonPublicDetail | null | undefined): string {
-  const currentLocation = person?.current_location;
-  if (!currentLocation) {
-    return PLACEHOLDER;
-  }
-
-  return [
-    currentLocation.city?.name,
-    currentLocation.province_name,
-    currentLocation.country?.name,
-  ]
-    .filter(Boolean)
-    .join(', ') || PLACEHOLDER;
-}
-
 export default function PersonProfileSection({
   person,
-  publicPerson,
 }: PersonProfileSectionProps): React.JSX.Element {
   const { dictionary, locale } = useI18n();
   const updatedAt = new Date(person.updated_at);
@@ -117,7 +96,7 @@ export default function PersonProfileSection({
                   />
                   <DataRow
                     label={dictionary.persons.form.activeLabel}
-                    value={<Dot inline active={person.is_active} />}
+                    value={<Dot inline active={person.is_public} />}
                   />
                 </Tbody>
               </Table>
@@ -169,27 +148,15 @@ export default function PersonProfileSection({
                 <Tbody>
                   <DataRow
                     label={dictionary.persons.detail.birthLocation}
-                    value={
-                      publicPerson?.birth_location
-                        ? formatGeoRef(publicPerson.birth_location)
-                        : formatText(person.birth_location_id)
-                    }
+                    value={formatText(person.birth_location_id)}
                   />
                   <DataRow
                     label={dictionary.persons.detail.currentLocation}
-                    value={
-                      publicPerson?.current_location
-                        ? formatCurrentLocation(publicPerson)
-                        : formatText(person.current_city_id)
-                    }
+                    value={formatText(person.current_city_id)}
                   />
                   <DataRow
                     label={dictionary.persons.detail.primaryNationality}
-                    value={
-                      publicPerson?.primary_nationality
-                        ? formatGeoRef(publicPerson.primary_nationality)
-                        : formatText(person.primary_nationality_country_id)
-                    }
+                    value={formatText(person.primary_nationality_country_id)}
                   />
                 </Tbody>
               </Table>

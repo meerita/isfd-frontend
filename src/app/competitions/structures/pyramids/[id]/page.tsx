@@ -1,6 +1,5 @@
 /** @format */
 
-import { getAllCompetitions } from '@/_actions/competition/getAllCompetitions';
 import { getAdminCompetitionPyramidById } from '@/_actions/competitionStructure/getAdminCompetitionPyramidById';
 import { getAdminCompetitionTiers } from '@/_actions/competitionStructure/getAdminCompetitionTiers';
 import { getAllCountries } from '@/_actions/country/getAllCountries';
@@ -14,9 +13,12 @@ import ButtonGroup from '@/_components/navigation/ButtonGroup';
 import Text from '@/_components/typography/Text';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
+import { getDictionary } from '@/_i18n/getDictionary';
+import { resolveRequestLocale } from '@/_i18n/resolveRequestLocale';
 import requireAdminAccess from '@/_lib/requireAdminAccess';
 import EntitySidebarNavigation from '../../../_components/EntitySidebarNavigation';
 import EntityUnavailable from '../../../_components/EntityUnavailable';
+import DeleteCompetitionPyramidButton from '../_components/DeleteCompetitionPyramidButton';
 import CompetitionPyramidForm from '../_components/CompetitionPyramidForm';
 import CompetitionPyramidProfileSection from '../_components/CompetitionPyramidProfileSection';
 
@@ -60,6 +62,9 @@ export default async function CompetitionPyramidDetailsPage({
   searchParams,
 }: CompetitionPyramidDetailsPageProps): Promise<React.JSX.Element> {
   await requireAdminAccess();
+  const locale = await resolveRequestLocale();
+  const dictionary = getDictionary(locale);
+  const pyramidDictionary = dictionary.competitions.pyramids;
 
   const [resolvedParams, resolvedSearchParams] = await Promise.all([
     params,
@@ -72,12 +77,15 @@ export default async function CompetitionPyramidDetailsPage({
   if (!competitionPyramidId) {
     return (
       <Grid gap={16}>
-        <SectionHeader navigation={[{ label: 'Competitions' }]} icon='trophy' />
+        <SectionHeader
+          navigation={[{ label: dictionary.competitions.title }]}
+          icon='trophy'
+        />
         <EntityUnavailable
-          title='Competition pyramid unavailable'
-          message='Competition pyramid identifier is required.'
+          title={pyramidDictionary.detail.unavailableTitle}
+          message={pyramidDictionary.detail.missingId}
           backHref={NAVIGATION.COMPETITION_PYRAMIDS}
-          backLabel='Back to competition pyramids'
+          backLabel={pyramidDictionary.detail.backToList}
         />
       </Grid>
     );
@@ -94,16 +102,22 @@ export default async function CompetitionPyramidDetailsPage({
       <Grid gap={16}>
         <SectionHeader
           navigation={[
-            { label: 'Competitions', href: NAVIGATION.COMPETITIONS },
-            { label: 'Competition Pyramids', href: NAVIGATION.COMPETITION_PYRAMIDS },
+            { label: dictionary.competitions.title, href: NAVIGATION.COMPETITIONS },
+            {
+              label: pyramidDictionary.title,
+              href: NAVIGATION.COMPETITION_PYRAMIDS,
+            },
           ]}
           icon='trophy'
         />
         <EntityUnavailable
-          title='Competition pyramid unavailable'
-          message={resolveCompetitionAdminErrorMessage(response.error)}
+          title={pyramidDictionary.detail.unavailableTitle}
+          message={resolveCompetitionAdminErrorMessage(
+            response.error,
+            dictionary.common.unexpectedError,
+          )}
           backHref={NAVIGATION.COMPETITION_PYRAMIDS}
-          backLabel='Back to competition pyramids'
+          backLabel={pyramidDictionary.detail.backToList}
         />
       </Grid>
     );
@@ -112,7 +126,7 @@ export default async function CompetitionPyramidDetailsPage({
   const competitionPyramid = response.data;
   const detailHref = buildHref(competitionPyramid.id, section);
   const editHref = buildHref(competitionPyramid.id, section, true);
-  const [tiersResponse, allCompetitions] =
+  const [tiersResponse] =
     !edit && section !== 'profile'
       ? await Promise.all([
           getAdminCompetitionTiers({
@@ -122,15 +136,9 @@ export default async function CompetitionPyramidDetailsPage({
             status: 'all',
             competitionPyramidId: competitionPyramid.id,
           }),
-          getAllCompetitions(),
         ])
-      : [null, []];
-  const relatedCompetitions =
-    section === 'competitions'
-      ? allCompetitions.filter(
-          item => item.competitionPyramidId === competitionPyramid.id,
-        )
-      : [];
+      : [null];
+  const relatedCompetitions: ReadonlyArray<{ id: string; name: string }> = [];
   const countryLabel =
     countries.find(item => item.id === competitionPyramid.countryId)?.name ??
     competitionPyramid.countryId;
@@ -142,20 +150,24 @@ export default async function CompetitionPyramidDetailsPage({
     <Grid gap={16}>
       <SectionHeader
         navigation={[
-          { label: 'Competitions', href: NAVIGATION.COMPETITIONS },
-          { label: 'Competition Pyramids', href: NAVIGATION.COMPETITION_PYRAMIDS },
+          { label: dictionary.competitions.title, href: NAVIGATION.COMPETITIONS },
+          { label: pyramidDictionary.title, href: NAVIGATION.COMPETITION_PYRAMIDS },
           { label: competitionPyramid.name },
         ]}
         icon='trophy'
       >
         <ButtonGroup gap={4}>
+          <DeleteCompetitionPyramidButton
+            competitionPyramidId={competitionPyramid.id}
+            competitionPyramidName={competitionPyramid.name}
+          />
           <Button
             icon='edit'
             type='button'
             href={edit ? detailHref : editHref}
             variant={edit ? 'borderless' : 'solid'}
           >
-            {edit ? 'Cancel' : 'Edit'}
+            {edit ? dictionary.common.cancel : dictionary.common.edit}
           </Button>
         </ButtonGroup>
       </SectionHeader>
@@ -167,17 +179,17 @@ export default async function CompetitionPyramidDetailsPage({
             items={[
               {
                 id: 'profile',
-                label: 'Profile',
+                label: pyramidDictionary.detail.profile,
                 href: buildHref(competitionPyramid.id, 'profile'),
               },
               {
                 id: 'tiers',
-                label: 'Tiers',
+                label: pyramidDictionary.detail.tiers,
                 href: buildHref(competitionPyramid.id, 'tiers'),
               },
               {
                 id: 'competitions',
-                label: 'Competitions',
+                label: pyramidDictionary.detail.competitions,
                 href: buildHref(competitionPyramid.id, 'competitions'),
               },
             ]}
@@ -195,10 +207,13 @@ export default async function CompetitionPyramidDetailsPage({
           ) : section === 'tiers' ? (
             <Card>
               <Grid gap={16}>
-                <Text weight='bold'>Competition tiers in this pyramid</Text>
+                <Text weight='bold'>{pyramidDictionary.detail.tiersTitle}</Text>
                 {tiersResponse?.error ? (
                   <Text size='small' color='gray'>
-                    {resolveCompetitionAdminErrorMessage(tiersResponse.error)}
+                    {resolveCompetitionAdminErrorMessage(
+                      tiersResponse.error,
+                      dictionary.common.unexpectedError,
+                    )}
                   </Text>
                 ) : tiersResponse?.data.length ? (
                   <Grid gap={16}>
@@ -214,7 +229,7 @@ export default async function CompetitionPyramidDetailsPage({
                   </Grid>
                 ) : (
                   <Text size='small' color='gray'>
-                    No competition tiers are currently linked to this pyramid.
+                    {pyramidDictionary.detail.tiersEmpty}
                   </Text>
                 )}
               </Grid>
@@ -222,7 +237,9 @@ export default async function CompetitionPyramidDetailsPage({
           ) : section === 'competitions' ? (
             <Card>
               <Grid gap={16}>
-                <Text weight='bold'>Competitions using this pyramid</Text>
+                <Text weight='bold'>
+                  {pyramidDictionary.detail.competitionsTitle}
+                </Text>
                 {relatedCompetitions.length ? (
                   <Grid gap={16}>
                     {relatedCompetitions.map(item => (
@@ -237,7 +254,7 @@ export default async function CompetitionPyramidDetailsPage({
                   </Grid>
                 ) : (
                   <Text size='small' color='gray'>
-                    No competitions are currently linked to this pyramid.
+                    {pyramidDictionary.detail.competitionsEmpty}
                   </Text>
                 )}
               </Grid>

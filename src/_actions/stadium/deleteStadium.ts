@@ -4,10 +4,8 @@
 
 import { revalidatePath } from 'next/cache';
 
-import API_ROUTES from '@/_constants/apiRoutes';
 import NAVIGATION from '@/_constants/navigation';
-import { logApiError, normalizeApiError } from '@/_lib/apiError';
-import getServerAxios from '@/_lib/getServerAxios';
+import { deleteAdminStadium } from './api';
 
 export type DeleteStadiumResult = Readonly<{
   success: boolean;
@@ -26,21 +24,17 @@ export async function deleteStadium(
     };
   }
 
-  const client = await getServerAxios();
-
-  try {
-    await client.delete(API_ROUTES.STADIUM_ADMIN_BY_ID(stadiumId));
-    revalidatePath(NAVIGATION.STADIUMS);
-    revalidatePath(NAVIGATION.STADIUM_BY_ID(stadiumId));
-    return { success: true };
-  } catch (caughtError) {
-    const normalized = normalizeApiError(caughtError);
-    logApiError(normalized);
-
+  const response = await deleteAdminStadium(stadiumId);
+  if (!response.success) {
     return {
       success: false,
-      reason: normalized.data.reason,
-      error: normalized.data.error ?? normalized.data.message,
+      reason: response.error?.reason,
+      error: response.error?.error ?? response.error?.message,
     };
   }
+
+  revalidatePath(NAVIGATION.STADIUMS);
+  revalidatePath(NAVIGATION.STADIUM_BY_ID(stadiumId));
+
+  return { success: true };
 }

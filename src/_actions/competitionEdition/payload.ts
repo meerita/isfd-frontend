@@ -2,10 +2,9 @@
 
 import type { CompetitionEditionActionState } from '@/_types/competitionEdition';
 import { parseCompetitionEditionStatus } from '@/_constants/enums/competition';
+import { isUuid } from '@/_helpers/uuid';
 
 const UNSET = Symbol('unset');
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const CODE_PATTERN = /^[A-Z0-9_]+$/;
 
@@ -60,7 +59,7 @@ function validateNullableUuid(
   reason: string,
   message: string,
 ): CompetitionEditionActionState | null {
-  if (!value || UUID_PATTERN.test(value)) return null;
+  if (!value || isUuid(value)) return null;
   return formError(reason, message);
 }
 
@@ -82,32 +81,82 @@ function partialNullableNumber(
   return value === original ? UNSET : value;
 }
 
+function validateEditionRelations(
+  competitionId: string | null,
+  competitionPyramidId: string | null,
+  primaryCompetitionTierId: string | null,
+): CompetitionEditionActionState | null {
+  const relationError = [
+    validateNullableUuid(
+      competitionId,
+      'COMPETITION_EDITION_INVALID_COMPETITION_ID',
+      'Select a valid competition.',
+    ),
+    validateNullableUuid(
+      competitionPyramidId,
+      'FORM_VALIDATION_ERROR',
+      'Select a valid competition pyramid.',
+    ),
+    validateNullableUuid(
+      primaryCompetitionTierId,
+      'FORM_VALIDATION_ERROR',
+      'Select a valid primary competition tier.',
+    ),
+  ].find(Boolean);
+
+  if (relationError) {
+    return relationError;
+  }
+
+  if (!competitionId) {
+    return formError(
+      'COMPETITION_EDITION_INVALID_COMPETITION_ID',
+      'Competition is required.',
+    );
+  }
+
+  if (primaryCompetitionTierId && !competitionPyramidId) {
+    return formError(
+      'FORM_VALIDATION_ERROR',
+      'Primary competition tier requires a competition pyramid.',
+    );
+  }
+
+  return null;
+}
+
 export function buildCreateCompetitionEditionBody(
   formData: FormData,
 ): { body?: Record<string, unknown>; error?: CompetitionEditionActionState } {
-  const name = str(formData, 'name');
-  const seasonId = optionalString(str(formData, 'seasonId'));
+  const competitionId = optionalString(str(formData, 'competitionId'));
+  const editionLabel = str(formData, 'editionLabel');
+  const competitionPyramidId = optionalString(str(formData, 'competitionPyramidId'));
+  const primaryCompetitionTierId = optionalString(
+    str(formData, 'primaryCompetitionTierId'),
+  );
 
-  if (!name) {
+  const validationError = validateEditionRelations(
+    competitionId,
+    competitionPyramidId,
+    primaryCompetitionTierId,
+  );
+  if (validationError) return { error: validationError };
+
+  if (!editionLabel) {
     return {
       error: formError(
         'COMPETITION_EDITION_NAME_REQUIRED',
-        'Competition edition name is required.',
+        'Competition edition label is required.',
       ),
     };
   }
 
-  const validationError = validateNullableUuid(
-    seasonId,
-    'COMPETITION_EDITION_INVALID_SEASON_ID',
-    'Select a valid season.',
-  );
-  if (validationError) return { error: validationError };
-
   return {
     body: {
-      name,
-      season_id: seasonId,
+      edition_label: editionLabel,
+      competition_id: competitionId,
+      competition_pyramid_id: competitionPyramidId,
+      primary_competition_tier_id: primaryCompetitionTierId,
     },
   };
 }
@@ -129,19 +178,11 @@ export function buildUpdateCompetitionEditionBody(
     };
   }
 
-  const name = str(formData, 'name');
-  if (!name) {
-    return {
-      competitionEditionId,
-      error: formError(
-        'COMPETITION_EDITION_NAME_REQUIRED',
-        'Competition edition name is required.',
-      ),
-    };
-  }
-
-  const competitionId = optionalString(str(formData, 'competitionId'));
-  const seasonId = optionalString(str(formData, 'seasonId'));
+  const competitionId = str(formData, 'competitionId');
+  const competitionPyramidId = optionalString(str(formData, 'competitionPyramidId'));
+  const primaryCompetitionTierId = optionalString(
+    str(formData, 'primaryCompetitionTierId'),
+  );
   const editionLabel = optionalString(str(formData, 'editionLabel'));
   const shortName = optionalString(str(formData, 'shortName'));
   const year = optionalNumber(str(formData, 'year'));
@@ -149,22 +190,16 @@ export function buildUpdateCompetitionEditionBody(
   const rawEndedOn = str(formData, 'endedOn');
   const startedOn = normalizeDateInput(rawStartedOn);
   const endedOn = normalizeDateInput(rawEndedOn);
-  const status = parseCompetitionEditionStatus(str(formData, 'status'));
+  const editorialStatus = parseCompetitionEditionStatus(
+    str(formData, 'editorialStatus'),
+  );
   const sortOrder = optionalNumber(str(formData, 'sortOrder'));
 
-  const validationError = [
-    validateNullableUuid(
-      competitionId,
-      'COMPETITION_EDITION_INVALID_COMPETITION_ID',
-      'Select a valid competition.',
-    ),
-    validateNullableUuid(
-      seasonId,
-      'COMPETITION_EDITION_INVALID_SEASON_ID',
-      'Select a valid season.',
-    ),
-  ].find(Boolean);
-
+  const validationError = validateEditionRelations(
+    competitionId,
+    competitionPyramidId,
+    primaryCompetitionTierId,
+  );
   if (validationError) {
     return { competitionEditionId, error: validationError };
   }
@@ -209,14 +244,17 @@ export function buildUpdateCompetitionEditionBody(
   }
 
   const body: Record<string, unknown> = {};
-  const nameResult = partialRequired(name, str(formData, 'original_name'));
-  const competitionResult = partialNullable(
+  const competitionResult = partialRequired(
     competitionId,
-    optionalString(str(formData, 'original_competitionId')),
+    str(formData, 'original_competitionId'),
   );
-  const seasonResult = partialNullable(
-    seasonId,
-    optionalString(str(formData, 'original_seasonId')),
+  const competitionPyramidResult = partialNullable(
+    competitionPyramidId,
+    optionalString(str(formData, 'original_competitionPyramidId')),
+  );
+  const primaryCompetitionTierResult = partialNullable(
+    primaryCompetitionTierId,
+    optionalString(str(formData, 'original_primaryCompetitionTierId')),
   );
   const editionLabelResult = partialNullable(
     editionLabel,
@@ -232,27 +270,35 @@ export function buildUpdateCompetitionEditionBody(
   );
   const startedOnResult = partialNullable(startedOn, originalStartedOn);
   const endedOnResult = partialNullable(endedOn, originalEndedOn);
-  const originalStatus = parseCompetitionEditionStatus(str(formData, 'original_status'));
+  const originalEditorialStatus = parseCompetitionEditionStatus(
+    str(formData, 'original_editorialStatus'),
+  );
   const sortOrderResult = partialNullableNumber(
     sortOrder,
     optionalNumber(str(formData, 'original_sortOrder')),
   );
 
-  if (nameResult !== UNSET) body.name = nameResult;
   if (competitionResult !== UNSET) body.competition_id = competitionResult;
-  if (seasonResult !== UNSET) body.season_id = seasonResult;
+  if (competitionPyramidResult !== UNSET) {
+    body.competition_pyramid_id = competitionPyramidResult;
+  }
+  if (primaryCompetitionTierResult !== UNSET) {
+    body.primary_competition_tier_id = primaryCompetitionTierResult;
+  }
   if (editionLabelResult !== UNSET) body.edition_label = editionLabelResult;
   if (shortNameResult !== UNSET) body.short_name = shortNameResult;
   if (yearResult !== UNSET) body.year = yearResult;
   if (startedOnResult !== UNSET) body.started_on = startedOnResult;
   if (endedOnResult !== UNSET) body.ended_on = endedOnResult;
-  if (status && status !== originalStatus) body.status = status;
+  if (editorialStatus && editorialStatus !== originalEditorialStatus) {
+    body.editorial_status = editorialStatus;
+  }
   if (sortOrderResult !== UNSET) body.sort_order = sortOrderResult;
 
-  const isActive = bool(formData, 'isActive', false);
-  const originalIsActive = bool(formData, 'original_isActive', false);
-  if (isActive !== originalIsActive) {
-    body.is_active = isActive;
+  const isPublic = bool(formData, 'isPublic', false);
+  const originalIsPublic = bool(formData, 'original_isPublic', false);
+  if (isPublic !== originalIsPublic) {
+    body.is_public = isPublic;
   }
 
   return { competitionEditionId, body };

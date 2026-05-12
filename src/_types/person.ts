@@ -16,14 +16,14 @@ export type PersonSort =
   | 'created_at_desc'
   | 'updated_at_asc'
   | 'updated_at_desc'
-  | 'is_active_asc'
-  | 'is_active_desc'
+  | 'is_public_asc'
+  | 'is_public_desc'
   | 'full_name_asc'
   | 'full_name_desc'
   | 'display_name_asc'
   | 'display_name_desc';
 
-export type PersonStatusFilter = 'all' | 'active' | 'inactive';
+export type PersonStatusFilter = 'all' | 'public' | 'private';
 
 export type GeoRef = Readonly<{
   id?: string;
@@ -45,8 +45,8 @@ export type PersonAdminListItem = Readonly<{
   gender: PersonGender;
   current_profession?: PersonCurrentProfession | null;
   primary_nationality_country_id?: string | null;
-  avatar_image_url?: string | null;
-  is_active: boolean;
+  portrait_asset_id?: string | null;
+  is_public: boolean;
   created_at: string;
   updated_at: string;
 }>;
@@ -78,9 +78,8 @@ export type PersonAdminDetail = Readonly<{
   current_profession?: PersonCurrentProfession | null;
   professional_division_debut_date?: string | null;
   retirement_date?: string | null;
-  avatar_image_url?: string | null;
-  hero_image_url?: string | null;
-  is_active: boolean;
+  portrait_asset_id?: string | null;
+  is_public: boolean;
   created_at: string;
   updated_at: string;
 }>;
@@ -110,9 +109,8 @@ export type CreatePersonRequest = Readonly<{
   current_profession?: PersonCurrentProfession | null;
   professional_division_debut_date?: string | null;
   retirement_date?: string | null;
-  avatar_image_url?: string | null;
-  hero_image_url?: string | null;
-  is_active?: boolean;
+  portrait_asset_id?: string | null;
+  is_public?: boolean;
 }>;
 
 export type UpdatePersonRequest = Readonly<{
@@ -140,9 +138,8 @@ export type UpdatePersonRequest = Readonly<{
   current_profession?: PersonCurrentProfession | null;
   professional_division_debut_date?: string | null;
   retirement_date?: string | null;
-  avatar_image_url?: string | null;
-  hero_image_url?: string | null;
-  is_active?: boolean;
+  portrait_asset_id?: string | null;
+  is_public?: boolean;
 }>;
 
 export type PersonPublicDetail = Readonly<{
@@ -171,8 +168,7 @@ export type PersonPublicDetail = Readonly<{
   current_profession?: PersonCurrentProfession | null;
   professional_division_debut_date?: string | null;
   retirement_date?: string | null;
-  avatar_image_url?: string | null;
-  hero_image_url?: string | null;
+  portrait_asset_id?: string | null;
 }>;
 
 export type PersonListMetadata = GeoMetadata &

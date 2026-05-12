@@ -123,7 +123,7 @@ export function buildCreateCompetitionTypeBody(formData: FormData): {
       competition_type_category: competitionTypeCategory,
       participant_scope: participantScope,
       sort_order: sortOrder,
-      is_active: bool(formData, 'isActive', true),
+      is_public: bool(formData, 'isActive', true),
     },
   };
 }
@@ -210,7 +210,7 @@ export function buildUpdateCompetitionTypeBody(formData: FormData): {
   const isActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);
   if (isActive !== originalIsActive) {
-    body.is_active = isActive;
+    body.is_public = isActive;
   }
 
   return { competitionTypeId, body };

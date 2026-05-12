@@ -41,7 +41,7 @@ export function mapCity(raw: RawCity): City {
     provinceName: toNullableString(raw.province_name ?? raw.provinceName),
     latitude: toNullableNumber(raw.latitude),
     longitude: toNullableNumber(raw.longitude),
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    isActive: Boolean(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive ?? false),
   };
 }
 

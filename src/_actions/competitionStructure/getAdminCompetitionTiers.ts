@@ -3,8 +3,11 @@
 'use server';
 
 import {
-  parseCompetitionScopeKind,
+  parseCompetitionStructureBranchKind,
+  parseCompetitionTierScopeKind,
   parseParticipantScope,
+  type CompetitionStructureBranchKind,
+  type CompetitionTierScopeKind,
 } from '@/_constants/enums/competition';
 import API_ROUTES from '@/_constants/apiRoutes';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
@@ -25,7 +28,9 @@ function buildEmptyResponse(filters?: {
   competitionPyramidId?: string;
   parentTierId?: string;
   participantScope?: string;
-  scopeKind?: string;
+  scopeKind?: CompetitionTierScopeKind;
+  branchKind?: CompetitionStructureBranchKind;
+  asOfDate?: string;
 }): CompetitionTierListResponse {
   return {
     data: [],
@@ -41,7 +46,11 @@ function buildEmptyResponse(filters?: {
             ...filters,
             participantScope:
               parseParticipantScope(filters.participantScope) ?? undefined,
-            scopeKind: parseCompetitionScopeKind(filters.scopeKind) ?? undefined,
+            scopeKind:
+              parseCompetitionTierScopeKind(filters.scopeKind) ?? undefined,
+            branchKind:
+              parseCompetitionStructureBranchKind(filters.branchKind) ??
+              undefined,
           }
         : undefined,
     },
@@ -57,7 +66,9 @@ export async function getAdminCompetitionTiers(
     competitionPyramidId?: string;
     parentTierId?: string;
     participantScope?: string;
-    scopeKind?: string;
+    scopeKind?: CompetitionTierScopeKind;
+    branchKind?: CompetitionStructureBranchKind;
+    asOfDate?: string;
   }> = {},
 ): Promise<CompetitionTierListResponse> {
   const {
@@ -69,6 +80,8 @@ export async function getAdminCompetitionTiers(
     parentTierId,
     participantScope,
     scopeKind,
+    branchKind,
+    asOfDate,
   } = query;
   const filters = {
     sort,
@@ -77,6 +90,8 @@ export async function getAdminCompetitionTiers(
     parentTierId,
     participantScope,
     scopeKind,
+    branchKind,
+    asOfDate,
   };
   const params: Record<string, string | number> = {
     page,
@@ -89,6 +104,8 @@ export async function getAdminCompetitionTiers(
   if (parentTierId) params.parent_tier_id = parentTierId;
   if (participantScope) params.participant_scope = participantScope;
   if (scopeKind) params.scope_kind = scopeKind;
+  if (branchKind) params.branch_kind = branchKind;
+  if (asOfDate) params.as_of_date = asOfDate;
 
   const client = await getServerAxios();
 

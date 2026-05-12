@@ -74,7 +74,7 @@ export async function createCompetitionEdition(
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    const result = {
+    const result: CompetitionEditionActionState = {
       status: 'error',
       error: normalized.data,
     };

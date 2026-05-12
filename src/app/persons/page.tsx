@@ -15,6 +15,7 @@ import Dot from '@/_components/Dot';
 import Icon from '@/_components/Icon';
 import Grid from '@/_components/layout/Grid';
 import Main from '@/_components/layout/Main';
+import SensitiveValue from '@/_components/SensitiveValue';
 import SectionHeader from '@/_components/layout/SectionHeader';
 import Cell from '@/_components/tables/Cell';
 import Row from '@/_components/tables/Row';
@@ -24,11 +25,8 @@ import Thead from '@/_components/tables/Thead';
 import Text from '@/_components/typography/Text';
 import {
   getPersonCurrentProfessionLabel,
-  getPersonGenderLabel,
   parsePersonCurrentProfession,
-  parsePersonGender,
   type PersonCurrentProfession,
-  type PersonGender,
 } from '@/_constants/enums/person';
 import NAVIGATION from '@/_constants/navigation';
 import { resolvePersonErrorMessage } from '@/_constants/personErrorMessages';
@@ -48,7 +46,6 @@ type SearchParams = Readonly<{
   page_size?: string | string[];
   sort?: string | string[];
   status?: string | string[];
-  gender?: string | string[];
   current_profession?: string | string[];
 }>;
 
@@ -104,7 +101,6 @@ function buildHref(
   pageSize: number,
   sort: PersonSort,
   status?: PersonStatusFilter,
-  gender?: PersonGender,
   current_profession?: PersonCurrentProfession,
 ): string {
   const params = new URLSearchParams();
@@ -117,54 +113,11 @@ function buildHref(
     params.set('status', status);
   }
 
-  if (gender) {
-    params.set('gender', gender);
-  }
-
   if (current_profession) {
     params.set('current_profession', current_profession);
   }
 
   return `${NAVIGATION.PERSONS}?${params.toString()}`;
-}
-
-function renderAvatarPreview(
-  name: string,
-  avatarImageUrl: string | null,
-  missingLabel: string,
-  availableLabel: string,
-): React.JSX.Element {
-  if (!avatarImageUrl) {
-    return (
-      <span
-        aria-label={missingLabel.replace('{name}', name)}
-        style={{
-          display: 'inline-block',
-          width: 32,
-          height: 32,
-          borderRadius: 999,
-          backgroundColor: '#f2f2f2',
-        }}
-      />
-    );
-  }
-
-  return (
-    <span
-      aria-label={availableLabel.replace('{name}', name)}
-      style={{
-        display: 'inline-block',
-        width: 32,
-        height: 32,
-        borderRadius: 999,
-        backgroundColor: '#f2f2f2',
-        backgroundImage: `url(${avatarImageUrl})`,
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'cover',
-      }}
-    />
-  );
 }
 
 function formatPaginationLabel(
@@ -193,20 +146,18 @@ export default async function PersonsPage({
   const sort =
     (parseString(params?.sort) as PersonSort | undefined) ?? DEFAULT_SORT;
   const status = parseString(params?.status) as PersonStatusFilter | undefined;
-  const gender = parsePersonGender(parseString(params?.gender)) ?? undefined;
   const currentProfession =
     parsePersonCurrentProfession(parseString(params?.current_profession)) ??
     undefined;
 
   const [personsResponse, countriesResponse] = await Promise.all([
-    getAdminPersons({
-      page,
-      pageSize,
-      sort,
-      status,
-      gender,
-      current_profession: currentProfession,
-    }),
+      getAdminPersons({
+        page,
+        pageSize,
+        sort,
+        status,
+        current_profession: currentProfession,
+      }),
     getAllCountries(),
   ]);
 
@@ -233,7 +184,6 @@ export default async function PersonsPage({
         pageSize={pageSize}
         sort={sort}
         status={status}
-        gender={gender}
         currentProfession={currentProfession}
       />
 
@@ -256,7 +206,9 @@ export default async function PersonsPage({
             <Table>
               <Thead>
                 <Row>
-                  <Cell header>{dictionary.persons.headers.avatar}</Cell>
+                  <Cell header className='padding-left--16'>
+                    {dictionary.persons.headers.portraitAssetId}
+                  </Cell>
                   <Cell header className='padding-left--16'>
                     {dictionary.persons.headers.fullName}
                   </Cell>
@@ -267,16 +219,13 @@ export default async function PersonsPage({
                     {dictionary.persons.headers.displayName}
                   </Cell>
                   <Cell header className='padding-left--16'>
-                    {dictionary.persons.headers.gender}
-                  </Cell>
-                  <Cell header className='padding-left--16'>
                     {dictionary.persons.headers.currentProfession}
                   </Cell>
                   <Cell header className='padding-left--16'>
                     {dictionary.persons.headers.primaryNationality}
                   </Cell>
                   <Cell header align='center'>
-                    {dictionary.persons.headers.active}
+                    {dictionary.persons.headers.public}
                   </Cell>
                   <Cell align='right' header className='padding-left--16'>
                     {dictionary.persons.headers.created}
@@ -290,7 +239,7 @@ export default async function PersonsPage({
                 {personsResponse.data.length === 0 ? (
                   <Row>
                     <Cell>{dictionary.persons.emptyState}</Cell>
-                    {Array.from({ length: 9 }).map(
+                    {Array.from({ length: 8 }).map(
                       function renderEmptyCell(_, index): React.JSX.Element {
                         return (
                           <Cell
@@ -311,17 +260,12 @@ export default async function PersonsPage({
                           key={person.id}
                           href={NAVIGATION.PERSON_BY_ID(person.id)}
                         >
-                           <Cell>
-                             {renderAvatarPreview(
-                               person.full_name,
-                               person.avatar_image_url ?? null,
-                               dictionary.persons.avatarMissing,
-                               dictionary.persons.avatarAvailable,
-                             )}
-                           </Cell>
-                           <Cell className='padding-left--16'>
-                             {person.full_name}
-                           </Cell>
+                            <Cell className='padding-left--16'>
+                              <SensitiveValue value={person.portrait_asset_id} />
+                            </Cell>
+                            <Cell className='padding-left--16'>
+                              {person.full_name}
+                            </Cell>
                           <Cell className='padding-left--16'>
                             {person.slug}
                           </Cell>
@@ -329,11 +273,8 @@ export default async function PersonsPage({
                              {person.display_name || PLACEHOLDER}
                           </Cell>
                           <Cell className='padding-left--16'>
-                            {getPersonGenderLabel(person.gender) ?? PLACEHOLDER}
-                          </Cell>
-                          <Cell className='padding-left--16'>
-                             {getPersonCurrentProfessionLabel(
-                               person.current_profession,
+                              {getPersonCurrentProfessionLabel(
+                                person.current_profession,
                              ) ?? PLACEHOLDER}
                            </Cell>
                            <Cell className='padding-left--16'>
@@ -344,7 +285,7 @@ export default async function PersonsPage({
                                : PLACEHOLDER}
                            </Cell>
                            <Cell align='center'>
-                             {person.is_active ? (
+                              {person.is_public ? (
                                <Dot active inline />
                              ) : (
                                <Dot inline />
@@ -374,7 +315,6 @@ export default async function PersonsPage({
                     pageSize,
                     sort,
                     status,
-                    gender,
                     currentProfession,
                   )}
                   aria-label={dictionary.common.previous}
@@ -396,7 +336,6 @@ export default async function PersonsPage({
                     pageSize,
                     sort,
                     status,
-                    gender,
                     currentProfession,
                   )}
                   aria-label={dictionary.common.next}

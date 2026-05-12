@@ -16,12 +16,12 @@ const INITIAL_STATE: PersonActionState = { status: 'idle' };
 
 type PersonActivationToggleProps = Readonly<{
   personId: string;
-  isActive: boolean;
+  isPublic: boolean;
 }>;
 
 export default function PersonActivationToggle({
   personId,
-  isActive,
+  isPublic,
 }: PersonActivationToggleProps): React.JSX.Element {
   const router = useRouter();
   const { dictionary } = useI18n();
@@ -53,19 +53,19 @@ export default function PersonActivationToggle({
     state.status,
   ]);
 
-  const nextActive = !isActive;
+  const nextPublic = !isPublic;
   const label = pending
-    ? isActive
+    ? isPublic
       ? dictionary.persons.detail.deactivating
       : dictionary.persons.detail.activating
-    : isActive
+    : isPublic
       ? dictionary.persons.detail.makeInactive
       : dictionary.persons.detail.makeActive;
 
   return (
     <form action={formAction}>
       <input type='hidden' name='person_id' value={personId} />
-      <input type='hidden' name='is_active' value={String(nextActive)} />
+      <input type='hidden' name='is_public' value={String(nextPublic)} />
       <Button
         type='submit'
         disabled={pending}

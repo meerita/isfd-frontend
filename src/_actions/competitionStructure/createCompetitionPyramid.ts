@@ -74,7 +74,7 @@ export async function createCompetitionPyramid(
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    const result = {
+    const result: CompetitionPyramidActionState = {
       status: 'error',
       error: normalized.data,
     };

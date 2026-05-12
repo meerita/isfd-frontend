@@ -3,7 +3,6 @@
 'use client';
 
 import Card from '@/_components/Card';
-import Dot from '@/_components/Dot';
 import DataRowSection from '@/_components/layout/DataRowSection';
 import Grid from '@/_components/layout/Grid';
 import Section from '@/_components/layout/Section';
@@ -11,20 +10,22 @@ import SectionHeader from '@/_components/layout/SectionHeader';
 import DataRow from '@/_components/tables/DataRow';
 import Table from '@/_components/tables/Table';
 import Tbody from '@/_components/tables/Tbody';
-import type { CompetitionEdition } from '@/_types/competitionEdition';
 import { getCompetitionEditionStatusLabel } from '@/_constants/enums/competition';
+import type { CompetitionEdition } from '@/_types/competitionEdition';
 import { formatDateTime, PLACEHOLDER } from '../../_components/utils';
 
 type CompetitionEditionProfileSectionProps = Readonly<{
   competitionEdition: CompetitionEdition;
   competitionLabel?: string | null;
-  seasonLabel?: string | null;
+  competitionPyramidLabel?: string | null;
+  primaryCompetitionTierLabel?: string | null;
 }>;
 
 export default function CompetitionEditionProfileSection({
   competitionEdition,
   competitionLabel,
-  seasonLabel,
+  competitionPyramidLabel,
+  primaryCompetitionTierLabel,
 }: CompetitionEditionProfileSectionProps): React.JSX.Element {
   return (
     <Card>
@@ -37,12 +38,6 @@ export default function CompetitionEditionProfileSection({
                 <Tbody>
                   <DataRow label='Name' value={competitionEdition.name} />
                   <DataRow
-                    label='Code'
-                    value={competitionEdition.code ?? PLACEHOLDER}
-                    monospace
-                  />
-                  <DataRow label='Slug' value={competitionEdition.slug} monospace />
-                  <DataRow
                     label='Edition label'
                     value={competitionEdition.editionLabel ?? PLACEHOLDER}
                   />
@@ -51,31 +46,53 @@ export default function CompetitionEditionProfileSection({
                     value={competitionEdition.shortName ?? PLACEHOLDER}
                   />
                   <DataRow
-                    label='Status'
-                    value={getCompetitionEditionStatusLabel(competitionEdition.status)}
+                    label='Code'
+                    value={competitionEdition.code ?? PLACEHOLDER}
+                    monospace
+                  />
+                  <DataRow label='Slug' value={competitionEdition.slug} monospace />
+                  <DataRow
+                    label='Editorial status'
+                    value={getCompetitionEditionStatusLabel(
+                      competitionEdition.editorialStatus,
+                    )}
                   />
                   <DataRow
-                    label='Active'
-                    value={<Dot inline active={competitionEdition.isActive} />}
+                    label='Visibility'
+                    value={competitionEdition.isPublic ? 'Public' : 'Private'}
                   />
                 </Tbody>
               </Table>
             </DataRowSection>
+
             <DataRowSection title='Relations'>
               <Table>
                 <Tbody>
                   <DataRow
                     label='Competition'
-                    value={competitionLabel ?? competitionEdition.competitionId ?? PLACEHOLDER}
+                    value={competitionLabel ?? competitionEdition.competitionId}
                   />
                   <DataRow
-                    label='Season'
-                    value={seasonLabel ?? competitionEdition.seasonId ?? PLACEHOLDER}
+                    label='Competition pyramid'
+                    value={
+                      competitionPyramidLabel ??
+                      competitionEdition.competitionPyramidId ??
+                      PLACEHOLDER
+                    }
+                  />
+                  <DataRow
+                    label='Primary competition tier'
+                    value={
+                      primaryCompetitionTierLabel ??
+                      competitionEdition.primaryCompetitionTierId ??
+                      PLACEHOLDER
+                    }
                   />
                 </Tbody>
               </Table>
             </DataRowSection>
           </Section>
+
           <Section gap={32}>
             <DataRowSection title='Timing'>
               <Table>
@@ -89,13 +106,11 @@ export default function CompetitionEditionProfileSection({
                     label='Ended on'
                     value={competitionEdition.endedOn ?? PLACEHOLDER}
                   />
-                  <DataRow
-                    label='Sort order'
-                    value={competitionEdition.sortOrder}
-                  />
+                  <DataRow label='Sort order' value={competitionEdition.sortOrder} />
                 </Tbody>
               </Table>
             </DataRowSection>
+
             <DataRowSection title='Metadata'>
               <Table>
                 <Tbody>

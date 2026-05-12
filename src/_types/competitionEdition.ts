@@ -2,7 +2,7 @@
 
 import type { ApiErrorResponse } from '@/_types/api';
 import type { GeoMetadata } from '@/_types/country';
-import type { CompetitionEditionStatus } from '@/_constants/enums/competition';
+import type { CompetitionEditionEditorialStatus } from '@/_constants/enums/competition';
 
 export type CompetitionEditionSort =
   | 'created_at_asc'
@@ -20,29 +20,42 @@ export type CompetitionEditionSort =
 
 export type CompetitionEditionStatusFilter =
   | 'all'
-  | CompetitionEditionStatus;
-export type CompetitionEditionActiveStatusFilter =
-  | 'all'
-  | 'active'
-  | 'inactive';
+  | CompetitionEditionEditorialStatus;
+export type CompetitionEditionVisibilityFilter = 'all' | 'public' | 'private';
 
 export type CompetitionEdition = Readonly<{
   id: string;
-  competitionId: string | null;
-  seasonId: string | null;
+  competitionId: string;
+  competitionPyramidId: string | null;
+  primaryCompetitionTierId: string | null;
   code: string | null;
   slug: string;
   editionLabel: string | null;
   name: string;
+  competitionName: string | null;
+  competitionSlug: string | null;
   shortName: string | null;
   year: number | null;
   startedOn: string | null;
   endedOn: string | null;
-  status: CompetitionEditionStatus;
+  editorialStatus: CompetitionEditionEditorialStatus;
   sortOrder: number;
-  isActive: boolean;
+  isPublic: boolean;
   createdAt: string;
   updatedAt: string;
+}>;
+
+export type CompetitionEditionPublic = Readonly<{
+  slug: string;
+  name: string;
+  competitionName: string | null;
+  competitionSlug: string | null;
+  shortName: string | null;
+  editionLabel: string | null;
+  year: number | null;
+  startedOn: string | null;
+  endedOn: string | null;
+  editorialStatus: CompetitionEditionEditorialStatus;
 }>;
 
 export type CompetitionEditionListMetadata = GeoMetadata &
@@ -50,8 +63,10 @@ export type CompetitionEditionListMetadata = GeoMetadata &
     filters?: Readonly<{
       sort?: CompetitionEditionSort;
       status?: CompetitionEditionStatusFilter;
-      activeStatus?: CompetitionEditionActiveStatusFilter;
+      visibility?: CompetitionEditionVisibilityFilter;
       competitionId?: string;
+      competitionPyramidId?: string;
+      primaryCompetitionTierId?: string;
       year?: number | null;
       q?: string;
     }>;
@@ -69,22 +84,24 @@ export type CompetitionEditionDetailResponse = Readonly<{
 }>;
 
 export type CreateCompetitionEditionRequest = Readonly<{
-  name: string;
-  season_id: string | null;
+  edition_label: string;
+  competition_id: string;
+  competition_pyramid_id: string | null;
+  primary_competition_tier_id: string | null;
 }>;
 
 export type UpdateCompetitionEditionRequest = Readonly<{
-  competition_id?: string | null;
-  season_id?: string | null;
+  competition_id?: string;
+  competition_pyramid_id?: string | null;
+  primary_competition_tier_id?: string | null;
   edition_label?: string | null;
-  name?: string;
   short_name?: string | null;
   year?: number | null;
   started_on?: string | null;
   ended_on?: string | null;
-  status?: CompetitionEditionStatus | null;
+  editorial_status?: CompetitionEditionEditorialStatus | null;
   sort_order?: number | null;
-  is_active?: boolean | null;
+  is_public?: boolean;
 }>;
 
 export type UpdateCompetitionEditionCodeRequest = Readonly<{
@@ -95,4 +112,5 @@ export interface CompetitionEditionActionState {
   status: 'idle' | 'success' | 'error';
   error?: ApiErrorResponse;
   competitionEditionId?: string;
+  competitionEditionSlug?: string;
 }

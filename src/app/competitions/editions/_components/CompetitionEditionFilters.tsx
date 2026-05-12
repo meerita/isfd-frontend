@@ -17,9 +17,9 @@ import {
 import NAVIGATION from '@/_constants/navigation';
 import { useI18n } from '@/_i18n/I18nProvider';
 import type {
-  CompetitionEditionActiveStatusFilter,
   CompetitionEditionSort,
   CompetitionEditionStatusFilter,
+  CompetitionEditionVisibilityFilter,
 } from '@/_types/competitionEdition';
 
 type SelectorOption = Readonly<{
@@ -31,11 +31,15 @@ type CompetitionEditionFiltersProps = Readonly<{
   pageSize: number;
   sort: CompetitionEditionSort;
   status?: CompetitionEditionStatusFilter;
-  activeStatus?: CompetitionEditionActiveStatusFilter;
+  visibility?: CompetitionEditionVisibilityFilter;
   competitionId?: string;
+  competitionPyramidId?: string;
+  primaryCompetitionTierId?: string;
   year?: number;
   q?: string;
   competitions: ReadonlyArray<SelectorOption>;
+  competitionPyramids: ReadonlyArray<SelectorOption>;
+  competitionTiers: ReadonlyArray<SelectorOption>;
 }>;
 
 const FILTERS_TOAST_ID = 'competition-editions-filters-loading';
@@ -44,48 +48,53 @@ export default function CompetitionEditionFilters({
   pageSize,
   sort,
   status,
-  activeStatus,
+  visibility,
   competitionId,
+  competitionPyramidId,
+  primaryCompetitionTierId,
   year,
   q,
   competitions,
+  competitionPyramids,
+  competitionTiers,
 }: CompetitionEditionFiltersProps): React.JSX.Element {
   const { dictionary, locale } = useI18n();
   const formRef = useRef<HTMLFormElement>(null);
   const hasPendingNavigationRef = useRef(false);
 
-  useEffect(
-    function syncFilterToast(): void {
-      if (!hasPendingNavigationRef.current) {
-        return;
-      }
+  useEffect(() => {
+    if (!hasPendingNavigationRef.current) {
+      return;
+    }
 
-      hasPendingNavigationRef.current = false;
-      toast.dismiss(FILTERS_TOAST_ID);
-    },
-    [activeStatus, competitionId, pageSize, q, sort, status, year],
-  );
+    hasPendingNavigationRef.current = false;
+    toast.dismiss(FILTERS_TOAST_ID);
+  }, [
+    competitionId,
+    competitionPyramidId,
+    pageSize,
+    primaryCompetitionTierId,
+    q,
+    sort,
+    status,
+    visibility,
+    year,
+  ]);
 
-  const handleSubmit = useCallback(
-    function handleSubmit(): void {
-      hasPendingNavigationRef.current = true;
-      toast.loading(dictionary.competitions.editions.filters.updating, {
-        id: FILTERS_TOAST_ID,
-      });
-    },
-    [dictionary.competitions.editions.filters.updating],
-  );
+  const handleSubmit = useCallback(() => {
+    hasPendingNavigationRef.current = true;
+    toast.loading(dictionary.competitions.editions.filters.updating, {
+      id: FILTERS_TOAST_ID,
+    });
+  }, [dictionary.competitions.editions.filters.updating]);
 
-  const submitFilters = useCallback(
-    function submitFilters(): void {
-      handleSubmit();
-      formRef.current?.requestSubmit();
-    },
-    [handleSubmit],
-  );
+  const submitFilters = useCallback(() => {
+    handleSubmit();
+    formRef.current?.requestSubmit();
+  }, [handleSubmit]);
 
   const handleInputKeyDown = useCallback(
-    function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
+    (event: KeyboardEvent<HTMLInputElement>) => {
       if (event.key !== 'Enter') {
         return;
       }
@@ -106,8 +115,8 @@ export default function CompetitionEditionFilters({
       <input type='hidden' name='page' value='1' />
       <input type='hidden' name='page_size' value={String(pageSize)} />
 
-      <Grid gap={8} columns={6} alignItems='end'>
-        <Select name='sort' defaultValue={sort} onChange={submitFilters}>
+      <Grid gap={8} columns={8} alignItems='end'>
+        <Select label='Sort' name='sort' defaultValue={sort} onChange={submitFilters}>
           <option value='updated_at_desc'>
             {dictionary.competitions.editions.filters.updatedDesc}
           </option>
@@ -147,6 +156,7 @@ export default function CompetitionEditionFilters({
         </Select>
 
         <Select
+          label='Editorial status'
           name='status'
           defaultValue={status ?? 'all'}
           onChange={submitFilters}
@@ -162,18 +172,18 @@ export default function CompetitionEditionFilters({
         </Select>
 
         <Select
-          name='active_status'
-          defaultValue={activeStatus ?? 'all'}
+          label='Visibility'
+          name='visibility'
+          defaultValue={visibility ?? 'all'}
           onChange={submitFilters}
         >
-          <option value='all'>
-            {dictionary.competitions.editions.filters.allActiveStates}
-          </option>
-          <option value='active'>{dictionary.common.active}</option>
-          <option value='inactive'>{dictionary.common.inactive}</option>
+          <option value='all'>{dictionary.common.all}</option>
+          <option value='public'>Public</option>
+          <option value='private'>Private</option>
         </Select>
 
         <Select
+          label='Competition'
           name='competition_id'
           defaultValue={competitionId ?? ''}
           onChange={submitFilters}
@@ -188,7 +198,36 @@ export default function CompetitionEditionFilters({
           ))}
         </Select>
 
+        <Select
+          label='Competition pyramid'
+          name='competition_pyramid_id'
+          defaultValue={competitionPyramidId ?? ''}
+          onChange={submitFilters}
+        >
+          <option value=''>All competition pyramids</option>
+          {competitionPyramids.map(option => (
+            <option key={option.id} value={option.id}>
+              {option.name}
+            </option>
+          ))}
+        </Select>
+
+        <Select
+          label='Primary competition tier'
+          name='primary_competition_tier_id'
+          defaultValue={primaryCompetitionTierId ?? ''}
+          onChange={submitFilters}
+        >
+          <option value=''>All primary competition tiers</option>
+          {competitionTiers.map(option => (
+            <option key={option.id} value={option.id}>
+              {option.name}
+            </option>
+          ))}
+        </Select>
+
         <NumberInput
+          label='Year'
           name='year'
           type='number'
           placeholder={dictionary.competitions.editions.filters.yearPlaceholder}
@@ -198,6 +237,7 @@ export default function CompetitionEditionFilters({
         />
 
         <TextInput
+          label='Search'
           name='q'
           placeholder={dictionary.competitions.editions.filters.searchPlaceholder}
           defaultValue={q ?? ''}

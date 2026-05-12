@@ -9,6 +9,7 @@ import {
   useMemo,
   useState,
   type ChangeEvent,
+  type FormEvent,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -17,7 +18,6 @@ import { createCompetition } from '@/_actions/competition/createCompetition';
 import { updateCompetition } from '@/_actions/competition/updateCompetition';
 import Button from '@/_components/forms/Button';
 import CheckBoxInput from '@/_components/forms/CheckBoxInput';
-import FieldSet from '@/_components/forms/Fieldset';
 import Form from '@/_components/forms/Form';
 import NumberInput from '@/_components/forms/NumberInput';
 import Select from '@/_components/forms/Select';
@@ -31,61 +31,58 @@ import Title from '@/_components/typography/Title';
 import NAVIGATION from '@/_constants/navigation';
 import { resolveCompetitionAdminErrorMessage } from '@/_constants/competitionAdminErrorMessages';
 import { logCompetitionDebug } from '@/_helpers/competitionDebug';
+import type { ApiErrorResponse } from '@/_types/api';
 import type { Competition, CompetitionActionState } from '@/_types/competition';
 import {
-  formatDateForInput,
-  formatDateTime,
-} from '../../_components/utils';
+  createCompetitionFormValues,
+  ensureOption,
+  resolveCompetitionFormFieldErrors,
+  resolveCompetitionFormGlobalError,
+  type CompetitionFormField,
+  type CompetitionSelectOption,
+  type CompetitionTypeOption,
+  validateCompetitionFormValues,
+} from '../_lib/competitionAdmin';
+import { formatDateForInput, formatDateTime } from '../../_components/utils';
 
 const INITIAL_STATE: CompetitionActionState = { status: 'idle' };
 
-type SelectorOption = Readonly<{
-  id: string;
-  name: string;
-}>;
-
 type CompetitionFormProps = Readonly<{
   competition?: Competition | null;
-  competitionTypes: ReadonlyArray<SelectorOption>;
-  federations: ReadonlyArray<SelectorOption>;
-  countries: ReadonlyArray<SelectorOption>;
-  competitionPyramids: ReadonlyArray<{
-    id: string;
-    name: string;
-    countryId: string;
-    federationId: string | null;
-  }>;
-  competitionTiers: ReadonlyArray<{
-    id: string;
-    competitionPyramidId: string;
-    name: string;
-  }>;
+  competitionTypes: ReadonlyArray<CompetitionTypeOption>;
+  federations: ReadonlyArray<CompetitionSelectOption>;
+  countries: ReadonlyArray<CompetitionSelectOption>;
+  catalogError?: ApiErrorResponse;
   edit?: boolean;
   cancelHref?: string;
   successHref?: string;
 }>;
+
+type SelectField = 'competitionTypeId' | 'federationId' | 'countryId';
+type TextField = 'name' | 'originalName' | 'startedOn' | 'endedOn' | 'sortOrder';
+
+function getFieldError(
+  fieldErrors: Partial<Record<CompetitionFormField, string>>,
+  field: CompetitionFormField,
+): string | undefined {
+  return fieldErrors[field];
+}
 
 export default function CompetitionForm({
   competition,
   competitionTypes,
   federations,
   countries,
-  competitionPyramids,
-  competitionTiers,
+  catalogError,
   edit = false,
   cancelHref,
   successHref,
 }: CompetitionFormProps): React.JSX.Element {
   const router = useRouter();
-  const [selectedPyramidId, setSelectedPyramidId] = useState(
-    competition?.competitionPyramidId ?? '',
+  const [values, setValues] = useState(() =>
+    createCompetitionFormValues(competition),
   );
-  const [selectedPrimaryTierId, setSelectedPrimaryTierId] = useState(
-    competition?.primaryCompetitionTierId ?? '',
-  );
-  const [selectedAllowedTierIds, setSelectedAllowedTierIds] = useState<string[]>(
-    competition?.allowedCompetitionTierIds ? [...competition.allowedCompetitionTierIds] : [],
-  );
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [editState, editAction, editPending] = useActionState<
     CompetitionActionState,
     FormData
@@ -98,30 +95,77 @@ export default function CompetitionForm({
   const actionState = edit ? editState : createState;
   const formAction = edit ? editAction : createAction;
   const isPending = edit ? editPending : createPending;
-  const visibleTiers = useMemo(
-    () =>
-      competitionTiers.filter(
-        tier => tier.competitionPyramidId === selectedPyramidId,
-      ),
-    [competitionTiers, selectedPyramidId],
+
+  const clientFieldErrors = useMemo(
+    () => validateCompetitionFormValues(values),
+    [values],
   );
-  const visibleTierIds = useMemo(
-    () => new Set(visibleTiers.map(tier => tier.id)),
-    [visibleTiers],
+  const serverFieldErrors = useMemo(
+    () => resolveCompetitionFormFieldErrors(actionState.error),
+    [actionState.error],
+  );
+  const displayedFieldErrors = useMemo(
+    () =>
+      hasAttemptedSubmit
+        ? { ...serverFieldErrors, ...clientFieldErrors }
+        : serverFieldErrors,
+    [clientFieldErrors, hasAttemptedSubmit, serverFieldErrors],
+  );
+  const globalActionError = useMemo(
+    () => resolveCompetitionFormGlobalError(actionState.error),
+    [actionState.error],
+  );
+  const globalCatalogError = useMemo(
+    () => (catalogError ? resolveCompetitionAdminErrorMessage(catalogError) : null),
+    [catalogError],
+  );
+
+  const competitionTypeOptions = ensureOption(
+    competitionTypes,
+    competition?.competitionTypeId
+      ? {
+          value: competition.competitionTypeId,
+          label: competition.competitionTypeId,
+        }
+      : null,
+  );
+  const federationOptions = ensureOption(
+    federations,
+    competition?.federationId
+      ? {
+          value: competition.federationId,
+          label: competition.federationId,
+        }
+      : null,
+  );
+  const countryOptions = ensureOption(
+    countries,
+    competition?.countryId
+      ? {
+          value: competition.countryId,
+          label: competition.countryId,
+        }
+      : null,
   );
 
   useEffect(() => {
-    if (actionState.status === 'idle') return;
+    if (actionState.status === 'idle') {
+      return;
+    }
 
     logCompetitionDebug('CompetitionForm', 'actionState', {
       mode: edit ? 'edit' : 'create',
       status: actionState.status,
       error: actionState.error,
       competitionId: actionState.competitionId,
+      competitionSlug: actionState.competitionSlug,
     });
 
     if (actionState.status === 'error') {
-      toast.error(resolveCompetitionAdminErrorMessage(actionState.error));
+      const globalError = resolveCompetitionFormGlobalError(actionState.error);
+      if (globalError) {
+        toast.error(globalError);
+      }
       return;
     }
 
@@ -145,6 +189,7 @@ export default function CompetitionForm({
     router.refresh();
   }, [
     actionState.competitionId,
+    actionState.competitionSlug,
     actionState.error,
     actionState.status,
     competition?.id,
@@ -162,54 +207,53 @@ export default function CompetitionForm({
     router.push(NAVIGATION.COMPETITIONS_LIST);
   }, [cancelHref, router]);
 
-  const handlePyramidChange = useCallback(
-    (event: ChangeEvent<HTMLSelectElement>) => {
-      const nextPyramidId = event.target.value;
+  const handleSelectChange = useCallback(
+    (field: SelectField) =>
+      (event: ChangeEvent<HTMLSelectElement>) => {
+        setValues(previousValues => ({
+          ...previousValues,
+          [field]: event.target.value,
+        }));
+      },
+    [],
+  );
 
-      setSelectedPyramidId(nextPyramidId);
-      setSelectedPrimaryTierId('');
-      setSelectedAllowedTierIds([]);
+  const handleTextChange = useCallback(
+    (field: TextField) =>
+      (event: ChangeEvent<HTMLInputElement>) => {
+        setValues(previousValues => ({
+          ...previousValues,
+          [field]: event.target.value,
+        }));
+      },
+    [],
+  );
+
+  const handleVisibilityChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setValues(previousValues => ({
+        ...previousValues,
+        isPublic: event.target.checked,
+      }));
     },
     [],
   );
 
-  const handlePrimaryTierChange = useCallback(
-    (event: ChangeEvent<HTMLSelectElement>) => {
-      const nextPrimaryTierId = event.target.value;
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      setHasAttemptedSubmit(true);
 
-      setSelectedPrimaryTierId(nextPrimaryTierId);
-      setSelectedAllowedTierIds(previousIds => {
-        if (!nextPrimaryTierId || previousIds.includes(nextPrimaryTierId)) {
-          return previousIds;
-        }
-
-        return [...previousIds, nextPrimaryTierId];
-      });
-    },
-    [],
-  );
-
-  const handleAllowedTierChange = useCallback(
-    (tierId: string, checked: boolean) => {
-      setSelectedAllowedTierIds(previousIds => {
-        if (checked) {
-          return previousIds.includes(tierId)
-            ? previousIds
-            : [...previousIds, tierId];
-        }
-
-        return previousIds.filter(id => id !== tierId);
-      });
-
-      if (!checked && selectedPrimaryTierId === tierId) {
-        setSelectedPrimaryTierId('');
+      if (Object.keys(clientFieldErrors).length > 0) {
+        event.preventDefault();
       }
     },
-    [selectedPrimaryTierId],
+    [clientFieldErrors],
   );
 
+  const globalErrorMessage = globalActionError ?? globalCatalogError ?? null;
+
   return (
-    <Form action={formAction}>
+    <Form action={formAction} onSubmit={handleSubmit}>
       {edit && competition ? (
         <>
           <input type='hidden' name='competitionId' value={competition.id} />
@@ -218,8 +262,12 @@ export default function CompetitionForm({
             name='original_competitionTypeId'
             value={competition.competitionTypeId}
           />
-          <input type='hidden' name='original_code' value={competition.code} />
           <input type='hidden' name='original_name' value={competition.name} />
+          <input
+            type='hidden'
+            name='original_originalName'
+            value={competition.originalName ?? ''}
+          />
           <input
             type='hidden'
             name='original_federationId'
@@ -229,21 +277,6 @@ export default function CompetitionForm({
             type='hidden'
             name='original_countryId'
             value={competition.countryId ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_competitionPyramidId'
-            value={competition.competitionPyramidId ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_primaryCompetitionTierId'
-            value={competition.primaryCompetitionTierId ?? ''}
-          />
-          <input
-            type='hidden'
-            name='original_allowedCompetitionTierIds'
-            value={JSON.stringify(competition.allowedCompetitionTierIds)}
           />
           <input
             type='hidden'
@@ -262,8 +295,8 @@ export default function CompetitionForm({
           />
           <input
             type='hidden'
-            name='original_isActive'
-            value={competition.isActive ? 'true' : 'false'}
+            name='original_isPublic'
+            value={competition.isPublic ? 'true' : 'false'}
           />
         </>
       ) : null}
@@ -273,164 +306,151 @@ export default function CompetitionForm({
           <Title size='small'>
             {edit ? 'Competition configuration' : 'Create competition'}
           </Title>
+
+          <Text size='small' color='gray'>
+            Code and slug are generated by the backend from the canonical competition
+            name.
+          </Text>
+
+          {globalErrorMessage ? (
+            <Text size='small' color='red'>
+              {globalErrorMessage}
+            </Text>
+          ) : null}
+
           <Grid gap={16} columns={2}>
             <Section gap={16}>
               <Select
                 label='Competition type'
                 name='competitionTypeId'
-                defaultValue={competition?.competitionTypeId ?? ''}
+                value={values.competitionTypeId}
+                onChange={handleSelectChange('competitionTypeId')}
                 disabled={isPending}
+                error={Boolean(getFieldError(displayedFieldErrors, 'competition_type_id'))}
+                helperText={getFieldError(displayedFieldErrors, 'competition_type_id')}
               >
                 <option value=''>Select a competition type</option>
-                {competitionTypes.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
+                {competitionTypeOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </Select>
-              <TextInput
-                label='Code'
-                name='code'
-                placeholder='UEFA_CHAMPIONS_LEAGUE'
-                defaultValue={competition?.code ?? ''}
-                required
-                disabled={isPending}
-              />
+
               <TextInput
                 label='Name'
                 name='name'
-                placeholder='UEFA Champions League'
-                defaultValue={competition?.name ?? ''}
+                placeholder='Primera División'
+                value={values.name}
+                onChange={handleTextChange('name')}
                 required
                 disabled={isPending}
+                error={Boolean(getFieldError(displayedFieldErrors, 'name'))}
+                helperText={getFieldError(displayedFieldErrors, 'name')}
               />
+
+              <TextInput
+                label='Original name'
+                name='originalName'
+                placeholder='Campeonato Nacional de Liga de Primera División'
+                value={values.originalName}
+                onChange={handleTextChange('originalName')}
+                disabled={isPending}
+                error={Boolean(getFieldError(displayedFieldErrors, 'original_name'))}
+                helperText={getFieldError(displayedFieldErrors, 'original_name')}
+              />
+
               <Select
                 label='Federation'
                 name='federationId'
-                defaultValue={competition?.federationId ?? ''}
+                value={values.federationId}
+                onChange={handleSelectChange('federationId')}
                 disabled={isPending}
+                error={Boolean(getFieldError(displayedFieldErrors, 'federation_id'))}
+                helperText={getFieldError(displayedFieldErrors, 'federation_id')}
               >
                 <option value=''>No federation</option>
-                {federations.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
+                {federationOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </Select>
+
               <Select
                 label='Country'
                 name='countryId'
-                defaultValue={competition?.countryId ?? ''}
+                value={values.countryId}
+                onChange={handleSelectChange('countryId')}
                 disabled={isPending}
+                error={Boolean(getFieldError(displayedFieldErrors, 'country_id'))}
+                helperText={getFieldError(displayedFieldErrors, 'country_id')}
               >
                 <option value=''>No country</option>
-                {countries.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
+                {countryOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </Select>
-              <Select
-                label='Competition pyramid'
-                name='competitionPyramidId'
-                value={selectedPyramidId}
-                onChange={handlePyramidChange}
-                disabled={isPending}
-              >
-                <option value=''>No competition pyramid</option>
-                {competitionPyramids.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
-              </Select>
-              <Select
-                label='Primary competition tier'
-                name='primaryCompetitionTierId'
-                value={selectedPrimaryTierId}
-                onChange={handlePrimaryTierChange}
-                disabled={isPending || !selectedPyramidId}
-              >
-                <option value=''>No primary tier</option>
-                {visibleTiers.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
-              </Select>
-              <FieldSet disabled={isPending || !selectedPyramidId} display='grid' gap={8}>
-                <Text size='small' weight='semibold'>
-                  Allowed competition tiers
-                </Text>
-                {!selectedPyramidId ? (
-                  <Text size='small' color='gray'>
-                    Select a competition pyramid to choose the allowed tiers.
-                  </Text>
-                ) : visibleTiers.length === 0 ? (
-                  <Text size='small' color='gray'>
-                    No tiers are available for the selected competition pyramid.
-                  </Text>
-                ) : (
-                  <Grid gap={8}>
-                    {visibleTiers.map(tier => {
-                      const isChecked = selectedAllowedTierIds.includes(tier.id);
 
-                      return (
-                        <CheckBoxInput
-                          key={`${tier.id}-${isChecked ? 'checked' : 'unchecked'}`}
-                          label={tier.name}
-                          name='allowedCompetitionTierIds'
-                          value={tier.id}
-                          defaultChecked={isChecked}
-                          onChange={event =>
-                            handleAllowedTierChange(tier.id, event.target.checked)
-                          }
-                        />
-                      );
-                    })}
-                  </Grid>
-                )}
-              </FieldSet>
               <TextInput
                 label='Started on'
                 name='startedOn'
                 type='date'
-                defaultValue={formatDateForInput(competition?.startedOn)}
+                value={formatDateForInput(values.startedOn)}
+                onChange={handleTextChange('startedOn')}
                 disabled={isPending}
+                error={Boolean(getFieldError(displayedFieldErrors, 'started_on'))}
+                helperText={getFieldError(displayedFieldErrors, 'started_on')}
               />
+
               <TextInput
                 label='Ended on'
                 name='endedOn'
                 type='date'
-                defaultValue={formatDateForInput(competition?.endedOn)}
+                value={formatDateForInput(values.endedOn)}
+                onChange={handleTextChange('endedOn')}
                 disabled={isPending}
+                error={Boolean(getFieldError(displayedFieldErrors, 'ended_on'))}
+                helperText={getFieldError(displayedFieldErrors, 'ended_on')}
               />
+
               <NumberInput
                 label='Sort order'
                 name='sortOrder'
                 type='number'
                 min='0'
-                defaultValue={String(competition?.sortOrder ?? 0)}
+                value={values.sortOrder}
+                onChange={handleTextChange('sortOrder')}
                 disabled={isPending}
+                error={Boolean(getFieldError(displayedFieldErrors, 'sort_order'))}
+                helperText={getFieldError(displayedFieldErrors, 'sort_order')}
               />
-              <CheckBoxInput
-                label='Active'
-                name='isActive'
-                value='true'
-                defaultChecked={competition?.isActive ?? true}
-                disabled={isPending}
-              />
+
+              <Grid gap={8}>
+                <CheckBoxInput
+                  key={values.isPublic ? 'public-true' : 'public-false'}
+                  label='Public visibility'
+                  name='isPublic'
+                  value='true'
+                  defaultChecked={values.isPublic}
+                  disabled={isPending}
+                  onChange={handleVisibilityChange}
+                />
+                {getFieldError(displayedFieldErrors, 'is_public') ? (
+                  <Text size='small' color='red'>
+                    {getFieldError(displayedFieldErrors, 'is_public')}
+                  </Text>
+                ) : null}
+              </Grid>
             </Section>
 
             {edit && competition ? (
               <Section gap={16}>
                 <TextInput label='ID' defaultValue={competition.id} readOnly disabled />
-                <TextInput
-                  label='Slug'
-                  defaultValue={competition.slug}
-                  readOnly
-                  disabled
-                />
+                <TextInput label='Code' defaultValue={competition.code} readOnly disabled />
+                <TextInput label='Slug' defaultValue={competition.slug} readOnly disabled />
                 <TextInput
                   label='Created at'
                   defaultValue={formatDateTime(competition.createdAt)}
@@ -443,11 +463,6 @@ export default function CompetitionForm({
                   readOnly
                   disabled
                 />
-                {selectedPyramidId && !visibleTierIds.has(selectedPrimaryTierId) ? (
-                  <Text size='small' color='gray'>
-                    The selected primary tier no longer belongs to the active pyramid.
-                  </Text>
-                ) : null}
               </Section>
             ) : null}
           </Grid>

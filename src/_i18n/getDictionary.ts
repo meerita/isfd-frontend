@@ -55,6 +55,7 @@ export interface AppDictionary {
     readonly brands: string;
     readonly clubs: string;
     readonly competitions: string;
+    readonly contributions: string;
     readonly countries: string;
     readonly dashboard: string;
     readonly federations: string;
@@ -63,7 +64,94 @@ export interface AppDictionary {
     readonly stadiums: string;
     readonly users: string;
   };
+  readonly contributions: {
+    readonly list: {
+      readonly title: string;
+      readonly loadErrorTitle: string;
+      readonly emptyState: string;
+      readonly paginationLabel: string;
+      readonly headers: {
+        readonly id: string;
+        readonly type: string;
+        readonly targetEntityType: string;
+        readonly targetEntityId: string;
+        readonly assetId: string;
+        readonly submittedByUserId: string;
+        readonly reviewStatus: string;
+        readonly createdAt: string;
+        readonly updatedAt: string;
+        readonly actions: string;
+      };
+      readonly filters: {
+        readonly updating: string;
+        readonly sort: string;
+        readonly reviewStatus: string;
+        readonly targetEntityType: string;
+        readonly allReviewStatuses: string;
+        readonly allTargets: string;
+        readonly pendingStatus: string;
+        readonly approvedStatus: string;
+        readonly rejectedStatus: string;
+        readonly stadiumOnly: string;
+        readonly personOnly: string;
+        readonly updatedDesc: string;
+        readonly updatedAsc: string;
+        readonly createdDesc: string;
+        readonly createdAsc: string;
+      };
+    };
+    readonly detail: {
+      readonly unavailableTitle: string;
+      readonly missingId: string;
+      readonly pendingHelp: string;
+    };
+    readonly fields: {
+      readonly id: string;
+      readonly submittedByUserId: string;
+      readonly contributionType: string;
+      readonly targetEntityType: string;
+      readonly targetEntityId: string;
+      readonly assetId: string;
+      readonly reviewStatus: string;
+      readonly reviewedByUserId: string;
+      readonly reviewedAt: string;
+      readonly createdAt: string;
+      readonly updatedAt: string;
+    };
+    readonly labels: {
+      readonly reviewStatus: {
+        readonly pending: string;
+        readonly approved: string;
+        readonly rejected: string;
+      };
+      readonly contributionType: {
+        readonly stadiumImageSubmission: string;
+        readonly personPortraitSubmission: string;
+      };
+      readonly targetEntityType: {
+        readonly stadium: string;
+        readonly person: string;
+      };
+    };
+    readonly actions: {
+      readonly view: string;
+      readonly approve: string;
+      readonly approvePending: string;
+      readonly reject: string;
+      readonly rejectPending: string;
+      readonly approveConfirmTitle: string;
+      readonly approveConfirmBody: string;
+      readonly rejectConfirmTitle: string;
+      readonly rejectConfirmBody: string;
+      readonly approveSuccess: string;
+      readonly rejectSuccess: string;
+      readonly defaultError: string;
+      readonly alreadyReviewed: string;
+    };
+    readonly errors: Readonly<Record<string, string>>;
+  };
   readonly competitions: {
+    readonly title: string;
     readonly overviewIntro: string;
     readonly totalSuffix: string;
     readonly actions: {
@@ -124,20 +212,22 @@ export interface AppDictionary {
         readonly competitionType: string;
         readonly federation: string;
         readonly country: string;
-        readonly active: string;
+        readonly visibility: string;
         readonly created: string;
         readonly updated: string;
       };
       readonly filters: {
         readonly updating: string;
         readonly sort: string;
-        readonly status: string;
+        readonly visibility: string;
         readonly competitionType: string;
         readonly federation: string;
         readonly country: string;
         readonly allCompetitionTypes: string;
         readonly allFederations: string;
         readonly allCountries: string;
+        readonly publicOnly: string;
+        readonly privateOnly: string;
         readonly updatedDesc: string;
         readonly updatedAsc: string;
         readonly createdDesc: string;
@@ -146,13 +236,18 @@ export interface AppDictionary {
         readonly nameDesc: string;
         readonly sortOrderAsc: string;
         readonly sortOrderDesc: string;
-        readonly activeFirst: string;
-        readonly inactiveFirst: string;
+        readonly publicFirst: string;
+        readonly privateFirst: string;
+      };
+      readonly visibility: {
+        readonly public: string;
+        readonly private: string;
       };
     };
     readonly pyramids: {
       readonly title: string;
       readonly createAction: string;
+      readonly createTitle: string;
       readonly loadErrorTitle: string;
       readonly emptyState: string;
       readonly paginationLabel: string;
@@ -161,6 +256,8 @@ export interface AppDictionary {
         readonly country: string;
         readonly federation: string;
         readonly scope: string;
+        readonly branch: string;
+        readonly validity: string;
         readonly active: string;
         readonly updated: string;
       };
@@ -171,15 +268,82 @@ export interface AppDictionary {
         readonly country: string;
         readonly federation: string;
         readonly scope: string;
+        readonly branch: string;
+        readonly asOfDate: string;
         readonly allCountries: string;
         readonly allFederations: string;
         readonly allScopes: string;
+        readonly allBranches: string;
         readonly updatedDesc: string;
         readonly updatedAsc: string;
         readonly createdDesc: string;
         readonly createdAsc: string;
         readonly nameAsc: string;
         readonly nameDesc: string;
+      };
+      readonly detail: {
+        readonly profile: string;
+        readonly tiers: string;
+        readonly competitions: string;
+        readonly unavailableTitle: string;
+        readonly missingId: string;
+        readonly backToList: string;
+        readonly tiersTitle: string;
+        readonly tiersEmpty: string;
+        readonly competitionsTitle: string;
+        readonly competitionsEmpty: string;
+      };
+      readonly sections: {
+        readonly identity: string;
+        readonly relations: string;
+        readonly validity: string;
+        readonly metadata: string;
+      };
+      readonly fields: {
+        readonly id: string;
+        readonly versionId: string;
+        readonly name: string;
+        readonly code: string;
+        readonly slug: string;
+        readonly country: string;
+        readonly federation: string;
+        readonly scope: string;
+        readonly branch: string;
+        readonly validFrom: string;
+        readonly validTo: string;
+        readonly active: string;
+        readonly createdAt: string;
+        readonly updatedAt: string;
+      };
+      readonly form: {
+        readonly createTitle: string;
+        readonly editTitle: string;
+        readonly countryPlaceholder: string;
+        readonly federationPlaceholder: string;
+        readonly noFederation: string;
+        readonly branchPlaceholder: string;
+        readonly submitCreate: string;
+        readonly submitCreatePending: string;
+        readonly submitUpdate: string;
+        readonly submitUpdatePending: string;
+        readonly successCreate: string;
+        readonly successUpdate: string;
+      };
+      readonly delete: {
+        readonly action: string;
+        readonly confirmTitle: string;
+        readonly confirmBody: string;
+        readonly confirmAction: string;
+        readonly pending: string;
+        readonly success: string;
+        readonly errors: {
+          readonly notFound: string;
+          readonly hasRelations: string;
+          readonly invalidId: string;
+          readonly unauthorized: string;
+          readonly forbidden: string;
+          readonly unexpected: string;
+        };
       };
     };
     readonly tiers: {
@@ -354,17 +518,15 @@ export interface AppDictionary {
     readonly loadErrorTitle: string;
     readonly emptyState: string;
     readonly paginationLabel: string;
-    readonly avatarMissing: string;
-    readonly avatarAvailable: string;
     readonly headers: {
-      readonly avatar: string;
+      readonly portraitAssetId: string;
       readonly fullName: string;
       readonly slug: string;
       readonly displayName: string;
       readonly gender: string;
       readonly currentProfession: string;
       readonly primaryNationality: string;
-      readonly active: string;
+      readonly public: string;
       readonly created: string;
       readonly updated: string;
     };
@@ -384,8 +546,10 @@ export interface AppDictionary {
       readonly fullNameDesc: string;
       readonly displayNameAsc: string;
       readonly displayNameDesc: string;
-      readonly activeFirst: string;
-      readonly inactiveFirst: string;
+      readonly publicFirst: string;
+      readonly privateFirst: string;
+      readonly publicStatus: string;
+      readonly privateStatus: string;
     };
     readonly detail: {
       readonly deletePerson: string;
@@ -408,8 +572,13 @@ export interface AppDictionary {
       readonly physicalDetails: string;
       readonly professionalInformation: string;
       readonly sectionsPending: string;
-      readonly noAvatarAvailable: string;
-      readonly noHeroAvailable: string;
+      readonly portraitAssetResolverHint: string;
+      readonly portraitUploadTitle: string;
+      readonly portraitUploadHint: string;
+      readonly portraitFileLabel: string;
+      readonly portraitUploadAction: string;
+      readonly portraitUploading: string;
+      readonly portraitUploadSuccess: string;
       readonly notAvailableTitle: string;
       readonly backToPersons: string;
     };
@@ -439,16 +608,18 @@ export interface AppDictionary {
       readonly hairColor: string;
       readonly ethnicity: string;
       readonly skinColor: string;
-      readonly birthLocationId: string;
-      readonly currentCityId: string;
+      readonly birthLocation: string;
+      readonly currentLocation: string;
+      readonly country: string;
+      readonly province: string;
+      readonly city: string;
       readonly primaryNationalityCountry: string;
       readonly primaryNationalityCountryTitle: string;
       readonly currentProfession: string;
       readonly dominantFoot: string;
       readonly professionalDebutDate: string;
       readonly retirementDate: string;
-      readonly avatarImageUrl: string;
-      readonly heroImageUrl: string;
+      readonly portraitAssetId: string;
       readonly id: string;
       readonly slug: string;
       readonly createdAt: string;
@@ -459,6 +630,17 @@ export interface AppDictionary {
       readonly noEthnicity: string;
       readonly noSkinColor: string;
       readonly noCountry: string;
+      readonly noProvince: string;
+      readonly noCity: string;
+      readonly selectCountryToEnableProvinces: string;
+      readonly loadingProvinces: string;
+      readonly provincesLoadError: string;
+      readonly noProvincesAvailable: string;
+      readonly selectCountryToEnableCities: string;
+      readonly selectProvinceToEnableCities: string;
+      readonly loadingCities: string;
+      readonly citiesLoadError: string;
+      readonly noCitiesAvailable: string;
       readonly noCurrentProfession: string;
       readonly noDominantFoot: string;
       readonly createPending: string;
@@ -476,8 +658,7 @@ export interface AppDictionary {
         readonly secondSurname: string;
         readonly knownAs: string;
         readonly nativeFullName: string;
-        readonly avatarImageUrl: string;
-        readonly heroImageUrl: string;
+        readonly portraitAssetId: string;
       };
       readonly titles: {
         readonly nativeFullName: string;
@@ -553,6 +734,30 @@ export interface AppDictionary {
       readonly noImageAvailable: string;
       readonly notAvailableTitle: string;
       readonly backToStadiums: string;
+      readonly primaryImage: string;
+      readonly gallery: string;
+      readonly emptyGallery: string;
+      readonly uploadImagesTitle: string;
+      readonly uploadImagesHint: string;
+      readonly uploadImagesLabel: string;
+      readonly uploadImagesAction: string;
+      readonly uploadingImages: string;
+      readonly uploadImagesSuccess: string;
+      readonly deleteImageAction: string;
+      readonly deletingImage: string;
+      readonly deleteImageSuccess: string;
+      readonly deleteImageConfirm: string;
+      readonly imageAttachmentId: string;
+      readonly imageAssetId: string;
+      readonly imagePrimary: string;
+      readonly imageSortOrder: string;
+      readonly imageJobId: string;
+      readonly processingUploads: string;
+      readonly processingUploadsHint: string;
+      readonly processingStatus: string;
+      readonly processingStatusValue: string;
+      readonly refreshGalleryAction: string;
+      readonly defaultMediaError: string;
     };
     readonly form: {
       readonly name: string;
@@ -561,9 +766,15 @@ export interface AppDictionary {
       readonly primaryClubId: string;
       readonly formerNames: string;
       readonly activeLabel: string;
+      readonly publicLabel: string;
       readonly countryId: string;
       readonly cityId: string;
-      readonly imageUrl: string;
+      readonly officialWebsiteUrl: string;
+      readonly pitchSize: string;
+      readonly openedOn: string;
+      readonly closedOn: string;
+      readonly isIndoor: string;
+      readonly isRoofed: string;
       readonly id: string;
       readonly slug: string;
       readonly createdAt: string;
@@ -602,12 +813,12 @@ export interface AppDictionary {
       readonly shortName: string;
       readonly acronym: string;
       readonly foundationDate: string;
+      readonly dissolutionDate: string;
       readonly countryId: string;
       readonly cityId: string;
       readonly officialWebsiteUrl: string;
       readonly iconUrl: string;
       readonly heroImageUrl: string;
-      readonly description: string;
       readonly activeLabel: string;
       readonly id: string;
       readonly slug: string;

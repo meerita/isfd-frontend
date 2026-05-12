@@ -111,7 +111,7 @@ export function buildCreateBrandBody(
 
   const body: Record<string, unknown> = {
     name,
-    is_active: bool(formData, 'isActive', true),
+    is_public: bool(formData, 'isActive', true),
   };
 
   if (websiteUrl !== null) body.website_url = websiteUrl;
@@ -217,7 +217,7 @@ export function buildUpdateBrandBody(formData: FormData): {
   const isActive = bool(formData, 'isActive', false);
   const originalIsActive = bool(formData, 'original_isActive', false);
   if (isActive !== originalIsActive) {
-    body.is_active = isActive;
+    body.is_public = isActive;
   }
 
   return { brandId, body };

@@ -13,7 +13,6 @@ const ITEMS = [
   { href: NAVIGATION.COMPETITIONS, label: 'Overview' },
   { href: NAVIGATION.COMPETITION_TYPES, label: 'Competition Types' },
   { href: NAVIGATION.COMPETITIONS_LIST, label: 'Competitions' },
-  { href: NAVIGATION.COMPETITION_SEASONS, label: 'Seasons' },
   { href: NAVIGATION.COMPETITION_EDITIONS, label: 'Competition Editions' },
 ] as const;
 

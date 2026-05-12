@@ -2,10 +2,10 @@
 
 import type {
   CompetitionEdition,
-  CompetitionEditionActiveStatusFilter,
   CompetitionEditionListMetadata,
   CompetitionEditionSort,
   CompetitionEditionStatusFilter,
+  CompetitionEditionVisibilityFilter,
 } from '@/_types/competitionEdition';
 import { parseCompetitionEditionStatus } from '@/_constants/enums/competition';
 
@@ -18,12 +18,14 @@ function toStringValue(value: unknown): string {
   if (typeof value === 'string') return value;
   if (value === null || value === undefined) return '';
   if (typeof value === 'object') return JSON.stringify(value);
+
   return String(value ?? '');
 }
 
 function toNullableString(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
+
   return trimmed.length > 0 ? trimmed : null;
 }
 
@@ -35,24 +37,36 @@ function toNumberValue(value: unknown, fallback = 0): number {
   return Number.isFinite(Number(value)) ? Number(value) : fallback;
 }
 
-export function mapCompetitionEdition(
-  raw: RawCompetitionEdition,
-): CompetitionEdition {
+export function mapCompetitionEdition(raw: RawCompetitionEdition): CompetitionEdition {
   return {
     id: toStringValue(raw.id),
-    competitionId: toNullableString(raw.competition_id ?? raw.competitionId),
-    seasonId: toNullableString(raw.season_id ?? raw.seasonId),
+    competitionId: toStringValue(raw.competition_id ?? raw.competitionId),
+    competitionPyramidId: toNullableString(
+      raw.competition_pyramid_id ?? raw.competitionPyramidId,
+    ),
+    primaryCompetitionTierId: toNullableString(
+      raw.primary_competition_tier_id ?? raw.primaryCompetitionTierId,
+    ),
     code: toNullableString(raw.code),
     slug: toStringValue(raw.slug),
     editionLabel: toNullableString(raw.edition_label ?? raw.editionLabel),
     name: toStringValue(raw.name),
+    competitionName: toNullableString(
+      raw.competition_name ?? raw.competitionName,
+    ),
+    competitionSlug: toNullableString(
+      raw.competition_slug ?? raw.competitionSlug,
+    ),
     shortName: toNullableString(raw.short_name ?? raw.shortName),
     year: toNullableNumber(raw.year),
     startedOn: toNullableString(raw.started_on ?? raw.startedOn),
     endedOn: toNullableString(raw.ended_on ?? raw.endedOn),
-    status: parseCompetitionEditionStatus(toStringValue(raw.status)) ?? 'DRAFT',
+    editorialStatus:
+      parseCompetitionEditionStatus(
+        toStringValue(raw.editorial_status ?? raw.editorialStatus),
+      ) ?? 'DRAFT',
     sortOrder: toNumberValue(raw.sort_order ?? raw.sortOrder),
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    isPublic: Boolean(raw.is_public ?? raw.isPublic ?? false),
     createdAt: toStringValue(raw.created_at ?? raw.createdAt),
     updatedAt: toStringValue(raw.updated_at ?? raw.updatedAt),
   };
@@ -85,17 +99,27 @@ export function mapCompetitionEditionMetadata(
             typeof filters.status === 'string'
               ? (filters.status as CompetitionEditionStatusFilter)
               : undefined,
-          activeStatus:
-            typeof filters.active_status === 'string'
-              ? (filters.active_status as CompetitionEditionActiveStatusFilter)
-              : typeof filters.activeStatus === 'string'
-                ? (filters.activeStatus as CompetitionEditionActiveStatusFilter)
-                : undefined,
+          visibility:
+            typeof filters.visibility === 'string'
+              ? (filters.visibility as CompetitionEditionVisibilityFilter)
+              : undefined,
           competitionId:
             typeof filters.competition_id === 'string'
               ? filters.competition_id
               : typeof filters.competitionId === 'string'
                 ? filters.competitionId
+                : undefined,
+          competitionPyramidId:
+            typeof filters.competition_pyramid_id === 'string'
+              ? filters.competition_pyramid_id
+              : typeof filters.competitionPyramidId === 'string'
+                ? filters.competitionPyramidId
+                : undefined,
+          primaryCompetitionTierId:
+            typeof filters.primary_competition_tier_id === 'string'
+              ? filters.primary_competition_tier_id
+              : typeof filters.primaryCompetitionTierId === 'string'
+                ? filters.primaryCompetitionTierId
                 : undefined,
           year:
             Number.isFinite(Number(filters.year)) && filters.year !== null

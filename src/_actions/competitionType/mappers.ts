@@ -44,7 +44,7 @@ export function mapCompetitionTypeListItem(
         toStringValue(raw.participant_scope ?? raw.participantScope),
       ) ?? 'CLUB',
     sortOrder: toNumberValue(raw.sort_order ?? raw.sortOrder),
-    isActive: Boolean(raw.is_active ?? raw.isActive ?? false),
+    isActive: Boolean(raw.is_public ?? raw.isPublic ?? raw.is_active ?? raw.isActive ?? false),
     createdAt: toStringValue(raw.created_at ?? raw.createdAt),
     updatedAt: toStringValue(raw.updated_at ?? raw.updatedAt),
   };

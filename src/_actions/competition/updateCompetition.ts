@@ -10,6 +10,7 @@ import { logCompetitionDebug } from '@/_helpers/competitionDebug';
 import { logApiError, normalizeApiError } from '@/_lib/apiError';
 import getServerAxios from '@/_lib/getServerAxios';
 import type { CompetitionActionState } from '@/_types/competition';
+import { mapCompetition } from './mappers';
 import { buildUpdateCompetitionBody } from './payload';
 
 export async function updateCompetition(
@@ -36,7 +37,7 @@ export async function updateCompetition(
   }
 
   if (Object.keys(body).length === 0) {
-    const result = {
+    const result: CompetitionActionState = {
       status: 'success',
       competitionId,
     };
@@ -56,13 +57,18 @@ export async function updateCompetition(
       API_ROUTES.COMPETITION_ADMIN_BY_ID(competitionId),
       body,
     );
+    const competition =
+      typeof data === 'object' && data !== null
+        ? mapCompetition(data as Record<string, unknown>)
+        : null;
 
     revalidatePath(NAVIGATION.COMPETITIONS_LIST);
     revalidatePath(NAVIGATION.COMPETITION_BY_ID(competitionId));
 
-    const result = {
+    const result: CompetitionActionState = {
       status: 'success',
       competitionId,
+      competitionSlug: competition?.slug,
     };
     logCompetitionDebug('competition.update', 'response', {
       competitionId,
@@ -74,7 +80,7 @@ export async function updateCompetition(
   } catch (caughtError) {
     const normalized = normalizeApiError(caughtError);
     logApiError(normalized);
-    const result = {
+    const result: CompetitionActionState = {
       status: 'error',
       error: normalized.data,
     };
